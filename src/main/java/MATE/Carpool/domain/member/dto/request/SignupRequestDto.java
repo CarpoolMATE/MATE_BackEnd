@@ -23,5 +23,5 @@ public class SignupRequestDto {
     @Pattern(regexp = "^[a-zA-Z\\p{Punct}0-9]*$", message = "비밀번호는 5~20자 영문, 숫자를 사용하세요.")
     private String password;
 
-    private String name;
+    private String nickname;
 }
