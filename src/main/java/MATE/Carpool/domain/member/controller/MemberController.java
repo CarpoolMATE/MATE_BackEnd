@@ -33,7 +33,7 @@ public class MemberController {
         return memberService.signIn(memberRequestDto);
     }
     @PostMapping("signUp")
-    public ResponseEntity<MemberResponseDto> signUp(@RequestBody SignupRequestDto requestDto) {
+    public ResponseEntity<String> signUp(@RequestBody SignupRequestDto requestDto) {
         return memberService.signUp(requestDto);
     }
 
@@ -42,7 +42,7 @@ public class MemberController {
         return memberService.getMember(id);
     }
     @PostMapping("driver")
-    public ResponseEntity<MemberResponseDto> signUpDriver(@RequestBody DriverRequestDto driverRequestDto) {
+    public ResponseEntity<MemberResponseDto> signUpDriver(@RequestBody DriverRequestDto driverRequestDto) throws Exception {
         return memberService.signUpDriver(driverRequestDto);
     }
 

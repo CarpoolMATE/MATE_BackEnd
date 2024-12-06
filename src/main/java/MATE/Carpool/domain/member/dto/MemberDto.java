@@ -15,10 +15,4 @@ public class MemberDto {
     private String email;
     private String profileImage;
 
-
-
-
-
-    private ProviderType providerType = ProviderType.MATE;
-    private MemberType memberType =MemberType.STANDARD;
 }
