@@ -16,7 +16,7 @@ public class Member extends TimeStamped{
     @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;
 
-    @Column
+    @Column(nullable = false, unique = true)
     String memberId;
 
     @Column(nullable = false, unique = true)
@@ -36,7 +36,7 @@ public class Member extends TimeStamped{
     @Enumerated(EnumType.STRING)
     MemberType memberType =MemberType.STANDARD;
 
-    @Column(nullable = false)
+    @Column
     @Setter
     String profileImage;
 
