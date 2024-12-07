@@ -48,7 +48,7 @@ public class SecurityConfig {
 
 
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+               
                 .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(HttpBasicConfigurer::disable)
                 .formLogin(FormLoginConfigurer::disable)
@@ -73,19 +73,6 @@ public class SecurityConfig {
 //        UserDetails user = User.withUsername("user").password("{noop}1111").roles("USER").build();
 //        return new InMemoryUserDetailsManager(user);
 //    }
-@Bean
-public CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOrigins(List.of("*"));
-    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
-    configuration.setAllowedHeaders(List.of("*"));
-    configuration.setAllowCredentials(false);
 
-    configuration.setExposedHeaders(List.of("*"));
-
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", configuration);
-    return source;
-}
 
 }
