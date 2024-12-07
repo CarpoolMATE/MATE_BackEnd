@@ -23,7 +23,6 @@ public class PKEncryption {
     private static final String ALGORITHM = "AES";
 
     // 암호화
-    // 암호화
     public String encrypt(Long pk) throws Exception {
         String pkStr = pk.toString();
         SecretKey key = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), ALGORITHM);

@@ -3,9 +3,11 @@ package MATE.Carpool.domain.member.controller;
 
 import MATE.Carpool.domain.member.dto.request.DriverRequestDto;
 import MATE.Carpool.domain.member.dto.request.MemberRequestDto;
+import MATE.Carpool.domain.member.dto.request.SignInRequestDto;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
 import MATE.Carpool.domain.member.dto.request.SignupRequestDto;
 import MATE.Carpool.domain.member.service.MemberService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,10 +30,11 @@ public class MemberController {
 
     //로그인
     @PostMapping("signIn")
-    public ResponseEntity<MemberResponseDto> signIn(@RequestBody MemberRequestDto memberRequestDto) {
+    public ResponseEntity<Object> signIn(@RequestBody SignInRequestDto requestDto, HttpServletResponse httpServletResponse) throws Exception {
 
-        return memberService.signIn(memberRequestDto);
+        return memberService.signIn(requestDto,httpServletResponse);
     }
+    //회원가입
     @PostMapping("signUp")
     public ResponseEntity<String> signUp(@RequestBody SignupRequestDto requestDto) {
         return memberService.signUp(requestDto);
