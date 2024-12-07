@@ -42,10 +42,12 @@ public class Member extends TimeStamped{
 
     @Column
     @Setter
+    @Builder.Default
     private Boolean reservation = false;
 
     @Column
     @Setter
+    @Builder.Default
     private Boolean isDriver = false;
 
 
