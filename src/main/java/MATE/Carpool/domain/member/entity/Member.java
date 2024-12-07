@@ -14,39 +14,41 @@ public class Member extends TimeStamped{
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    Long id;
+    private Long id;
 
     @Column(nullable = false, unique = true)
-    String memberId;
+    private String memberId;
 
     @Column(nullable = false, unique = true)
-    String nickname;
+    private String nickname;
 
     @Column(nullable = false, unique = true)
-    String email;
+    private String email;
 
     @Column(nullable = false)
-    String password;
+    private String password;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
-    ProviderType providerType = ProviderType.MATE;
+    private ProviderType providerType = ProviderType.MATE;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
-    MemberType memberType =MemberType.STANDARD;
+    private MemberType memberType =MemberType.STANDARD;
 
     @Column
     @Setter
-    String profileImage;
+    private String profileImage;
 
     @Column
     @Setter
-    Boolean reservation = false;
+    @Builder.Default
+    private Boolean reservation = false;
 
     @Column
     @Setter
-    Boolean isDriver = false;
+    @Builder.Default
+    private Boolean isDriver = false;
 
 
 }
