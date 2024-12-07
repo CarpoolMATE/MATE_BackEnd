@@ -13,16 +13,16 @@ public class Driver {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    private Long id;
 
     @Column
-    String carNumber;
+    private String carNumber;
 
     @Column
-    String phoneNumber;
+    private String phoneNumber;
 
     @Column
-    String carImage;
+    private String carImage;
 
     @OneToOne
     private Member member;
