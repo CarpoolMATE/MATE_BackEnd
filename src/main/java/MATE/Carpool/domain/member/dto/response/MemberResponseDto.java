@@ -9,7 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@AllArgsConstructor
+import java.time.LocalDateTime;
+
 @NoArgsConstructor
 @Setter
 @Getter
@@ -19,6 +20,9 @@ public class MemberResponseDto extends MemberDto {
     private ProviderType providerType = ProviderType.MATE;
     private MemberType memberType =MemberType.STANDARD;
     private Boolean isDriver;
+    private LocalDateTime createDate;
+    private LocalDateTime updateDate;
+    private LocalDateTime deleteDate;
 
     public MemberResponseDto(String encryptId,Member member) {
         super(member);
@@ -26,7 +30,20 @@ public class MemberResponseDto extends MemberDto {
         this.providerType=member.getProviderType();
         this.memberType=member.getMemberType();
         this.isDriver=member.getIsDriver();
+        this.createDate =member.getCreatedAt();
+        this.updateDate =member.getUpdatedAt();
+        this.deleteDate =member.getDeletedAt();
 
+    }
+    public MemberResponseDto(Member member) {
+        super(member);
+        this.id=member.getMemberId();
+        this.providerType=member.getProviderType();
+        this.memberType=member.getMemberType();
+        this.isDriver=member.getIsDriver();
+        this.createDate =member.getCreatedAt();
+        this.updateDate =member.getUpdatedAt();
+        this.deleteDate =member.getDeletedAt();
     }
 
 
