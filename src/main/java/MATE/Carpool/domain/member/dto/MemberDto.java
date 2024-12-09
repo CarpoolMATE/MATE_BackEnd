@@ -8,6 +8,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 
 @Getter
 @Setter
@@ -18,12 +21,18 @@ public class MemberDto {
     private String nickname;
     private String email;
     private String profileImage;
+    private MemberType memberType;
+    private ProviderType providerType;
+
 
     public MemberDto(Member member) {
         this.memberId = member.getMemberId();
         this.nickname = member.getNickname();
         this.email = member.getEmail();
         this.profileImage = member.getProfileImage();
+        this.memberType = member.getMemberType();
+        this.providerType = member.getProviderType();
+
 
     }
 

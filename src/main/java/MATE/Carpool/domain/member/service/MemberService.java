@@ -46,9 +46,6 @@ public class MemberService {
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final RefreshTokenRepository refreshTokenRepository;
 
-
-
-
     //단일멤버조회
     @Transactional(readOnly = true)
     public ResponseEntity<MemberResponseDto> getMember(String memberId) throws Exception {
@@ -56,7 +53,7 @@ public class MemberService {
         Member member = findByMember(memberId);
         // ResponseEntity 생성 및 반환
         MemberResponseDto responseDto = new MemberResponseDto(memberId, member);
-        return new ResponseEntity<>(responseDto, HttpStatus.OK);
+        return ResponseEntity.ok(responseDto);
     }
 
 
@@ -94,11 +91,14 @@ public class MemberService {
             // 응답 DTO 생성
             MemberResponseDto memberResponseDto = new MemberResponseDto(encryption, member);
 
-            return new ResponseEntity<>(memberResponseDto, HttpStatus.OK);
+            return ResponseEntity.ok(memberResponseDto);
 
         } catch (BadCredentialsException e) {
             // 비밀번호가 잘못된 경우 401 Unauthorized
-            return new ResponseEntity<>("일치하지 않는 정보입니다.",HttpStatus.UNAUTHORIZED);
+
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("일치하지 않는 정보입니다.");
         }
     }
 
@@ -123,8 +123,7 @@ public class MemberService {
 
         memberRepository.save(member);
 
-        return new ResponseEntity<>("회원가입 성공",HttpStatus.OK);
-
+        return ResponseEntity.ok("회원가입 성공");
     }
 
 
@@ -147,7 +146,7 @@ public class MemberService {
 
         MemberResponseDto responseDto = new MemberResponseDto(driverRequestDto.getMemberId(),member);
 
-        return new ResponseEntity<>(responseDto, HttpStatus.OK);
+        return ResponseEntity.ok(responseDto);
     }
 
     @Transactional
