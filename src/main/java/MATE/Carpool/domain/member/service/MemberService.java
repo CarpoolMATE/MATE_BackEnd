@@ -150,6 +150,7 @@ public class MemberService {
                 .build();
 
         member.setIsDriver(true);
+        //@Transactional에서 proxy객체로 넘어감, proxy객체에서 영속성으로 마지막에 밀어넣음
 
         driverRepository.save(driver);
 
