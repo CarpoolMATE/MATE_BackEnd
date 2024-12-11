@@ -44,6 +44,7 @@ public class MemberController {
     public ResponseEntity<MemberResponseDto> getMember(@PathVariable String id) {
         return memberService.getMember(id);
     }
+
     @PostMapping("driver")
     public ResponseEntity<MemberResponseDto> signUpDriver(@RequestBody DriverRequestDto driverRequestDto) throws Exception {
         return memberService.signUpDriver(driverRequestDto);
