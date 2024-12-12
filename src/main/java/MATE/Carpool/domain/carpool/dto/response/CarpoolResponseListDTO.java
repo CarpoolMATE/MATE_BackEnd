@@ -1,6 +1,27 @@
 package MATE.Carpool.domain.carpool.dto.response;
 
+import lombok.Getter;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+
 // 카풀 목록 DTO
-// 출발지, 가격, 출발 시간, 드라이버 차량 사진, 현재 탑승 인원 수, 탑승 최대 인원 수
+@Getter
+@Setter
 public class CarpoolResponseListDTO {
+
+    //드라이버 이미지
+    private String driverImg;
+
+    //탑승 좌표
+    private String departureCoordinate;
+
+    private LocalDateTime departureTime;
+
+    private int capacity;
+
+    private int reservationCount;
+
+    private int cost;
+
 }
