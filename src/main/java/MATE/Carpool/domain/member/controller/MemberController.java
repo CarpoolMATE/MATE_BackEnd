@@ -2,7 +2,6 @@ package MATE.Carpool.domain.member.controller;
 
 
 import MATE.Carpool.domain.member.dto.request.DriverRequestDto;
-import MATE.Carpool.domain.member.dto.request.MemberRequestDto;
 import MATE.Carpool.domain.member.dto.request.SignInRequestDto;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
 import MATE.Carpool.domain.member.dto.request.SignupRequestDto;
@@ -19,19 +18,9 @@ public class MemberController {
 
     private final MemberService memberService;
 
-    @GetMapping
-    public String index() {
-        return "Hello World";
-    }
-    @GetMapping("test/{number}")
-    public void encrypt(@PathVariable Long number) throws Exception {
-        memberService.encrypt(number);
-    }
-
     //로그인
     @PostMapping("signIn")
     public ResponseEntity<Object> signIn(@RequestBody SignInRequestDto requestDto, HttpServletResponse httpServletResponse) throws Exception {
-
         return memberService.signIn(requestDto,httpServletResponse);
     }
     //회원가입
@@ -39,9 +28,16 @@ public class MemberController {
     public ResponseEntity<String> signUp(@RequestBody SignupRequestDto requestDto) {
         return memberService.signUp(requestDto);
     }
+    //이메일 중복확인
+    @PostMapping("checkEmail")
+    public ResponseEntity<Boolean> checkEmail(@RequestBody String email){
+        return memberService.checkEmail(email);
+    }
 
+
+    //회원조회
     @GetMapping("{id}")
-    public ResponseEntity<MemberResponseDto> getMember(@PathVariable String id) {
+    public ResponseEntity<MemberResponseDto> getMember(@PathVariable("id") String id) throws Exception {
         return memberService.getMember(id);
     }
 
@@ -49,5 +45,8 @@ public class MemberController {
     public ResponseEntity<MemberResponseDto> signUpDriver(@RequestBody DriverRequestDto driverRequestDto) throws Exception {
         return memberService.signUpDriver(driverRequestDto);
     }
+    //회원탈퇴?
+    //로그아웃
+
 
 }

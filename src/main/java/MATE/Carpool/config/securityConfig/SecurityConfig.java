@@ -1,9 +1,8 @@
-package MATE.Carpool.config.securityConfig.securityConfig;
+package MATE.Carpool.config.securityConfig;
 
 
-import MATE.Carpool.config.securityConfig.jwt.JwtAuthenticationFilter;
+import MATE.Carpool.config.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -18,11 +17,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -31,6 +25,18 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    private final static String[] PERMIT_URI={
+            "/api/member/signUp",
+            "/api/member/signIn",
+            "/h2-console/*",
+            "/h2-console",
+            "/api/admin/*",
+            "/api/member/social/*",
+            "/api/member/social/callback",
+            "/api/member/social/callback/**"
+
+    };
 
     /**
      * SpringBootWebSecurityConfiguration 에서 기본값으로 기본로그인폼을 제공한다.
@@ -47,6 +53,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
 
+
+
         http
                
                 .csrf(AbstractHttpConfigurer::disable)
@@ -57,22 +65,16 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/api/member/signUp","/api/member/signIn","/h2-console/*","/h2-console"
-                        ).permitAll()
+                        .requestMatchers(PERMIT_URI).permitAll()
                         .anyRequest().authenticated()
 
                 );
-//        h2-console
+
+        //h2-console
         http.headers(headers ->headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
         return http.build();
     }
 
-//    @Bean
-//    public UserDetailsService userDetailsService() {
-//        UserDetails user = User.withUsername("user").password("{noop}1111").roles("USER").build();
-//        return new InMemoryUserDetailsManager(user);
-//    }
 
 
 }
