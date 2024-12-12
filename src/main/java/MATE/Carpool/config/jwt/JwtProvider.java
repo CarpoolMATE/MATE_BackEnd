@@ -1,9 +1,8 @@
-package MATE.Carpool.config.securityConfig.jwt;
+package MATE.Carpool.config.jwt;
 
 
-import MATE.Carpool.config.securityConfig.userDetails.CustomUserDetails;
-import MATE.Carpool.config.securityConfig.userDetails.CustomUserDetailsServiceImpl;
-import MATE.Carpool.domain.member.entity.Member;
+import MATE.Carpool.config.userDetails.CustomUserDetails;
+import MATE.Carpool.config.userDetails.CustomUserDetailsServiceImpl;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.io.Encoders;
@@ -14,8 +13,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -23,14 +20,12 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
@@ -43,6 +38,7 @@ public class JwtProvider {
     public static final String BEARER_PREFIX = "Bearer ";
 
     private final CustomUserDetailsServiceImpl userDetailsService;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     private Key key;
 
@@ -199,6 +195,18 @@ public class JwtProvider {
                 .parseClaimsJws(token).getBody().getExpiration();
         Date now = new Date();
         return expirationDate.getTime() - now.getTime(); // 남은 시간(밀리초 단위)
+    }
+    public void createTokenAndSavedRefresh(Authentication authentication ,HttpServletResponse response,String memberId){
+        JwtTokenDto token =createAllToken(authentication);
+        accessTokenSetHeader(token.getAccessToken(), response);
+        refreshTokenSetHeader(token.getRefreshToken(), response);
+        RefreshToken refreshToken = RefreshToken.builder()
+                .refreshToken(token.getRefreshToken())
+                .memberId(memberId)
+                .expiresAt(refreshTimeMillis)
+                .build();
+        refreshTokenRepository.save(refreshToken);
+
     }
 
 
