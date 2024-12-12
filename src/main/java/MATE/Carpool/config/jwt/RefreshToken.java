@@ -1,10 +1,8 @@
-package MATE.Carpool.config.securityConfig.jwt;
+package MATE.Carpool.config.jwt;
 
 
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Setter
