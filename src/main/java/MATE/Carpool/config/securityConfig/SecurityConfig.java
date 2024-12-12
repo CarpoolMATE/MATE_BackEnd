@@ -34,7 +34,9 @@ public class SecurityConfig {
             "/api/admin/*",
             "/api/member/social/*",
             "/api/member/social/callback",
-            "/api/member/social/callback/**"
+            "/api/member/social/callback/**",
+            "/swagger-ui/**","/v3/api-docs/**",
+
 
     };
 
