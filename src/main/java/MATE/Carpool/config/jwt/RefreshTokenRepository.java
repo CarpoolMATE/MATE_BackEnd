@@ -1,4 +1,4 @@
-package MATE.Carpool.config.securityConfig.jwt;
+package MATE.Carpool.config.jwt;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

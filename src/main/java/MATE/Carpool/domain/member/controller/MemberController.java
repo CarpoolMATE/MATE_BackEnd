@@ -37,7 +37,7 @@ public class MemberController {
 
     //회원조회
     @GetMapping("{id}")
-    public ResponseEntity<MemberResponseDto> getMember(@PathVariable String id) throws Exception {
+    public ResponseEntity<MemberResponseDto> getMember(@PathVariable("id") String id) throws Exception {
         return memberService.getMember(id);
     }
     //드라이버등록

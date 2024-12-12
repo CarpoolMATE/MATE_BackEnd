@@ -1,7 +1,7 @@
-package MATE.Carpool.config.securityConfig.jwt;
+package MATE.Carpool.config.jwt;
 
 
-import MATE.Carpool.config.securityConfig.userDetails.CustomUserDetails;
+import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.domain.member.entity.Member;
 import MATE.Carpool.domain.member.repository.MemberRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;

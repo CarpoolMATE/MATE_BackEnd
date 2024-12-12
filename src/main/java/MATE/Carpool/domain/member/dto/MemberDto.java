@@ -23,6 +23,9 @@ public class MemberDto {
     private String profileImage;
     private MemberType memberType;
     private ProviderType providerType;
+    private LocalDateTime createDate;
+    private LocalDateTime updateDate;
+    private LocalDateTime deleteDate;
 
 
     public MemberDto(Member member) {
@@ -32,8 +35,9 @@ public class MemberDto {
         this.profileImage = member.getProfileImage();
         this.memberType = member.getMemberType();
         this.providerType = member.getProviderType();
-
-
+        this.createDate =member.getCreatedAt();
+        this.updateDate =member.getUpdatedAt();
+        this.deleteDate =member.getDeletedAt();
     }
 
 
