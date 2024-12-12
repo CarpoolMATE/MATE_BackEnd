@@ -4,6 +4,7 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 
+//카풀 생성 DTO
 @Getter
 public class CarpoolRequestDTO {
 
