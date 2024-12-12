@@ -1,4 +1,4 @@
-package MATE.Carpool.config.securityConfig.userDetails;
+package MATE.Carpool.config.userDetails;
 
 
 import MATE.Carpool.domain.member.entity.Member;

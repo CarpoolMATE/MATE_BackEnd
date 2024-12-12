@@ -38,7 +38,8 @@ public class Member extends TimeStamped{
 
     @Column
     @Setter
-    private String profileImage;
+    @Builder.Default
+    private String profileImage="basic image";
 
     @Column
     @Setter
