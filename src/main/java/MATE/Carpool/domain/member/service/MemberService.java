@@ -2,11 +2,11 @@ package MATE.Carpool.domain.member.service;
 
 
 import MATE.Carpool.common.PKEncryption;
-import MATE.Carpool.config.securityConfig.jwt.JwtProvider;
-import MATE.Carpool.config.securityConfig.jwt.JwtTokenDto;
-import MATE.Carpool.config.securityConfig.jwt.RefreshToken;
-import MATE.Carpool.config.securityConfig.jwt.RefreshTokenRepository;
-import MATE.Carpool.config.securityConfig.userDetails.CustomUserDetails;
+import MATE.Carpool.config.jwt.JwtProvider;
+import MATE.Carpool.config.jwt.JwtTokenDto;
+import MATE.Carpool.config.jwt.RefreshToken;
+import MATE.Carpool.config.jwt.RefreshTokenRepository;
+import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.domain.member.dto.request.DriverRequestDto;
 import MATE.Carpool.domain.member.dto.request.SignInRequestDto;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
@@ -35,8 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class MemberService {
 
-    @Value("${jwt.refresh.time}")
-    private long refreshTimeMillis;
+
 
     private final MemberRepository memberRepository;
     private final DriverRepository driverRepository;
@@ -44,7 +43,6 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
-    private final RefreshTokenRepository refreshTokenRepository;
 
     //단일멤버조회
     @Transactional(readOnly = true)
@@ -55,8 +53,6 @@ public class MemberService {
         MemberResponseDto responseDto = new MemberResponseDto(memberId, member);
         return ResponseEntity.ok(responseDto);
     }
-
-
 
     //로그인
     @Transactional
@@ -69,17 +65,7 @@ public class MemberService {
             Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
             // 토큰 생성 및 헤더 설정
-            JwtTokenDto token = jwtProvider.createAllToken(authentication);
-            jwtProvider.accessTokenSetHeader(token.getAccessToken(), httpServletResponse);
-            jwtProvider.refreshTokenSetHeader(token.getRefreshToken(), httpServletResponse);
-
-            // RefreshToken 저장
-            RefreshToken refreshToken = RefreshToken.builder()
-                    .refreshToken(token.getRefreshToken())
-                    .memberId(memberId)
-                    .expiresAt(refreshTimeMillis)
-                    .build();
-            refreshTokenRepository.save(refreshToken);
+            jwtProvider.createTokenAndSavedRefresh(authentication,httpServletResponse,memberId);
 
             // 인증된 Member 객체 가져오기
             CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
@@ -132,6 +118,7 @@ public class MemberService {
     public ResponseEntity<MemberResponseDto> signUpDriver(DriverRequestDto driverRequestDto) throws Exception {
 
         Member member = findByMember(driverRequestDto.getMemberId());
+        
 
         Driver driver = Driver.builder()
                 .carNumber(driverRequestDto.getCarNumber())
@@ -144,7 +131,7 @@ public class MemberService {
 
         driverRepository.save(driver);
 
-        MemberResponseDto responseDto = new MemberResponseDto(driverRequestDto.getMemberId(),member);
+        MemberResponseDto responseDto = new MemberResponseDto(driverRequestDto.getMemberId(),member,driver);
 
         return ResponseEntity.ok(responseDto);
     }
@@ -169,4 +156,6 @@ public class MemberService {
         }
         return ResponseEntity.ok(false);
     }
+
+
 }
