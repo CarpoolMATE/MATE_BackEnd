@@ -1,5 +1,6 @@
 package MATE.Carpool.domain.member.entity;
 
+import MATE.Carpool.common.TimeStamped;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,7 +10,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Driver {
+public class Driver extends TimeStamped {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,7 +25,7 @@ public class Driver {
     @Column
     private String carImage;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     private Member member;
 
 

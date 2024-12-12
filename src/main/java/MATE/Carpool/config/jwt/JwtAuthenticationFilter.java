@@ -1,7 +1,7 @@
-package MATE.Carpool.config.securityConfig.jwt;
+package MATE.Carpool.config.jwt;
 
 
-import MATE.Carpool.config.securityConfig.userDetails.CustomUserDetails;
+import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.domain.member.entity.Member;
 import MATE.Carpool.domain.member.repository.MemberRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -69,6 +69,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         RefreshToken token = refreshTokenRepository.findByMemberId(memberId)
                 .orElseThrow(()->new EntityNotFoundException("알맞은 토큰을 찾을 수 없습니다."));
         token.setExpiresAt(refreshTokenTime);
+        refreshTokenRepository.save(token);
 
         // 새 토큰을 헤더에 추가
         jwtProvider.accessTokenSetHeader(newAccessToken, response);
