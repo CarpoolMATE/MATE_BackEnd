@@ -22,7 +22,7 @@ public class CarpoolService {
         // 뿌려주기 리스트로
         // 페이징
 
-        return
+        return null;
     }
 
     //카풀 상세 조회
