@@ -1,7 +1,7 @@
-package MATE.Carpool.config.securityConfig.securityConfig;
+package MATE.Carpool.config.securityConfig;
 
 
-import MATE.Carpool.config.securityConfig.jwt.JwtAuthenticationFilter;
+import MATE.Carpool.config.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,7 +31,10 @@ public class SecurityConfig {
             "/api/member/signIn",
             "/h2-console/*",
             "/h2-console",
-            "/api/admin/*"
+            "/api/admin/*",
+            "/api/member/social/*",
+            "/api/member/social/callback",
+            "/api/member/social/callback/**"
 
     };
 
