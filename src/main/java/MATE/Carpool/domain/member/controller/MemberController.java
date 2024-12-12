@@ -40,7 +40,7 @@ public class MemberController {
     public ResponseEntity<MemberResponseDto> getMember(@PathVariable("id") String id) throws Exception {
         return memberService.getMember(id);
     }
-    //드라이버등록
+
     @PostMapping("driver")
     public ResponseEntity<MemberResponseDto> signUpDriver(@RequestBody DriverRequestDto driverRequestDto) throws Exception {
         return memberService.signUpDriver(driverRequestDto);
