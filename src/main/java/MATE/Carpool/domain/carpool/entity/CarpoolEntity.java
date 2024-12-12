@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
+@Entity
 public class CarpoolEntity extends TimeStamped {
 
     @Id

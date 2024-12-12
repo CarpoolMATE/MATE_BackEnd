@@ -8,6 +8,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.nio.charset.StandardCharsets;
@@ -26,6 +28,7 @@ import java.security.Key;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -39,6 +42,7 @@ public class JwtProvider {
 
     private final CustomUserDetailsServiceImpl userDetailsService;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final EntityManager entityManager;
 
     private Key key;
 
@@ -196,18 +200,45 @@ public class JwtProvider {
         Date now = new Date();
         return expirationDate.getTime() - now.getTime(); // 남은 시간(밀리초 단위)
     }
-    public void createTokenAndSavedRefresh(Authentication authentication ,HttpServletResponse response,String memberId){
-        JwtTokenDto token =createAllToken(authentication);
-        accessTokenSetHeader(token.getAccessToken(), response);
-        refreshTokenSetHeader(token.getRefreshToken(), response);
-        RefreshToken refreshToken = RefreshToken.builder()
-                .refreshToken(token.getRefreshToken())
-                .memberId(memberId)
-                .expiresAt(refreshTimeMillis)
-                .build();
-        refreshTokenRepository.save(refreshToken);
 
+
+
+    @Transactional
+    public void createTokenAndSavedRefresh(Authentication authentication, HttpServletResponse response, String memberId) {
+        try {
+            // JWT 토큰 생성
+            JwtTokenDto token = createAllToken(authentication);
+            accessTokenSetHeader(token.getAccessToken(), response);
+            refreshTokenSetHeader(token.getRefreshToken(), response);
+
+            // 기존 RefreshToken 삭제
+            Optional<RefreshToken> existingToken = refreshTokenRepository.findByMemberId(memberId);
+            if (existingToken.isPresent()) {
+                // 기존 토큰 삭제
+                refreshTokenRepository.delete(existingToken.get());
+                // 바로 데이터베이스에 반영되도록 flush
+                entityManager.flush();
+            }
+
+            // 새로운 RefreshToken 저장
+            RefreshToken refreshToken = RefreshToken.builder()
+                    .refreshToken(token.getRefreshToken())
+                    .memberId(memberId)
+                    .expiresAt(refreshTimeMillis)
+                    .build();
+
+            // 리프레시 토큰 저장
+            refreshTokenRepository.save(refreshToken);
+
+        } catch (Exception e) {
+            // 예외 처리
+            log.error("Error while creating or saving refresh token for memberId: " + memberId, e);
+            throw new RuntimeException("리프레시 토큰 처리 중 오류가 발생했습니다.");
+        }
     }
+
+
+
 
 
 
