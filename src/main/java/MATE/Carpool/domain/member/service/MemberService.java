@@ -3,23 +3,17 @@ package MATE.Carpool.domain.member.service;
 
 import MATE.Carpool.common.PKEncryption;
 import MATE.Carpool.config.jwt.JwtProvider;
-import MATE.Carpool.config.jwt.JwtTokenDto;
-import MATE.Carpool.config.jwt.RefreshToken;
-import MATE.Carpool.config.jwt.RefreshTokenRepository;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.domain.member.dto.request.DriverRequestDto;
 import MATE.Carpool.domain.member.dto.request.SignInRequestDto;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
 import MATE.Carpool.domain.member.dto.request.SignupRequestDto;
-import MATE.Carpool.domain.member.entity.Driver;
 import MATE.Carpool.domain.member.entity.Member;
-import MATE.Carpool.domain.member.repository.DriverRepository;
 import MATE.Carpool.domain.member.repository.MemberRepository;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -31,6 +25,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.Date;
+
 @Service
 @RequiredArgsConstructor
 public class MemberService {
@@ -38,7 +35,6 @@ public class MemberService {
 
 
     private final MemberRepository memberRepository;
-    private final DriverRepository driverRepository;
     private final PKEncryption pkEncryption;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
@@ -115,24 +111,30 @@ public class MemberService {
 
     //드라이버등록
     @Transactional
-    public ResponseEntity<MemberResponseDto> signUpDriver(DriverRequestDto driverRequestDto) throws Exception {
+    public ResponseEntity<MemberResponseDto> registerDriver(DriverRequestDto driverRequestDto) throws Exception {
 
         Member member = findByMember(driverRequestDto.getMemberId());
-        
-
-        Driver driver = Driver.builder()
-                .carNumber(driverRequestDto.getCarNumber())
-                .phoneNumber(driverRequestDto.getPhoneNumber())
-                .carImage(driverRequestDto.getCarImage())
-                .member(member)
-                .build();
 
         member.setIsDriver(true);
-        //@Transactional에서 proxy객체로 넘어감, proxy객체에서 영속성으로 마지막에 밀어넣음
+        member.setCarNumber(driverRequestDto.getCarNumber());
+        member.setPhoneNumber(driverRequestDto.getPhoneNumber());
+        member.setCarImage(driverRequestDto.getCarImage());
+        member.setDriverRegistrationDate(LocalDateTime.now());
 
-        driverRepository.save(driver);
+        MemberResponseDto responseDto = new MemberResponseDto(driverRequestDto.getMemberId(),member);
 
-        MemberResponseDto responseDto = new MemberResponseDto(driverRequestDto.getMemberId(),member,driver);
+        return ResponseEntity.ok(responseDto);
+    }
+
+    @Transactional
+    public ResponseEntity<MemberResponseDto> cancelDriver(String memberId) throws Exception {
+
+        Member member = findByMember(memberId);
+
+        member.setIsDriver(false);
+        member.setDriverCancellationDate(LocalDateTime.now());
+
+        MemberResponseDto responseDto = new MemberResponseDto(member);
 
         return ResponseEntity.ok(responseDto);
     }
