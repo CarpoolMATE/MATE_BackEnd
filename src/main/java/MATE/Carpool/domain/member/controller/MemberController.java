@@ -57,8 +57,13 @@ public class MemberController {
 
     @PostMapping("driver")
     @Operation(summary = "운전기사 등록", description = "운전기사로 등록합니다.")
-    public ResponseEntity<MemberResponseDto> signUpDriver(@RequestBody DriverRequestDto driverRequestDto) throws Exception {
-        return memberService.signUpDriver(driverRequestDto);
+    public ResponseEntity<MemberResponseDto> registerDriver(@RequestBody DriverRequestDto driverRequestDto) throws Exception {
+        return memberService.registerDriver(driverRequestDto);
+    }
+    @PostMapping("cancelDriver/{id}")
+    @Operation(summary = "운전기사 해제", description = "운전기사자격을 해제합니다.")
+    public ResponseEntity<MemberResponseDto> cancelDriver( @PathVariable("id") String memberId) throws Exception {
+        return memberService.cancelDriver(memberId);
     }
     //회원탈퇴?
     //로그아웃

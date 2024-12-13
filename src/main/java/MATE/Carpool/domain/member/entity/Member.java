@@ -5,7 +5,10 @@ import MATE.Carpool.common.TimeStamped;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
+@Setter
 @Getter
 @Builder
 @AllArgsConstructor
@@ -37,19 +40,28 @@ public class Member extends TimeStamped{
     private MemberType memberType =MemberType.STANDARD;
 
     @Column
-    @Setter
     @Builder.Default
     private String profileImage="basic image";
 
     @Column
-    @Setter
     @Builder.Default
     private Boolean reservation = false;
 
     @Column
-    @Setter
     @Builder.Default
     private Boolean isDriver = false;
+    //driver
+    @Column
+    private String carNumber;
+    @Column
+    private String phoneNumber;
+    @Column
+    private String carImage;
+    @Column
+    private LocalDateTime driverRegistrationDate;
+    @Column
+    private LocalDateTime driverCancellationDate;
+
 
 
 }
