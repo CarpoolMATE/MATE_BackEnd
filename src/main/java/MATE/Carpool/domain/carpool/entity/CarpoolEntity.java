@@ -23,14 +23,17 @@ public class CarpoolEntity extends TimeStamped {
     private String departureDetailed;
 
     @Column
-    private LocalDateTime departureTime;
+    private LocalDateTime departureDateTime;
 
     @Column
     private String chatLink;
 
     @Column
-    private int capacity;
+    private Integer capacity;
 
     @Column
-    private int cost;
+    private Integer cost;
+
+    @Column
+    private Integer reservationCount;
 }
