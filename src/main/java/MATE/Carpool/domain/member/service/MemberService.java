@@ -2,6 +2,8 @@ package MATE.Carpool.domain.member.service;
 
 
 import MATE.Carpool.common.PKEncryption;
+import MATE.Carpool.common.exception.CustomException;
+import MATE.Carpool.common.exception.ErrorCode;
 import MATE.Carpool.config.jwt.JwtProvider;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.domain.member.dto.request.DriverRequestDto;
@@ -10,11 +12,8 @@ import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
 import MATE.Carpool.domain.member.dto.request.SignupRequestDto;
 import MATE.Carpool.domain.member.entity.Member;
 import MATE.Carpool.domain.member.repository.MemberRepository;
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,7 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Date;
+
 
 @Service
 @RequiredArgsConstructor
@@ -57,11 +56,12 @@ public class MemberService {
 
         try {
             // 인증 토큰 생성
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(memberId, requestDto.getPassword());
+            UsernamePasswordAuthenticationToken authenticationToken =
+                    new UsernamePasswordAuthenticationToken(memberId, requestDto.getPassword());
             Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
             // 토큰 생성 및 헤더 설정
-            jwtProvider.createTokenAndSavedRefresh(authentication,httpServletResponse,memberId);
+            jwtProvider.createTokenAndSavedRefresh(authentication, httpServletResponse, memberId);
 
             // 인증된 Member 객체 가져오기
             CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
@@ -75,13 +75,10 @@ public class MemberService {
 
             return ResponseEntity.ok(memberResponseDto);
 
-        } catch (BadCredentialsException e) {
-            // 비밀번호가 잘못된 경우 401 Unauthorized
-
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body("일치하지 않는 정보입니다.");
+        }  catch (Exception e) {
+            throw new CustomException(ErrorCode.USER_NOT_FOUND); // 사용자 정보 없음
         }
+
     }
 
     //회원가입
@@ -93,7 +90,7 @@ public class MemberService {
         boolean checkId = memberRepository.existsByMemberId(memberId);
 
         if (checkId) {
-            throw new EntityExistsException("이미 존재하는 아이디 입니다. Id : " + memberId);
+            throw new CustomException(ErrorCode.DUPLICATE_MEMBER_ID);
         }
 
         Member member = Member.builder()
@@ -144,7 +141,7 @@ public class MemberService {
         String decryptedValue = pkEncryption.decrypt(memberId);  // 복호화된 값
         try {
             Long id =Long.parseLong(decryptedValue);
-            return  memberRepository.findById(id).orElseThrow(()-> new UsernameNotFoundException("회원이 존재하지 않습니다."));
+            return  memberRepository.findById(id).orElseThrow(()-> new CustomException(ErrorCode.USER_NOT_FOUND));
             // 복호화된 값을 Long 타입으로 형변환
         } catch (NumberFormatException e) {
             throw new Exception("복호화된 값이 숫자 형식이 아닙니다.", e);  // 예외 처리
@@ -155,7 +152,7 @@ public class MemberService {
     public ResponseEntity<Boolean> checkEmail(String email) {
         boolean exists = memberRepository.existsByEmail(email);
         if (exists) {
-            throw new EntityNotFoundException("중복된 이메일입니다.");
+            throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
         }
         return ResponseEntity.ok(false);
     }
