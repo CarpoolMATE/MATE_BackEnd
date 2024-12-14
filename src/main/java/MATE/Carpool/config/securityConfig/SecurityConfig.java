@@ -1,10 +1,13 @@
 package MATE.Carpool.config.securityConfig;
 
 
+import MATE.Carpool.common.exception.CustomAccessDeniedHandler;
+import MATE.Carpool.common.exception.CustomAuthenticationEntryPoint;
 import MATE.Carpool.config.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -58,7 +61,6 @@ public class SecurityConfig {
 
 
         http
-               
                 .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(HttpBasicConfigurer::disable)
                 .formLogin(FormLoginConfigurer::disable)
@@ -69,8 +71,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PERMIT_URI).permitAll()
                         .anyRequest().authenticated()
-
+                )
+                .exceptionHandling((handling) -> handling
+                        .authenticationEntryPoint(new CustomAuthenticationEntryPoint())  // 401 처리
+                        .accessDeniedHandler(new CustomAccessDeniedHandler())           // 403 처리
                 );
+        ;
 
         //h2-console
         http.headers(headers ->headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
