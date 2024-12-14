@@ -14,6 +14,6 @@ public class ReservationEntity extends TimeStamped {
     @ManyToOne
     private CarpoolEntity carpool;
 
-    @OneToOne
+    @ManyToOne
     private Member member;
 }
