@@ -1,5 +1,7 @@
 package MATE.Carpool.config.userDetails;
 
+import MATE.Carpool.common.exception.CustomException;
+import MATE.Carpool.common.exception.ErrorCode;
 import MATE.Carpool.domain.member.entity.Member;
 import MATE.Carpool.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +21,7 @@ public class CustomUserDetailsServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String memberId) throws UsernameNotFoundException {
         Member member = memberRepository.findByMemberId(memberId)
-                .orElseThrow( () -> new UsernameNotFoundException("사용자를 찾을수 없습니다."));
+                .orElseThrow( () -> new CustomException(ErrorCode.USER_NOT_FOUND));
         return new CustomUserDetails(member,member.getMemberId());
     }
 }

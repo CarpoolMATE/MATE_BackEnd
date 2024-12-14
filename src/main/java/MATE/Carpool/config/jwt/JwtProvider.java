@@ -1,6 +1,7 @@
 package MATE.Carpool.config.jwt;
 
 
+import MATE.Carpool.common.exception.CustomException;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.config.userDetails.CustomUserDetailsServiceImpl;
 import io.jsonwebtoken.*;
@@ -30,6 +31,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static MATE.Carpool.common.exception.ErrorCode.*;
 
 @Component
 @Slf4j
@@ -167,18 +170,15 @@ public class JwtProvider {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
-        } catch (SignatureException e) {
-            log.error("JWT 서명 불일치: 토큰 서명이 로컬 서명과 일치하지 않습니다.", e);
-        } catch (SecurityException | MalformedJwtException e) {
-            log.info("Invalid JWT signature, 유효하지 않은 JWT 서명 입니다.");
+        } catch (SignatureException | SecurityException | MalformedJwtException e) {
+            throw new CustomException(INVALID_TOKEN);
         } catch (ExpiredJwtException e) {
-            log.info("Expired JWT token, 만료된 JWT token 입니다.");
+            throw new CustomException(EXPIRED_TOKEN);
         } catch (UnsupportedJwtException e) {
-            log.info("Unsupported JWT token, 지원되지 않는 JWT 토큰 입니다.");
+            throw new CustomException(UNSUPPORTED_TOKEN);
         } catch (IllegalArgumentException e) {
-            log.info("JWT claims is empty, 잘못된 JWT 토큰 입니다.");
+            throw new CustomException(WRONG_TOKEN);
         }
-        return false;
     }
 
     public Claims parseClaims(String token) {
