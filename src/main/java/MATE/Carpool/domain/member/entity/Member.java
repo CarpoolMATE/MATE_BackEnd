@@ -49,6 +49,10 @@ public class Member extends TimeStamped{
 
     @Column
     @Builder.Default
+    private Boolean isBanned =false;
+
+    @Column
+    @Builder.Default
     private Boolean isDriver = false;
     //driver
     @Column
