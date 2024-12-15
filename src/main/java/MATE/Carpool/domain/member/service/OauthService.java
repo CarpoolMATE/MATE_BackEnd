@@ -155,7 +155,7 @@ public class OauthService {
 
     private Authentication forceLogin(Member member) {
 
-        CustomUserDetails userDetails = new CustomUserDetails(member, member.getMemberId());
+        CustomUserDetails userDetails = new CustomUserDetails(member);
 
 
 
