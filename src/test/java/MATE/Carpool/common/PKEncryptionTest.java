@@ -7,7 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 @Nested
-class PKEncryptionTest {
+public class PKEncryptionTest {
 
     @Autowired
     private PKEncryption pkEncryption;
