@@ -90,7 +90,7 @@ public class JwtProvider {
            return Jwts.builder()
                     .setSubject(authentication.getName())
                     .claim("role",authority)
-                    .claim("nickname",customUserDetails.getNickname())
+                    .claim("nickname",customUserDetails.getMember().getNickname())
                     .setExpiration(accessTime)
                     .signWith(key, SignatureAlgorithm.HS256)
                     .compact();
