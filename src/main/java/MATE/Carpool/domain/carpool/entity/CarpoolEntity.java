@@ -3,10 +3,15 @@ package MATE.Carpool.domain.carpool.entity;
 import MATE.Carpool.common.TimeStamped;
 import MATE.Carpool.domain.member.entity.Member;
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Setter
 public class CarpoolEntity extends TimeStamped {
 
     @Id
