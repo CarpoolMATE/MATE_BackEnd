@@ -1,6 +1,7 @@
 package MATE.Carpool.domain.member.controller;
 
 
+import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.domain.member.dto.request.DriverRequestDto;
 import MATE.Carpool.domain.member.dto.request.FindPasswordRequestDto;
 import MATE.Carpool.domain.member.dto.request.SignInRequestDto;
@@ -64,24 +65,26 @@ public class MemberController {
         return memberService.findMemberId(email);
     }
 
-    @GetMapping("{id}")
+    @GetMapping("")
     @Operation(summary = "회원 조회", description = "주어진 ID로 회원 정보를 조회합니다.")
     public ResponseEntity<MemberResponseDto> getMember(
             @Parameter(description = "회원 ID")
-            @PathVariable("id") String id) throws Exception {
-        return memberService.getMember(id);
+           @AuthenticationPrincipal CustomUserDetails userDetails) throws Exception {
+        return memberService.getMember(userDetails);
     }
 
     @PostMapping("driver")
     @Operation(summary = "운전기사 등록", description = "운전기사로 등록합니다.")
-    public ResponseEntity<MemberResponseDto> registerDriver(@RequestBody DriverRequestDto driverRequestDto) throws Exception {
-        return memberService.registerDriver(driverRequestDto);
+    public ResponseEntity<MemberResponseDto> registerDriver(
+            @RequestBody DriverRequestDto driverRequestDto,
+            @AuthenticationPrincipal CustomUserDetails userDetails) throws Exception {
+        return memberService.registerDriver(driverRequestDto,userDetails);
     }
 
     @PostMapping("cancelDriver/{id}")
     @Operation(summary = "운전기사 해제", description = "운전기사자격을 해제합니다.")
-    public ResponseEntity<MemberResponseDto> cancelDriver( @PathVariable("id") String memberId) throws Exception {
-        return memberService.cancelDriver(memberId);
+    public ResponseEntity<MemberResponseDto> cancelDriver(@AuthenticationPrincipal CustomUserDetails userDetails) throws Exception {
+        return memberService.cancelDriver(userDetails);
     }
 
 

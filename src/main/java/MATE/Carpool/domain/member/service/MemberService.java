@@ -46,19 +46,17 @@ public class MemberService {
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final EmailService emailService;
 
-    //단일멤버조회
     @Transactional(readOnly = true)
-    public ResponseEntity<MemberResponseDto> getMember(String memberId) throws Exception {
-        // 회원 조회 로직 (별도 메서드로 분리)
-        Member member = findByMember(memberId);
-        // ResponseEntity 생성 및 반환
-        MemberResponseDto responseDto = new MemberResponseDto(memberId, member);
-        return ResponseEntity.ok(responseDto);
+    public ResponseEntity<MemberResponseDto> getMember(CustomUserDetails userDetails){
+        return Optional.ofNullable(userDetails.getMember())
+                .map(MemberResponseDto::new)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
 
     //로그인
     @Transactional
-    public ResponseEntity<Object> signIn(SignInRequestDto requestDto, HttpServletResponse httpServletResponse) throws Exception {
+    public ResponseEntity<Object> signIn(SignInRequestDto requestDto, HttpServletResponse httpServletResponse){
         String memberId = requestDto.getMemberId();
 
         try {
@@ -74,11 +72,9 @@ public class MemberService {
             CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
             Member member = customUserDetails.getMember();
 
-            // ID 암호화
-            String encryption = pkEncryption.encrypt(member.getId());
 
             // 응답 DTO 생성
-            MemberResponseDto memberResponseDto = new MemberResponseDto(encryption, member);
+            MemberResponseDto memberResponseDto = new MemberResponseDto(member);
 
             return ResponseEntity.ok(memberResponseDto);
 
@@ -114,28 +110,30 @@ public class MemberService {
 
     //드라이버등록
     @Transactional
-    public ResponseEntity<MemberResponseDto> registerDriver(DriverRequestDto driverRequestDto) throws Exception {
+    public ResponseEntity<MemberResponseDto> registerDriver(DriverRequestDto driverRequestDto,CustomUserDetails userDetails) {
 
-        Member member = findByMember(driverRequestDto.getMemberId());
+        Member member = userDetails.getMember();
 
         member.setIsDriver(true);
         member.setCarNumber(driverRequestDto.getCarNumber());
         member.setPhoneNumber(driverRequestDto.getPhoneNumber());
         member.setCarImage(driverRequestDto.getCarImage());
         member.setDriverRegistrationDate(LocalDateTime.now());
+        memberRepository.save(member);
 
-        MemberResponseDto responseDto = new MemberResponseDto(driverRequestDto.getMemberId(),member);
+        MemberResponseDto responseDto = new MemberResponseDto(member);
 
         return ResponseEntity.ok(responseDto);
     }
 
     @Transactional
-    public ResponseEntity<MemberResponseDto> cancelDriver(String memberId) throws Exception {
+    public ResponseEntity<MemberResponseDto> cancelDriver(CustomUserDetails userDetails) throws Exception {
 
-        Member member = findByMember(memberId);
+        Member member = userDetails.getMember();
 
         member.setIsDriver(false);
         member.setDriverCancellationDate(LocalDateTime.now());
+        memberRepository.save(member);
 
         MemberResponseDto responseDto = new MemberResponseDto(member);
 
@@ -158,7 +156,8 @@ public class MemberService {
 
         //TODO 사용자가 링크를 통해 비밀번호를 재설정할 수 있는 워크플로를 구현해보기
 
-        Member member = findByMember(requestDto.getMemberId());
+        Member member = memberRepository.findByMemberId(requestDto.getMemberId())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         if(requestDto.getEmail().equals(member.getEmail())) {
             throw new CustomException(ErrorCode.NOT_EQUALS_MEMBER_INFO);
@@ -187,16 +186,7 @@ public class MemberService {
         return UUID.randomUUID().toString().substring(0, 8);
     }
 
-    private Member findByMember(String memberId) throws Exception {
-        String decryptedValue = pkEncryption.decrypt(memberId);  // 복호화된 값
-        try {
-            Long id =Long.parseLong(decryptedValue);
-            return  memberRepository.findById(id).orElseThrow(()-> new CustomException(ErrorCode.USER_NOT_FOUND));
-            // 복호화된 값을 Long 타입으로 형변환
-        } catch (NumberFormatException e) {
-            throw new Exception("복호화된 값이 숫자 형식이 아닙니다.", e);  // 예외 처리
-        }
-    }
+
 
 
 }
