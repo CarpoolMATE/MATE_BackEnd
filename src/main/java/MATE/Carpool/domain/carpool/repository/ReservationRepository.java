@@ -10,16 +10,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface ReservationRepository extends JpaRepository<ReservationEntity, Long> {
+    // 특정 카풀에 해당하는 예약 정보를 가져오는 메서드
+    List<ReservationEntity> findByCarpool(CarpoolEntity carpool);
 
-    @Query("SELECT r FROM ReservationEntity r " +
-            "JOIN FETCH r.carpool c " +
-            "WHERE r.member.id = :memberId " +
-            "AND r.createdAt BETWEEN :blockStart AND :blockEnd")
-    List<ReservationEntity> findReservationsByMemberIdAndTimeBlock(
-            @Param("memberId") Long memberId,
-            @Param("blockStart") LocalDateTime blockStart,
-            @Param("blockEnd") LocalDateTime blockEnd
-    );
-
-    List<ReservationEntity> findByCarpoolId(Long carpoolId);
 }

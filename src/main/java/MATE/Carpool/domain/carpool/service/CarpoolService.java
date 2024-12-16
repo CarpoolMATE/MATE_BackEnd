@@ -1,14 +1,20 @@
 package MATE.Carpool.domain.carpool.service;
 
-import MATE.Carpool.domain.carpool.dto.response.CarpoolResponseListDTO;
-import MATE.Carpool.domain.carpool.dto.response.MyCarpoolResponseDTO;
+import MATE.Carpool.common.PKEncryption;
+import MATE.Carpool.common.exception.CustomException;
+import MATE.Carpool.common.exception.ErrorCode;
+import MATE.Carpool.config.userDetails.CustomUserDetails;
+import MATE.Carpool.domain.carpool.dto.response.CarpoolResponseDTO;
+import MATE.Carpool.domain.carpool.dto.response.PassengerInfoDTO;
 import MATE.Carpool.domain.carpool.entity.CarpoolEntity;
 import MATE.Carpool.domain.carpool.entity.ReservationEntity;
 import MATE.Carpool.domain.carpool.repository.CarpoolRepository;
 import MATE.Carpool.domain.carpool.repository.ReservationRepository;
+import MATE.Carpool.domain.member.entity.Member;
 import MATE.Carpool.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,12 +33,11 @@ public class CarpoolService {
     private final CarpoolRepository carpoolRepository;
     private final ReservationRepository reservationRepository;
     private final MemberRepository memberRepository;
+    private final PKEncryption pkEncryption;
 
     //목록 조회 (홈) => 오전 10시 기준으로 조회
-
-
     @Transactional(readOnly = true)
-    public ResponseEntity<List<CarpoolResponseListDTO>> GetCarpoolList(){
+    public ResponseEntity<List<CarpoolResponseDTO>> GetCarpoolList(){
 
         // 오늘 오전 10시 기준
         LocalDateTime blockStart = LocalDateTime.of(LocalDate.now(), LocalTime.of(10,0));
@@ -40,24 +45,42 @@ public class CarpoolService {
             blockStart = blockStart.minusDays(1);
         }
 
-        List<CarpoolResponseListDTO> carpoolList =
+        List<CarpoolResponseDTO> carpoolList =
                 carpoolRepository.findByAllList(blockStart)
                         .stream()
-                        .map(CarpoolResponseListDTO::new)
+                        .map(CarpoolResponseDTO::new)
                         .toList();
 
         return ResponseEntity.ok(carpoolList);
 
     }
 
-    //카풀 상세 조회
-
+    /*질문 내용
+    * 1. 커스텀 오류
+    * 2. 언제 .orElseThrow(()를 해야하는지
+    * */
     //내가 등록한 카풀 조회
-    /**
-     * 프론트에서 암호화된 문자열을 보냄
-     * 복호화> memberId=LongPk를 찾아요
-     * carpoolrepository > findByMemberId (memberId) 맨처음찾는것.
-     */
+    @Transactional
+    public ResponseEntity<List<PassengerInfoDTO>> myCarpool(CustomUserDetails user, Long carpoolId) throws Exception {
+
+        // 로그인한 사용자의 ID
+        String memberId = user.getMemberId();
+
+        // 해당 카풀 엔티티 조회
+        CarpoolEntity carpool = carpoolRepository.findById(carpoolId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 카풀이 존재하지 않습니다."));
+
+        List<ReservationEntity> reservations = reservationRepository.findByCarpool(carpool);
+
+        // 예약 정보를 PassengerInfoDTO 리스트로 변환
+        List<PassengerInfoDTO> passengerInfoList = reservations.stream()
+                .map(reservation -> new PassengerInfoDTO(reservation.getMember()))
+                .toList();
+
+        return ResponseEntity.ok(passengerInfoList);
+
+    }
+
 
     //내가 신청한 카풀 조회
     /**
@@ -92,6 +115,7 @@ public class CarpoolService {
         //카풀 취소
 
     //카풀 삭제
+    // 카풀 삭제하여 로그로 남기기
 
     //탑승한 카풀 조회
 }
