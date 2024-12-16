@@ -1,6 +1,7 @@
 package MATE.Carpool.domain.report.entity;
 
 
+import MATE.Carpool.common.TimeStamped;
 import MATE.Carpool.domain.carpool.entity.CarpoolEntity;
 import MATE.Carpool.domain.member.entity.Member;
 import jakarta.persistence.*;
@@ -14,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReportEntity {
+public class ReportEntity extends TimeStamped {
 
 
     @Id
