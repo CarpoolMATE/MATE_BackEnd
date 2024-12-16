@@ -113,10 +113,10 @@ class CarpoolServiceTest {
     @Transactional
     void testMyCarpool() throws Exception {
         // Mock User Details
-        CustomUserDetails userDetails = new CustomUserDetails( driver, driver.getMemberId());
+        CustomUserDetails userDetails = new CustomUserDetails( driver );
 
         // Service method 호출
-        ResponseEntity<List<PassengerInfoDTO>> response = carpoolService.myCarpool(userDetails, carpool.getId());
+        ResponseEntity<List<PassengerInfoDTO>> response = carpoolService.myCarpool( carpool.getId());
 
         // 응답 검증
         assertNotNull(response);
