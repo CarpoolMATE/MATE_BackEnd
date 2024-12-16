@@ -3,8 +3,12 @@ package MATE.Carpool.domain.carpool.entity;
 import MATE.Carpool.common.TimeStamped;
 import MATE.Carpool.domain.member.entity.Member;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
 public class ReservationEntity extends TimeStamped {
 
     @Id
@@ -14,6 +18,6 @@ public class ReservationEntity extends TimeStamped {
     @ManyToOne
     private CarpoolEntity carpool;
 
-    @OneToOne
+    @ManyToOne
     private Member member;
 }
