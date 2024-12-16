@@ -2,11 +2,13 @@ package MATE.Carpool.domain.member.service;
 
 
 import MATE.Carpool.common.PKEncryption;
+import MATE.Carpool.common.email.EmailService;
 import MATE.Carpool.common.exception.CustomException;
 import MATE.Carpool.common.exception.ErrorCode;
 import MATE.Carpool.config.jwt.JwtProvider;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.domain.member.dto.request.DriverRequestDto;
+import MATE.Carpool.domain.member.dto.request.FindPasswordRequestDto;
 import MATE.Carpool.domain.member.dto.request.SignInRequestDto;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
 import MATE.Carpool.domain.member.dto.request.SignupRequestDto;
@@ -19,12 +21,16 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 
 
 @Service
@@ -38,6 +44,7 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
+    private final EmailService emailService;
 
     //단일멤버조회
     @Transactional(readOnly = true)
@@ -105,7 +112,6 @@ public class MemberService {
         return ResponseEntity.ok("회원가입 성공");
     }
 
-
     //드라이버등록
     @Transactional
     public ResponseEntity<MemberResponseDto> registerDriver(DriverRequestDto driverRequestDto) throws Exception {
@@ -136,8 +142,52 @@ public class MemberService {
         return ResponseEntity.ok(responseDto);
     }
 
+    //이메일중복체크
+    @Transactional(readOnly = true)
+    public ResponseEntity<Boolean> checkEmail(String email) {
+        boolean exists = memberRepository.existsByEmail(email);
+        if (exists) {
+            throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
+        }
+        return ResponseEntity.ok(false);
+    }
+
+    //비밀번호 찾기
     @Transactional
-    public Member findByMember(String memberId) throws Exception {
+    public ResponseEntity<String> findPassword(FindPasswordRequestDto requestDto) throws Exception {
+
+        //TODO 사용자가 링크를 통해 비밀번호를 재설정할 수 있는 워크플로를 구현해보기
+
+        Member member = findByMember(requestDto.getMemberId());
+
+        if(requestDto.getEmail().equals(member.getEmail())) {
+            throw new CustomException(ErrorCode.NOT_EQUALS_MEMBER_INFO);
+        }
+        String newPassword = generateTemporaryPassword();
+
+        member.setPassword(passwordEncoder.encode(newPassword));
+
+        emailService.sendEmailNotice(requestDto.getEmail(),newPassword);
+
+        return ResponseEntity.ok("임시 비밀번호가 이메일로 전송되었습니다.");
+
+    }
+
+    //아이디찾기
+    @Transactional(readOnly = true)
+    public ResponseEntity<String> findMemberId(String email) {
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        return ResponseEntity.ok(member.getMemberId());
+    }
+
+
+    private String generateTemporaryPassword() {
+        return UUID.randomUUID().toString().substring(0, 8);
+    }
+
+    private Member findByMember(String memberId) throws Exception {
         String decryptedValue = pkEncryption.decrypt(memberId);  // 복호화된 값
         try {
             Long id =Long.parseLong(decryptedValue);
@@ -146,15 +196,6 @@ public class MemberService {
         } catch (NumberFormatException e) {
             throw new Exception("복호화된 값이 숫자 형식이 아닙니다.", e);  // 예외 처리
         }
-    }
-
-    @Transactional
-    public ResponseEntity<Boolean> checkEmail(String email) {
-        boolean exists = memberRepository.existsByEmail(email);
-        if (exists) {
-            throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
-        }
-        return ResponseEntity.ok(false);
     }
 
 

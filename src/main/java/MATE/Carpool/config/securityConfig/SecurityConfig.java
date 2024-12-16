@@ -34,11 +34,11 @@ public class SecurityConfig {
             "/api/member/signIn",
             "/h2-console/*",
             "/h2-console",
-            "/api/admin/*",
             "/api/member/social/*",
             "/api/member/social/callback",
             "/api/member/social/callback/**",
             "/swagger-ui/**","/v3/api-docs/**",
+//            "/api/admin/**"
 
 
     };
@@ -70,6 +70,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PERMIT_URI).permitAll()
+                        .requestMatchers("/api/member/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling((handling) -> handling

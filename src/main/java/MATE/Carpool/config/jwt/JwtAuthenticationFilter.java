@@ -59,7 +59,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         // 새 Access Token 및 Refresh Token 발급
-        CustomUserDetails userDetails = new CustomUserDetails(member, member.getMemberId());
+        CustomUserDetails userDetails = new CustomUserDetails(member);
         Authentication authentication =
                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         String newAccessToken = jwtProvider.createJwtToken(authentication,"Access");

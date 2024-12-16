@@ -2,9 +2,11 @@ package MATE.Carpool.domain.member.controller;
 
 
 import MATE.Carpool.domain.member.dto.request.DriverRequestDto;
+import MATE.Carpool.domain.member.dto.request.FindPasswordRequestDto;
 import MATE.Carpool.domain.member.dto.request.SignInRequestDto;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
 import MATE.Carpool.domain.member.dto.request.SignupRequestDto;
+import MATE.Carpool.domain.member.entity.Member;
 import MATE.Carpool.domain.member.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -13,6 +15,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,7 +27,12 @@ public class MemberController {
 
     private final MemberService memberService;
 
-    //로그인
+//    @GetMapping("/test")
+//    public String test(@AuthenticationPrincipal UserDetails member) {
+//        return null
+//
+//    }
+
     @PostMapping("signIn")
     @Operation(summary = "로그인", description = "사용자가 아이디와 비밀번호를 입력하여 로그인합니다.")
     public ResponseEntity<Object> signIn(
@@ -32,21 +41,29 @@ public class MemberController {
         return memberService.signIn(requestDto, httpServletResponse);
     }
 
-    //회원가입
     @PostMapping("signUp")
     @Operation(summary = "회원가입", description = "새로운 회원을 가입시킵니다.")
     public ResponseEntity<String> signUp(@Valid @RequestBody SignupRequestDto requestDto) {
         return memberService.signUp(requestDto);
     }
 
-    //이메일 중복확인
     @PostMapping("checkEmail")
     @Operation(summary = "이메일 중복확인", description = "이메일이 이미 존재하는지 확인합니다.")
     public ResponseEntity<Boolean> checkEmail(@Valid @RequestBody String email) {
         return memberService.checkEmail(email);
     }
+    @PostMapping("findPassword")
+    @Operation(summary = "비밀번호 찾기", description = "가입한 아이디와 이메일을통해 비밀번호를 찾습니다. 이메일로 발송됩니다.")
+    public ResponseEntity<String> findPassword(@RequestBody FindPasswordRequestDto requestDto) throws Exception {
+        return memberService.findPassword(requestDto);
 
-    //회원조회
+    }
+    @PostMapping("findMemberId")
+    @Operation(summary = "아이디 찾기", description = "가입한 이메일을 통해 아이디를 찾습니다.")
+    public ResponseEntity<String> findMemberId(@RequestBody String email)  {
+        return memberService.findMemberId(email);
+    }
+
     @GetMapping("{id}")
     @Operation(summary = "회원 조회", description = "주어진 ID로 회원 정보를 조회합니다.")
     public ResponseEntity<MemberResponseDto> getMember(
@@ -60,13 +77,13 @@ public class MemberController {
     public ResponseEntity<MemberResponseDto> registerDriver(@RequestBody DriverRequestDto driverRequestDto) throws Exception {
         return memberService.registerDriver(driverRequestDto);
     }
+
     @PostMapping("cancelDriver/{id}")
     @Operation(summary = "운전기사 해제", description = "운전기사자격을 해제합니다.")
     public ResponseEntity<MemberResponseDto> cancelDriver( @PathVariable("id") String memberId) throws Exception {
         return memberService.cancelDriver(memberId);
     }
-    //회원탈퇴?
-    //로그아웃
+
 
 
 }
