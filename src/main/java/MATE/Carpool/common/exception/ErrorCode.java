@@ -16,6 +16,12 @@ public enum ErrorCode {
     NOT_EQUALS_MEMBER_INFO(HttpStatus.BAD_REQUEST, "ACCOUNT-005", "잘못된 접근입니다."),
 
 
+    CARPOOL_NOT_FOUND(HttpStatus.NOT_FOUND,"MATE-001","카풀 정보를 찾을 수 없습니다."),
+
+
+    REPORT_NOT_FOUND(HttpStatus.NOT_FOUND,"REPORT-001","신고 정보를 찾을 수 없습니다."),
+
+
 
 
 
