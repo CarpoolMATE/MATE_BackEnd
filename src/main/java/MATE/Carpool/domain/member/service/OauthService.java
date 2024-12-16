@@ -61,7 +61,7 @@ public class OauthService {
         Authentication authentication=forceLogin(member);
         jwtProvider.createTokenAndSavedRefresh(authentication,response,member.getMemberId());
 
-        MemberResponseDto memberResponseDto = new MemberResponseDto(pkEncryption.encrypt(member.getId()),member);
+        MemberResponseDto memberResponseDto = new MemberResponseDto(member);
 
 
         log.info(memberResponseDto.toString());
@@ -76,7 +76,7 @@ public class OauthService {
         Authentication authentication=forceLogin(member);
         jwtProvider.createTokenAndSavedRefresh(authentication,response,member.getMemberId());
 
-        MemberResponseDto memberResponseDto = new MemberResponseDto(pkEncryption.encrypt(member.getId()),member);
+        MemberResponseDto memberResponseDto = new MemberResponseDto(member);
 
 
         log.info(memberResponseDto.toString());

@@ -12,20 +12,16 @@ import lombok.*;
 @ToString
 public class MemberResponseDto extends MemberDto {
 
-    private String id;
+    private Long id;
     private Boolean isDriver;
 
 
-    public MemberResponseDto(String encryptId,Member member) {
-        super(member);
-        this.id=encryptId;
-        this.isDriver=member.getIsDriver();
-    }
     public MemberResponseDto(Member member) {
         super(member);
-        this.id=member.getMemberId();
+        this.id=member.getId();
         this.isDriver=member.getIsDriver();
     }
+
 
 
 }
