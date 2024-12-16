@@ -22,6 +22,7 @@ public enum ErrorCode {
     REPORT_NOT_FOUND(HttpStatus.NOT_FOUND,"REPORT-001","신고 정보를 찾을 수 없습니다."),
 
 
+    CARPOOL_REPORT_NOT_ALLOWED(HttpStatus.BAD_REQUEST,"REPORT-002" ,"서비스를 이용한 지 7일이 지난 후에는 신고하실 수 없습니다." ),
 
 
 
@@ -32,7 +33,6 @@ public enum ErrorCode {
     UNSUPPORTED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH-003", "지원되지 않는 토큰입니다."),
     WRONG_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH-004", "잘못된 토큰입니다."),
     TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "AUTH-005", "토큰이 존재하지 않습니다."),
-    ;
 
 
     private final HttpStatus httpStatus;	// HttpStatus

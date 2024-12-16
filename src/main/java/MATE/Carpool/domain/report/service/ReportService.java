@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -50,6 +51,9 @@ public class ReportService {
     public ResponseEntity<String> submitReport(ReportRequestDto requestDto, Long carpoolId, CustomUserDetails userDetails) {
         CarpoolEntity carpoolEntity = carpoolRepository.findById(carpoolId)
                 .orElseThrow(()->new CustomException(ErrorCode.CARPOOL_NOT_FOUND));
+        if(carpoolEntity.getCreatedAt().isBefore(LocalDateTime.now().minusDays(7))) {
+            throw new CustomException(ErrorCode.CARPOOL_REPORT_NOT_ALLOWED);
+        }
         Member member = userDetails.getMember();
         ReportEntity reportEntity = ReportEntity.builder()
                 .carpool(carpoolEntity)
