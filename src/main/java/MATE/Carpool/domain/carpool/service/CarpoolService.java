@@ -61,10 +61,10 @@ public class CarpoolService {
     * */
     //내가 등록한 카풀 조회
     @Transactional
-    public ResponseEntity<List<PassengerInfoDTO>> myCarpool(CustomUserDetails user, Long carpoolId) throws Exception {
+    public ResponseEntity<List<PassengerInfoDTO>> myCarpool( Long carpoolId) throws Exception {
 
         // 로그인한 사용자의 ID
-        String memberId = user.getMemberId();
+        //String memberId = user.getMemberId(); 가 안됨 CustomUserDetails에 override가 안되어 있음
 
         // 해당 카풀 엔티티 조회
         CarpoolEntity carpool = carpoolRepository.findById(carpoolId)
