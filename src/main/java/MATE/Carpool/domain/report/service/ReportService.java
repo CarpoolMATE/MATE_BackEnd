@@ -26,6 +26,7 @@ public class ReportService {
     private final CarpoolRepository carpoolRepository;
 
     //신고전체 조회
+    @Transactional(readOnly = true)
     public ResponseEntity<List<ReportResponseDto>> reportFindAll(){
         return ResponseEntity.ok(
                 reportRepository.findAllReports().stream()
@@ -34,6 +35,7 @@ public class ReportService {
         );
     }
     //신고 상세조회
+    @Transactional(readOnly = true)
     public ResponseEntity<ReportResponseDto> reportFindById(Long id){
         return ResponseEntity.ok(
                 reportRepository.findReportById(id)
