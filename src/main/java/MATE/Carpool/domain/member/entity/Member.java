@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class Member extends TimeStamped{
 
     @Id
@@ -46,6 +47,10 @@ public class Member extends TimeStamped{
     @Column
     @Builder.Default
     private Boolean reservation = false;
+
+    @Column
+    @Builder.Default
+    private Boolean isBanned =false;
 
     @Column
     @Builder.Default

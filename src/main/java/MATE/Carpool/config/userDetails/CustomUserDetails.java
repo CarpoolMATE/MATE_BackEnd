@@ -17,20 +17,11 @@ import java.util.List;
 public class CustomUserDetails implements UserDetails {
 
     private final Member member;
-    private final String memberId;
 
-
-
-    public CustomUserDetails(Member member, String memberId) {
+    public CustomUserDetails(Member member) {
         this.member = member;
-        this.memberId = memberId;
 
     }
-
-    public String getNickname() {
-        return member.getNickname();
-    }
-
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

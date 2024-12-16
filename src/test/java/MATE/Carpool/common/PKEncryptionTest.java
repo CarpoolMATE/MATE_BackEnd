@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @SpringBootTest
 @Nested
-class PKEncryptionTest {
+public class PKEncryptionTest {
 
 //    @Autowired
 //    private PKEncryption pkEncryption;
