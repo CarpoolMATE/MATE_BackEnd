@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 // 예약 진행 혹은 생성한 카풀 DTO
 @Getter
 @Setter
+@AllArgsConstructor
 @NoArgsConstructor
 public class CarpoolResponseDTO {
 

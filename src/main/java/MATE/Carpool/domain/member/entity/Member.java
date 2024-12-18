@@ -53,6 +53,9 @@ public class Member extends TimeStamped{
     private Boolean isBanned =false;
 
     @Column
+    private Long carpoolId;
+
+    @Column
     @Builder.Default
     private Boolean isDriver = false;
     //driver
