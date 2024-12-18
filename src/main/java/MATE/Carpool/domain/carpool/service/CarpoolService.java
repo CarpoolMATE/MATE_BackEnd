@@ -4,6 +4,7 @@ import MATE.Carpool.common.PKEncryption;
 import MATE.Carpool.common.exception.CustomException;
 import MATE.Carpool.common.exception.ErrorCode;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
+import MATE.Carpool.domain.carpool.dto.request.ReservationCarpoolRequestDTO;
 import MATE.Carpool.domain.carpool.dto.response.CarpoolResponseDTO;
 import MATE.Carpool.domain.carpool.dto.response.PassengerInfoDTO;
 import MATE.Carpool.domain.carpool.entity.CarpoolEntity;
@@ -23,6 +24,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
@@ -45,77 +47,62 @@ public class CarpoolService {
             blockStart = blockStart.minusDays(1);
         }
 
-        List<CarpoolResponseDTO> carpoolList =
-                carpoolRepository.findByAllList(blockStart)
-                        .stream()
-                        .map(CarpoolResponseDTO::new)
-                        .toList();
 
-        return ResponseEntity.ok(carpoolList);
+        return ResponseEntity.ok(null);
 
     }
 
-    /*질문 내용
-    * 1. 커스텀 오류
-    * 2. 언제 .orElseThrow(()를 해야하는지
-    * */
     //내가 등록한 카풀 조회
     @Transactional
-    public ResponseEntity<List<PassengerInfoDTO>> myCarpool( Long carpoolId) throws Exception {
-
-        // 로그인한 사용자의 ID
-        //String memberId = user.getMemberId(); 가 안됨 CustomUserDetails에 override가 안되어 있음
+    public ResponseEntity<List<PassengerInfoDTO>> myCarpool(Long carpoolId) throws Exception {
 
         // 해당 카풀 엔티티 조회
-        CarpoolEntity carpool = carpoolRepository.findById(carpoolId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 카풀이 존재하지 않습니다."));
+        CarpoolEntity carpool = findByCarpool(carpoolId);
 
-        List<ReservationEntity> reservations = reservationRepository.findByCarpool(carpool);
+        List<ReservationEntity> reservationEntities = reservationRepository.findByCarpool(carpool.getId());
 
-        // 예약 정보를 PassengerInfoDTO 리스트로 변환
-        List<PassengerInfoDTO> passengerInfoList = reservations.stream()
-                .map(reservation -> new PassengerInfoDTO(reservation.getMember()))
-                .toList();
+        List<PassengerInfoDTO> passengerInfoDTOS = new ArrayList<>();
 
-        return ResponseEntity.ok(passengerInfoList);
+        for (ReservationEntity r : reservationEntities) {
+            passengerInfoDTOS.add(new PassengerInfoDTO(r.getMember()));
+        }
 
+        return ResponseEntity.ok(passengerInfoDTOS);
     }
 
-
-    //내가 신청한 카풀 조회
-    /**
-     *
-     * 프론트에서 암호화된 문자열을 보냄
-     * 복호화> memberId=LongPk를 찾아요 1
-     * reservationRepository > findByMemberId   [memberId : 1 carPoolId : 11]
-     * first조회 <약간 안써야한다고 하는사람좀있음>
-     * 그동안신청했던 목록도 나오게됨
-     * carPoolRepo > findById (11)
-     *
-     */
+    private CarpoolEntity findByCarpool(Long carpoolId){
+      return carpoolRepository.findById(carpoolId)
+                .orElseThrow(() -> new IllegalArgumentException("  "));
+    }
 
     //카풀 생성
 
     //카플 예약
-//    @Transactional(readOnly = true)
-//    public MyCarpoolResponseDTO getMyCarpool(Long memberId) {
-//
-//        // 기준 시간 계산
-//        LocalDateTime blockStart = LocalDateTime.now().withHour(10).withMinute(0).withSecond(0).withNano(0);
-//        if (LocalDateTime.now().isBefore(blockStart)) {
-//            blockStart = blockStart.minusDays(1);
-//        }
-//        LocalDateTime blockEnd = blockStart.plusDays(1);
-//
-//        // 현재 사용자(memberId)의 예약 중 해당 시간 블록 내 카풀 정보 조회
-//        List<ReservationEntity> reservations = reservationRepository.findReservationsByMemberIdAndTimeBlock(memberId, blockStart, blockEnd);
-//    }
+    public ResponseEntity<String> reservationCarpool(ReservationCarpoolRequestDTO requestDTO) {
 
+        //Reservation 테이블에 있는 해당 카풀 정보 다 가져옴
+        List<ReservationEntity> reservationEntities = reservationRepository.findByCarpool(requestDTO.getCarpoolId());
 
-        //카풀 취소
+        //해당 카풀의 capacity 확인
+        CarpoolEntity carpool = carpoolRepository.findById(requestDTO.getCarpoolId());
+        int capacity = carpool.getCapacity();
+        int reservationCount = carpool.getReservationCount();
+        if (capacity > reservationCount ) {
+
+        }
+        //예약을 완료하면 reservationCount +1
+        //그리고 멤버에서 예약 번호 정하기
+
+        //추가로 락
+    }
+
+    //카풀 취소
 
     //카풀 삭제
+
     // 카풀 삭제하여 로그로 남기기
 
     //탑승한 카풀 조회
+
+    //초기화 하는 코드
 }
