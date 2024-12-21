@@ -180,10 +180,9 @@ public class CarpoolService {
         //승객 모두 찾아서 멤버 데이터 수정
         List<ReservationEntity> reservationEntities = reservationRepository.findByCarpool(carpoolId);
 
-        List<Long> memberId = new ArrayList<>();
-
         for (ReservationEntity r : reservationEntities) {
-            Member ReservationMember = memberRepository.findById(r.getMember().getId());
+            Member ReservationMember = memberRepository.findById(r.getMember().getId())
+                            .orElseThrow(()-> new CustomException(ErrorCode.USER_NOT_FOUND));
             ReservationMember.setCarpoolId(null);
             ReservationMember.setReservation(false);
         }
