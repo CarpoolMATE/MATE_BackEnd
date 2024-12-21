@@ -183,9 +183,9 @@ public class CarpoolService {
         List<Long> memberId = new ArrayList<>();
 
         for (ReservationEntity r : reservationEntities) {
-            Member ReservationMmeber = memberRepository.findById(r);
-            ReservationMmeber.setCarpoolId(null);
-            ReservationMmeber.setReservation(false);
+            Member ReservationMember = memberRepository.findById(r.getMember().getId());
+            ReservationMember.setCarpoolId(null);
+            ReservationMember.setReservation(false);
         }
 
         reservationRepository.deleteCarpool(carpoolId);
