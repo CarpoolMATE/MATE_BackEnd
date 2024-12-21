@@ -17,10 +17,10 @@ public enum ErrorCode {
 
 
     CARPOOL_NOT_FOUND(HttpStatus.NOT_FOUND,"MATE-001","카풀 정보를 찾을 수 없습니다."),
-
+    CARPOOL_IS_FULL(HttpStatus.BAD_REQUEST, "MATE-002", "카풀 좌석이 만석입니다."),
+    CARPOOL_ALREADY_RESERVATIONS(HttpStatus.BAD_REQUEST,"MATE-003", "예약된 카풀이 있습니다."),
 
     REPORT_NOT_FOUND(HttpStatus.NOT_FOUND,"REPORT-001","신고 정보를 찾을 수 없습니다."),
-
 
     CARPOOL_REPORT_NOT_ALLOWED(HttpStatus.BAD_REQUEST,"REPORT-002" ,"서비스를 이용한 지 7일이 지난 후에는 신고하실 수 없습니다." ),
 

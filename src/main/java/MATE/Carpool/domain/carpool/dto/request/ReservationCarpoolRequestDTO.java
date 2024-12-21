@@ -11,7 +11,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ReservationCarpoolRequestDTO {
 
-    private Long carpoolId;
+    private Long CarpoolId;
 
-    private Long MemberId;
 }
