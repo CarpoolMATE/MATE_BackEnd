@@ -52,7 +52,6 @@ public class CarpoolResponseDTO {
         this.capacity =carpool.getCapacity();
         this.cost =carpool.getCost();
         this.reservationCount =carpool.getReservationCount();
-
     }
 
 }

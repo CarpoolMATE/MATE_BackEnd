@@ -10,8 +10,8 @@ import java.util.List;
 
 public interface CarpoolRepository extends JpaRepository<CarpoolEntity, Long> {
 
+    //파라미터 값으로 기준 시간을 받고 그 이후에 생성된 카풀ID 넘기기
     @Query("SELECT c from CarpoolEntity c where c.createdAt > :blockStart ")
     List<CarpoolEntity> findByAllList(@Param("blockStart")LocalDateTime blockStart);
-
 
 }
