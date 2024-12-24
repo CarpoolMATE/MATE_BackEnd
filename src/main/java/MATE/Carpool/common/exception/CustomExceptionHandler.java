@@ -24,7 +24,7 @@ public class CustomExceptionHandler {
     protected ResponseEntity<ErrorResponseEntity> handleIllegalArgumentException(IllegalArgumentException e) {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponseEntity(404, "BAD_REQUEST","잘못된 요청입니다.",""));
+                .body(new ErrorResponseEntity(400, "BAD_REQUEST","잘못된 요청입니다.",""));
     }
     @ExceptionHandler(AccessDeniedException.class)
     protected ResponseEntity<ErrorResponseEntity> handleAccessDeniedException(AccessDeniedException e) {

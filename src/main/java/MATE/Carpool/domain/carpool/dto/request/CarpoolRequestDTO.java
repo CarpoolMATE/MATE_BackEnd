@@ -1,11 +1,17 @@
 package MATE.Carpool.domain.carpool.dto.request;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 //카풀 생성 DTO
 @Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class CarpoolRequestDTO {
 
     //Member IDENTITY 값
