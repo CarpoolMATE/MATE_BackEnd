@@ -1,11 +1,12 @@
 package MATE.Carpool.domain.carpool.service;
 
-import MATE.Carpool.common.PKEncryption;
 import MATE.Carpool.common.exception.CustomException;
 import MATE.Carpool.common.exception.ErrorCode;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.domain.carpool.dto.request.CarpoolRequestDTO;
 import MATE.Carpool.domain.carpool.dto.request.ReservationCarpoolRequestDTO;
+import MATE.Carpool.domain.carpool.dto.response.BlockStartDTO;
+import MATE.Carpool.domain.carpool.dto.response.CarpoolHistoryResponseDTO;
 import MATE.Carpool.domain.carpool.dto.response.CarpoolResponseDTO;
 import MATE.Carpool.domain.carpool.dto.response.PassengerInfoDTO;
 import MATE.Carpool.domain.carpool.entity.CarpoolEntity;
@@ -16,15 +17,14 @@ import MATE.Carpool.domain.member.entity.Member;
 import MATE.Carpool.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -56,14 +56,14 @@ public class CarpoolService {
 
     }
 
-    //내가 등록한 카풀 조회
+    // 현재 진행중인 카풀
     @Transactional
     public ResponseEntity<List<PassengerInfoDTO>> myCarpool(Long carpoolId) throws Exception {
 
         // 해당 카풀 엔티티 조회
         CarpoolEntity carpool = findByCarpool(carpoolId);
 
-        List<ReservationEntity> reservationEntities = reservationRepository.findByCarpool(carpool.getId());
+        List<ReservationEntity> reservationEntities = reservationRepository.findByCarpoolHis(carpool.getId());
 
         List<PassengerInfoDTO> passengerInfoDTOS = new ArrayList<>();
 
@@ -74,9 +74,8 @@ public class CarpoolService {
         return ResponseEntity.ok(passengerInfoDTOS);
     }
 
-
-
     //카풀 생성
+    //카풀 생성시간 오전 7:00에서 9:00으로 고정
     public ResponseEntity<String> makeCarpool(CustomUserDetails userDetails,CarpoolRequestDTO carpoolRequestDTO) {
 
         Member member = userDetails.getMember();
@@ -100,12 +99,22 @@ public class CarpoolService {
         return ResponseEntity.ok("카풀 등록 성공했습니다.");
     }
 
+    /*카풀 생성할때 생성 날짜를 줘야함*/
+    public ResponseEntity<BlockStartDTO> getCarpoolDay() {
 
+        LocalDateTime blockStart = LocalDateTime.of(LocalDate.now(), LocalTime.of(10,0));
+        if (LocalDateTime.now().isBefore(blockStart)) {
+            blockStart = blockStart.minusDays(1);
+        }
+
+        return ResponseEntity.ok(new BlockStartDTO(blockStart));
+
+    }
 
     //카플 예약
     //여기서 바로 내가 예약한 화면으로 넘어가기 때문에 passngerInfo 넘겨야 하지 않나요
     @Transactional
-    public ResponseEntity<String> reservationCarpool(CustomUserDetails userDetails, ReservationCarpoolRequestDTO requestDTO) {
+    public ResponseEntity<List<PassengerInfoDTO>> reservationCarpool(CustomUserDetails userDetails, ReservationCarpoolRequestDTO requestDTO) {
 
         Member member = userDetails.getMember();
 
@@ -134,7 +143,13 @@ public class CarpoolService {
 
         carpool.incrementReservationCount();
 
-        return ResponseEntity.ok("예약을 성공했습니다.");
+        // 성공시 바로 예약 화면으로 이동
+        try {
+            return myCarpool(requestDTO.getCarpoolId());
+        } catch (Exception e) {
+            //myCarpool에서 생기는 예외를 잡아서 반환
+            throw new CustomException(ErrorCode.CARPOOL_HISTORY_ERROR);
+        }
     }
 
     //카풀 취소
@@ -163,29 +178,32 @@ public class CarpoolService {
     }
 
     //카풀 삭제
+    @Transactional
     public ResponseEntity<String> deleteCarpool(CustomUserDetails userDetails) {
 
-        Member member = userDetails.getMember();
+        Member driver = userDetails.getMember();
 
-        Long carpoolId = member.getCarpoolId();
+        Long carpoolId = driver.getCarpoolId();
 
         CarpoolEntity carpool = findByCarpool(carpoolId);
         //삭제전에 멤버 다 찾아서
 
         //드라이버 정보 삭제
-        member.setCarpoolId(null);
-        member.setReservation(false);
-        memberRepository.save(member);
+        List<Member> memberList = new ArrayList<>();
 
         //승객 모두 찾아서 멤버 데이터 수정
-        List<ReservationEntity> reservationEntities = reservationRepository.findByCarpool(carpoolId);
+        List<ReservationEntity> reservationEntities = reservationRepository.findAllByCarpoolId(carpoolId);
 
         for (ReservationEntity r : reservationEntities) {
-            Member ReservationMember = memberRepository.findById(r.getMember().getId())
-                            .orElseThrow(()-> new CustomException(ErrorCode.USER_NOT_FOUND));
-            ReservationMember.setCarpoolId(null);
-            ReservationMember.setReservation(false);
+            memberList.add(r.getMember());
         }
+
+        memberList.add(driver);
+        for(Member m : memberList ){
+            m.setCarpoolId(null);
+            m.setReservation(false);
+        }
+        memberRepository.saveAll(memberList);
 
         reservationRepository.deleteCarpool(carpoolId);
 
@@ -194,13 +212,41 @@ public class CarpoolService {
         return ResponseEntity.ok("카풀이 정상적으로 삭제 되었습니다.");
     }
 
-
-
     // 카풀 삭제하여 로그로 남기기
 
     //탑승한 카풀 조회
+    @Transactional
+    public ResponseEntity<List<CarpoolHistoryResponseDTO>> getCarpoolHistory(CustomUserDetails userDetails) {
 
-    //초기화 하는 코드
+        Member member = userDetails.getMember();
+
+        List<CarpoolHistoryResponseDTO> result = new ArrayList<>();
+
+        //드라이버의 경우 생성한 목록에서도 가져오기
+        if (member.getIsDriver()) {
+            List<CarpoolEntity> driverCarpool = carpoolRepository.findByMemberHis(member);
+            for (CarpoolEntity c : driverCarpool) {
+                result.add(new CarpoolHistoryResponseDTO(c));
+            }
+        }
+
+        //예약에서 목록 가져오기
+        List<ReservationEntity> reservationEntities = reservationRepository.findByCarpoolHis(member);
+        for (ReservationEntity r : reservationEntities) {
+            result.add(new CarpoolHistoryResponseDTO(r.getCarpool()));
+        }
+
+        //정렬은 이해하지 못해서 GPT를 통해 일단 해결함
+        result.sort((o1, o2) -> o2.getCreateAt().compareTo(o1.getCreateAt()));
+
+        return ResponseEntity.ok(result);
+    }
+
+    // 매일 오전 10시에 실행되는 메서드
+    @Scheduled(cron = "0 0 10 * * ?") // cron 표현식으로 매일 오전 10시 설정
+    public void resetMemberReservationsAndCarpoolId() {
+        memberRepository.updateReservationAndCarpoolId();
+    }
 
     private CarpoolEntity findByCarpool(Long carpoolId){
         return carpoolRepository.findById(carpoolId)
