@@ -19,6 +19,7 @@ public enum ErrorCode {
     CARPOOL_NOT_FOUND(HttpStatus.NOT_FOUND,"MATE-001","카풀 정보를 찾을 수 없습니다."),
     CARPOOL_IS_FULL(HttpStatus.BAD_REQUEST, "MATE-002", "카풀 좌석이 만석입니다."),
     CARPOOL_ALREADY_RESERVATIONS(HttpStatus.BAD_REQUEST,"MATE-003", "예약된 카풀이 있습니다."),
+    CARPOOL_HISTORY_ERROR(HttpStatus.BAD_REQUEST, "MATE-004", "예약한 카풀 정보를 가져오는 데 실패했습니다."),
 
     REPORT_NOT_FOUND(HttpStatus.NOT_FOUND,"REPORT-001","신고 정보를 찾을 수 없습니다."),
 
