@@ -5,7 +5,6 @@ import MATE.Carpool.common.exception.ErrorCode;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.domain.carpool.dto.request.CarpoolRequestDTO;
 import MATE.Carpool.domain.carpool.dto.request.ReservationCarpoolRequestDTO;
-import MATE.Carpool.domain.carpool.dto.response.BlockStartDTO;
 import MATE.Carpool.domain.carpool.dto.response.CarpoolHistoryResponseDTO;
 import MATE.Carpool.domain.carpool.dto.response.CarpoolResponseDTO;
 import MATE.Carpool.domain.carpool.dto.response.PassengerInfoDTO;
@@ -57,15 +56,20 @@ public class CarpoolService {
     }
 
     // 현재 진행중인 카풀
+    /*throws Exception 이 경우는 언제 사용하고 어떻게 해결해야 하나요*/
+    //throws Exception
     @Transactional
-    public ResponseEntity<List<PassengerInfoDTO>> myCarpool(Long carpoolId) throws Exception {
+    public ResponseEntity<List<PassengerInfoDTO>> myCarpool(CustomUserDetails userDetails) {
+
+        Member member = userDetails.getMember();
 
         // 해당 카풀 엔티티 조회
-        CarpoolEntity carpool = findByCarpool(carpoolId);
+        CarpoolEntity carpool = findByCarpool(member.getCarpoolId());
 
         List<ReservationEntity> reservationEntities = reservationRepository.findByCarpoolHis(carpool.getId());
 
         List<PassengerInfoDTO> passengerInfoDTOS = new ArrayList<>();
+        //여기서 오류가 발생하면 empty로 나옴 그걸 if(.empty)로 작성후 커스텀 에러를 보내주는게 좋을 듯 싶다
 
         for (ReservationEntity r : reservationEntities) {
             passengerInfoDTOS.add(new PassengerInfoDTO(r.getMember()));
@@ -76,7 +80,7 @@ public class CarpoolService {
 
     //카풀 생성
     //카풀 생성시간 오전 7:00에서 9:00으로 고정
-    public ResponseEntity<String> makeCarpool(CustomUserDetails userDetails,CarpoolRequestDTO carpoolRequestDTO) {
+    public ResponseEntity<List<PassengerInfoDTO>> makeCarpool(CustomUserDetails userDetails,CarpoolRequestDTO carpoolRequestDTO) {
 
         Member member = userDetails.getMember();
 
@@ -96,19 +100,13 @@ public class CarpoolService {
 
         memberRepository.save(member);
 
-        return ResponseEntity.ok("카풀 등록 성공했습니다.");
-    }
-
-    /*카풀 생성할때 생성 날짜를 줘야함*/
-    public ResponseEntity<BlockStartDTO> getCarpoolDay() {
-
-        LocalDateTime blockStart = LocalDateTime.of(LocalDate.now(), LocalTime.of(10,0));
-        if (LocalDateTime.now().isBefore(blockStart)) {
-            blockStart = blockStart.minusDays(1);
+        // 성공시 바로 예약 화면으로 이동
+        try {
+            return myCarpool(userDetails);
+        } catch (Exception e) {
+            //이렇게 오류를 잡는게 맞을까요? mycarpool에서 발생할 오류가 뭐가 있고 그거에 맞게 미리 mycarpool에서 잡는게 맞나요?
+            throw new CustomException(ErrorCode.CARPOOL_HISTORY_ERROR);
         }
-
-        return ResponseEntity.ok(new BlockStartDTO(blockStart));
-
     }
 
     //카플 예약
@@ -145,7 +143,7 @@ public class CarpoolService {
 
         // 성공시 바로 예약 화면으로 이동
         try {
-            return myCarpool(requestDTO.getCarpoolId());
+            return myCarpool(userDetails);
         } catch (Exception e) {
             //myCarpool에서 생기는 예외를 잡아서 반환
             throw new CustomException(ErrorCode.CARPOOL_HISTORY_ERROR);
