@@ -27,7 +27,7 @@ public class CarpoolController {
     }
 
     @GetMapping("mycarpool")
-    public ResponseEntity<List<PassengerInfoDTO>> myCarpool(@AuthenticationPrincipal CustomUserDetails userDetails) throws Exception{
+    public ResponseEntity<List<PassengerInfoDTO>> myCarpool(@AuthenticationPrincipal CustomUserDetails userDetails) {
         return carpoolService.myCarpool(userDetails);
     }
 
