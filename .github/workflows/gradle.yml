@@ -42,16 +42,16 @@ jobs:
       - name: Run tests
         run: ./gradlew test --info
         
-      - name: Setup SSH and known_hosts
+      - name: Build project with logs
+        run: ./gradlew build --stacktrace --info
+
+      - name: Verify JAR file
+        run: ls build/libs/
+
+      - name: Copy JAR file to EC2
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/my-ec2-key.pem
           chmod 600 ~/.ssh/my-ec2-key.pem
           ssh-keyscan -H 3.38.95.46 >> ~/.ssh/known_hosts
-
-      - name: Copy JAR file to EC2
-        run: scp -i ~/.ssh/my-ec2-key.pem build/libs/myapp.jar ubuntu@3.38.95.46:/home/ubuntu/
-
-      - name: Run JAR file on EC2
-        run: |
-          ssh -i ~/.ssh/my-ec2-key.pem ubuntu@3.38.95.46 'java -jar /home/ubuntu/myapp.jar'
+          scp -i ~/.ssh/my-ec2-key.pem build/libs/myapp.jar ubuntu@3.38.95.46:/home/ubuntu/
