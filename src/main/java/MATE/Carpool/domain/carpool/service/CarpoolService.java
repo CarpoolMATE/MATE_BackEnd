@@ -240,7 +240,7 @@ public class CarpoolService {
     }
 
     private List<PassengerInfoDTO> getPassengerInfo(CarpoolEntity carpool) {
-        List<ReservationEntity> reservationEntities = reservationRepository.findByCarpool(carpool.getId());
+        List<ReservationEntity> reservationEntities = reservationRepository.findByCarpoolId(carpool.getId());
 
         List<PassengerInfoDTO> passengerInfoDTOS = new ArrayList<>();
 
