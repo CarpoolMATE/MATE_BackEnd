@@ -3,10 +3,10 @@ name: CI
 on:
   push:
     branches:
-      - deploytest
+      - develop
   pull_request:
     branches:
-      - deploytest
+      - develop
 
 jobs:
   build:
@@ -20,8 +20,8 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: '17'
-          distribution: 'adoptopenjdk'
+          distribution: 'temurin'
 
       - name: Run tests
         run: |
-          ./gradlew test  # 프로젝트에 맞는 테스트 명령어 사용
+          ./gradlew test 
