@@ -53,12 +53,26 @@ jobs:
       - name: 메인서버 배포
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: ${{ secrets.EC2_HOST  }}
-          username: ${{ secrets.EC2_USER  }}
-          key: ${{ secrets.SSH_PRIVATE_KEY  }}
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            # 기존에 실행 중인 컨테이너 중지 및 삭제
+            CONTAINER_ID=$(sudo docker ps -q --filter "publish=8080")
+        
+            if [ ! -z "$CONTAINER_ID" ]; then
+              sudo docker stop $CONTAINER_ID
+              sudo docker rm $CONTAINER_ID
+            fi
+        
+            # 이전 이미지를 삭제 (이미지 이름에 old_version 태그가 있다면)
             sudo docker rmi ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}:old_version || true
+        
+            # 새로운 이미지 다운로드
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
-            sudo docker run -d -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
-
+        
+            # 새로운 컨테이너 실행
+            sudo docker run -d -p 80:8080 ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
   
+  
+    
