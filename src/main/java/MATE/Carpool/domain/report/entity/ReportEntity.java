@@ -5,11 +5,9 @@ import MATE.Carpool.common.TimeStamped;
 import MATE.Carpool.domain.carpool.entity.CarpoolEntity;
 import MATE.Carpool.domain.member.entity.Member;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Data
 @Builder
