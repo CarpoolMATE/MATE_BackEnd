@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD to EC2
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - develop
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -33,25 +33,24 @@ jobs:
       - name: Create application.properties
         run: echo "${{ secrets.APPLICATION_PROPERTIES }}" > ./src/main/resources/application.properties
 
-      # - name: Verify application.properties content
-      #   run: cat ./src/main/resources/application.properties
-
-      - name: Build project without running tests
-        run: ./gradlew build
-
-      - name: Run tests
-        run: ./gradlew test --info
-        
-      - name: Build project with logs
+      - name: Build project
         run: ./gradlew build --stacktrace --info
 
-      - name: Verify JAR file
-        run: ls build/libs/
-
       - name: Copy JAR file to EC2
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/my-ec2-key.pem
-          chmod 600 ~/.ssh/my-ec2-key.pem
-          ssh-keyscan -H 3.38.95.46 >> ~/.ssh/known_hosts
-          scp -i ~/.ssh/my-ec2-key.pem build/libs/myapp.jar ubuntu@3.38.95.46:/home/ubuntu/
+        uses: appleboy/scp-action@v0.1.5
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: ./build/libs/*.jar
+          target: /home/ec2-user/app/
+
+      - name: Deploy and run application on EC2
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            pkill -f 'java -jar' || true # 기존 실행 중인 JAR 종료
+            nohup java -jar /home/ec2-user/app/*.jar > /home/ec2-user/app/log.txt 2>&1 &
