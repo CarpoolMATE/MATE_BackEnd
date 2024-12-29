@@ -16,6 +16,17 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
       - name: Create resources folder (if not exists)
         run: mkdir -p ./src/main/resources/
         
@@ -25,20 +36,8 @@ jobs:
       - name: Verify application.properties content
         run: cat ./src/main/resources/application.properties
 
-
-      - name: Create resources folder (if not exists)
-        run: mkdir -p ./src/main/resources/
-
-      - name: Create application.properties
-        run: echo "${{ secrets.APPLICATION_PROPERTIES }}" > ./src/main/resources/application.properties
-
-      - name: Verify application.properties content
-        run: cat ./src/main/resources/application.properties
-
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
       - name: Build project without running tests
-        run: |
-          ./gradlew build 
+        run: ./gradlew build
 
+      - name: Run tests
+        run: ./gradlew test --info
