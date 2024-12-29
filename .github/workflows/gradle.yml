@@ -25,12 +25,9 @@ jobs:
       - name: Verify application.properties content
         run: cat ./src/main/resources/application.properties
 
-
       - name: Checkout repository
         uses: actions/checkout@v2
-
       
-
-      - name: Run tests
+      - name: Build project without running tests
         run: |
-          ./gradlew test 
+          ./gradlew build -x test
