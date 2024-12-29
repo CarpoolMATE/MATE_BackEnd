@@ -70,9 +70,9 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PERMIT_URI).permitAll()
-                        .anyRequest().permitAll()
-//                        .requestMatchers("/api/member/admin/**").hasRole("ADMIN")
-//                        .anyRequest().authenticated()
+                        .requestMatchers("/api/member/admin/**").hasRole("ADMIN")
+                        .anyRequest().authenticated()
+//
                 )
                 .exceptionHandling((handling) -> handling
                         .authenticationEntryPoint(new CustomAuthenticationEntryPoint())  // 401 처리
