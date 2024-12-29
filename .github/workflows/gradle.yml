@@ -63,7 +63,7 @@ jobs:
             sudo docker rmi ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
             sudo docker run -p 80:$8080 \
-            --name ${{ secrets.PROJECT_NAME }} 
-            # --network my-network \
-            # -d ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
+            --name ${{ secrets.PROJECT_NAME }} \
+            --network my-network \
+            -d ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
       
