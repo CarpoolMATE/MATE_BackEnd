@@ -32,6 +32,7 @@ public class SecurityConfig {
     private final static String[] PERMIT_URI={
             "/api/member/signUp",
             "/api/member/signIn",
+            "/api/member/test",
             "/h2-console/*",
             "/h2-console",
             "/api/member/social/*",
