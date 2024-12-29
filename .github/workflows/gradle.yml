@@ -17,6 +17,10 @@ jobs:
       - name: Create application.properties
         run: echo "${{ secrets.APPLICATION_PROPERTIES }}" > ./src/main/resources/application.properties
 
+      - name: Verify application.properties content
+        run: cat ./src/main/resources/application.properties
+
+
       - name: Checkout repository
         uses: actions/checkout@v2
 
