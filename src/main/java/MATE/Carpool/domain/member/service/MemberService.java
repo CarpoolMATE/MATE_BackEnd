@@ -2,25 +2,20 @@ package MATE.Carpool.domain.member.service;
 
 
 import MATE.Carpool.common.PKEncryption;
-import MATE.Carpool.config.securityConfig.jwt.JwtProvider;
-import MATE.Carpool.config.securityConfig.jwt.JwtTokenDto;
-import MATE.Carpool.config.securityConfig.jwt.RefreshToken;
-import MATE.Carpool.config.securityConfig.jwt.RefreshTokenRepository;
-import MATE.Carpool.config.securityConfig.userDetails.CustomUserDetails;
+import MATE.Carpool.common.email.EmailService;
+import MATE.Carpool.common.exception.CustomException;
+import MATE.Carpool.common.exception.ErrorCode;
+import MATE.Carpool.config.jwt.JwtProvider;
+import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.domain.member.dto.request.DriverRequestDto;
-import MATE.Carpool.domain.member.dto.request.MemberRequestDto;
+import MATE.Carpool.domain.member.dto.request.FindPasswordRequestDto;
 import MATE.Carpool.domain.member.dto.request.SignInRequestDto;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
 import MATE.Carpool.domain.member.dto.request.SignupRequestDto;
-import MATE.Carpool.domain.member.entity.Driver;
 import MATE.Carpool.domain.member.entity.Member;
-import MATE.Carpool.domain.member.repository.DriverRepository;
 import MATE.Carpool.domain.member.repository.MemberRepository;
-import jakarta.persistence.EntityExistsException;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -31,90 +26,74 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.ErrorResponse;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.security.InvalidParameterException;
+import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
+
 
 @Service
 @RequiredArgsConstructor
 public class MemberService {
 
-    @Value("${jwt.refresh.time}")
-    private long refreshTimeMillis;
+
 
     private final MemberRepository memberRepository;
-    private final DriverRepository driverRepository;
     private final PKEncryption pkEncryption;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
-    private final RefreshTokenRepository refreshTokenRepository;
+    private final EmailService emailService;
 
-
-    public void encrypt(Long number) throws Exception {
-        String encryption = pkEncryption.encrypt(number);
-        String decryption = pkEncryption.decrypt(encryption);
-        System.out.println(encryption);
-        System.out.println(decryption);
+    @Transactional(readOnly = true)
+    public ResponseEntity<MemberResponseDto> getMember(CustomUserDetails userDetails){
+        return Optional.ofNullable(userDetails.getMember())
+                .map(MemberResponseDto::new)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
 
-    //단일멤버조회
-    public ResponseEntity<MemberResponseDto> getMember(String id) {
-        return null;
-    }
-
+    //로그인
     @Transactional
-    public ResponseEntity<Object> signIn(SignInRequestDto requestDto, HttpServletResponse httpServletResponse) throws Exception {
+    public ResponseEntity<Object> signIn(SignInRequestDto requestDto, HttpServletResponse httpServletResponse){
         String memberId = requestDto.getMemberId();
 
         try {
             // 인증 토큰 생성
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(memberId, requestDto.getPassword());
+            UsernamePasswordAuthenticationToken authenticationToken =
+                    new UsernamePasswordAuthenticationToken(memberId, requestDto.getPassword());
             Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
             // 토큰 생성 및 헤더 설정
-            JwtTokenDto token = jwtProvider.createAllToken(authentication);
-            jwtProvider.accessTokenSetHeader(token.getAccessToken(), httpServletResponse);
-            jwtProvider.refreshTokenSetHeader(token.getRefreshToken(), httpServletResponse);
-
-            // RefreshToken 저장
-            RefreshToken refreshToken = RefreshToken.builder()
-                    .refreshToken(token.getRefreshToken())
-                    .memberId(memberId)
-                    .expiresAt(refreshTimeMillis)
-                    .build();
-            refreshTokenRepository.save(refreshToken);
+            jwtProvider.createTokenAndSavedRefresh(authentication, httpServletResponse, memberId);
 
             // 인증된 Member 객체 가져오기
             CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
             Member member = customUserDetails.getMember();
 
-            // ID 암호화
-            String encryption = pkEncryption.encrypt(member.getId());
 
             // 응답 DTO 생성
-            MemberResponseDto memberResponseDto = new MemberResponseDto(encryption, member);
+            MemberResponseDto memberResponseDto = new MemberResponseDto(member);
 
-            return new ResponseEntity<>(memberResponseDto, HttpStatus.OK);
+            return ResponseEntity.ok(memberResponseDto);
 
-        } catch (BadCredentialsException e) {
-            // 비밀번호가 잘못된 경우 401 Unauthorized
-            return new ResponseEntity<>("일치하지 않는 정보입니다.",HttpStatus.UNAUTHORIZED);
+        }  catch (Exception e) {
+            throw new CustomException(ErrorCode.USER_NOT_FOUND); // 사용자 정보 없음
         }
+
     }
 
     //회원가입
     @Transactional
     public ResponseEntity<String> signUp(SignupRequestDto requestDto) {
 
-        String email = requestDto.getEmail();
+        String memberId = requestDto.getMemberId();
         String password = passwordEncoder.encode(requestDto.getPassword());
-        Optional<Member> findEmail = memberRepository.findByEmail(email);
+        boolean checkId = memberRepository.existsByMemberId(memberId);
 
-        if (findEmail.isPresent()) {
-            throw new EntityExistsException("이미 존재하는 이메일입니다. email : " + email);
+        if (checkId) {
+            throw new CustomException(ErrorCode.DUPLICATE_MEMBER_ID);
         }
 
         Member member = Member.builder()
@@ -126,46 +105,88 @@ public class MemberService {
 
         memberRepository.save(member);
 
-
-
-        return new ResponseEntity<>("회원가입 성공",HttpStatus.OK);
-
+        return ResponseEntity.ok("회원가입 성공");
     }
-
 
     //드라이버등록
     @Transactional
-    public ResponseEntity<MemberResponseDto> signUpDriver(DriverRequestDto driverRequestDto) throws Exception {
+    public ResponseEntity<MemberResponseDto> registerDriver(DriverRequestDto driverRequestDto,CustomUserDetails userDetails) {
 
-        Long memberId = decryption(driverRequestDto.getMemberId());
-
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "회원이 존재하지 않습니다."));
-
-        Driver driver = Driver.builder()
-                .carNumber(driverRequestDto.getCarNumber())
-                .phoneNumber(driverRequestDto.getPhoneNumber())
-                .carImage(driverRequestDto.getCarImage())
-                .member(member)
-                .build();
+        Member member = userDetails.getMember();
 
         member.setIsDriver(true);
+        member.setCarNumber(driverRequestDto.getCarNumber());
+        member.setPhoneNumber(driverRequestDto.getPhoneNumber());
+        member.setCarImage(driverRequestDto.getCarImage());
+        member.setDriverRegistrationDate(LocalDateTime.now());
+        memberRepository.save(member);
 
-        driverRepository.save(driver);
+        MemberResponseDto responseDto = new MemberResponseDto(member);
 
-        MemberResponseDto responseDto = new MemberResponseDto(driverRequestDto.getMemberId(),member);
-
-        return new ResponseEntity<>(responseDto, HttpStatus.OK);
+        return ResponseEntity.ok(responseDto);
     }
 
-    private Long decryption(String memberId) throws Exception {
-        String decryptedValue = pkEncryption.decrypt(memberId);  // 복호화된 값
-        try {
-            // 복호화된 값을 Long 타입으로 형변환
-            return Long.parseLong(decryptedValue);
-        } catch (NumberFormatException e) {
-            throw new Exception("복호화된 값이 숫자 형식이 아닙니다.", e);  // 예외 처리
+    @Transactional
+    public ResponseEntity<MemberResponseDto> cancelDriver(CustomUserDetails userDetails) throws Exception {
+
+        Member member = userDetails.getMember();
+
+        member.setIsDriver(false);
+        member.setDriverCancellationDate(LocalDateTime.now());
+        memberRepository.save(member);
+
+        MemberResponseDto responseDto = new MemberResponseDto(member);
+
+        return ResponseEntity.ok(responseDto);
+    }
+
+    //이메일중복체크
+    @Transactional(readOnly = true)
+    public ResponseEntity<Boolean> checkEmail(String email) {
+        boolean exists = memberRepository.existsByEmail(email);
+        if (exists) {
+            throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
         }
+        return ResponseEntity.ok(false);
     }
+
+    //비밀번호 찾기
+    @Transactional
+    public ResponseEntity<String> findPassword(FindPasswordRequestDto requestDto) throws Exception {
+
+        //TODO 사용자가 링크를 통해 비밀번호를 재설정할 수 있는 워크플로를 구현해보기
+
+        Member member = memberRepository.findByMemberId(requestDto.getMemberId())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        if(requestDto.getEmail().equals(member.getEmail())) {
+            throw new CustomException(ErrorCode.NOT_EQUALS_MEMBER_INFO);
+        }
+        String newPassword = generateTemporaryPassword();
+
+        member.setPassword(passwordEncoder.encode(newPassword));
+
+        emailService.sendEmailNotice(requestDto.getEmail(),newPassword);
+
+        return ResponseEntity.ok("임시 비밀번호가 이메일로 전송되었습니다.");
+
+    }
+
+    //아이디찾기
+    @Transactional(readOnly = true)
+    public ResponseEntity<String> findMemberId(String email) {
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        return ResponseEntity.ok(member.getMemberId());
+    }
+
+
+    private String generateTemporaryPassword() {
+        return UUID.randomUUID().toString().substring(0, 8);
+    }
+
+
+
 
 }
