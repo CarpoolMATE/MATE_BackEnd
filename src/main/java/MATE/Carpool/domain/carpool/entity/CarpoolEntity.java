@@ -41,7 +41,7 @@ public class CarpoolEntity extends TimeStamped {
 
     //null일수가있다
     @Column
-    private Integer reservationCount=0;
+    private Integer reservationCount = 0;
 
 
     public void incrementReservationCount(){
