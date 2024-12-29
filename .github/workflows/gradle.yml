@@ -58,18 +58,12 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
            
-            if [ "$(sudo docker ps -q -f name=${{ secrets.PROJECT_NAME }})" ]; then
-              sudo docker stop ${{ secrets.PROJECT_NAME }}
-              sudo docker rm -f ${{ secrets.PROJECT_NAME }}
-            fi
-           
-            if [ "$(sudo docker images -q ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}:old_version)" ]; then
-              sudo docker rmi ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}:old_version || true
-            fi
-            
+            sudo docker kill ${{ secrets.PROJECT_NAME }}
+            sudo docker rm -f ${{ secrets.PROJECT_NAME }}
+            sudo docker rmi ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
-            
-            sudo docker run -p 8080:8080 --name ${{ secrets.PROJECT_NAME }} --network my-network -d --restart always ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
-          
-            sudo docker logs -f ${{ secrets.PROJECT_NAME }}
+            sudo docker run -p 80:$8080 
+            # --name ${{ secrets.PROJECT_NAME }} \
+            # --network my-network \
+            # -d ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
       
