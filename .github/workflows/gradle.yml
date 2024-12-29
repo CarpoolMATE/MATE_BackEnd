@@ -43,7 +43,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: ./build/libs/*.jar
-          target: /home/ec2-user/app/
+          target: /home/ubuntu/app/
 
       - name: Deploy and run application on EC2
         uses: appleboy/ssh-action@v0.1.5
@@ -53,4 +53,4 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             pkill -f 'java -jar' || true # 기존 실행 중인 JAR 종료
-            nohup java -jar /home/ec2-user/app/*.jar > /home/ec2-user/app/log.txt 2>&1 &
+            nohup java -jar /home/ubuntu/app/*.jar > /home/ec2-user/app/log.txt 2>&1 &
