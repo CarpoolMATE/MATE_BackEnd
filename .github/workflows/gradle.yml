@@ -53,8 +53,8 @@ jobs:
       - name: 메인서버 배포
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: ${{ secrets.SERVER1_HOST  }}
-          username: ${{ secrets.SERVER1_USERNAME  }}
-          key: ${{ secrets.SERVER1_KEY  }}
+          host: ${{ secrets.EC2_HOST  }}
+          username: ${{ secrets.EC2_USER  }}
+          key: ${{ secrets.SSH_PRIVATE_KEY  }}
 
   
