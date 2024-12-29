@@ -46,7 +46,15 @@ jobs:
       - name: Docker 이미지 빌드
         run: docker build -t ${{ secrets.DOCKER_USERNAME}}/${{ secrets.PROJECT_NAME }} .
         
-      - name: DockerHub Push
+      - name: DockerHub 푸쉬
         run: docker push ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
+
+    
+      - name: 메인서버 배포
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SERVER1_HOST  }}
+          username: ${{ secrets.SERVER1_USERNAME  }}
+          key: ${{ secrets.SERVER1_KEY  }}
 
   
