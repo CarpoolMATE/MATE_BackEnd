@@ -15,7 +15,7 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          
+
       - name: Checkout repository
         uses: actions/checkout@v2
 
@@ -33,23 +33,25 @@ jobs:
       - name: Create application.properties
         run: echo "${{ secrets.APPLICATION_PROPERTIES }}" > ./src/main/resources/application.properties
 
-      - name: Verify application.properties content
-        run: cat ./src/main/resources/application.properties
+      # - name: Verify application.properties content
+      #   run: cat ./src/main/resources/application.properties
 
       - name: Build project without running tests
         run: ./gradlew build
+
       - name: Run tests
         run: ./gradlew test --info
         
-      - name: Copy JAR file to EC2
+      - name: Setup SSH and known_hosts
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/my-ec2-key.pem
           chmod 600 ~/.ssh/my-ec2-key.pem
-          scp -i ~/.ssh/my-ec2-key.pem build/libs/myapp.jar ubuntu@3.38.95.46:/home/ubuntu/
+          ssh-keyscan -H 3.38.95.46 >> ~/.ssh/known_hosts
+
+      - name: Copy JAR file to EC2
+        run: scp -i ~/.ssh/my-ec2-key.pem build/libs/myapp.jar ubuntu@3.38.95.46:/home/ubuntu/
 
       - name: Run JAR file on EC2
         run: |
           ssh -i ~/.ssh/my-ec2-key.pem ubuntu@3.38.95.46 'java -jar /home/ubuntu/myapp.jar'
-
-      
