@@ -8,6 +8,7 @@ import MATE.Carpool.domain.member.dto.request.SignInRequestDto;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
 import MATE.Carpool.domain.member.dto.request.SignupRequestDto;
 import MATE.Carpool.domain.member.entity.Member;
+import MATE.Carpool.domain.member.repository.MemberRepository;
 import MATE.Carpool.domain.member.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -20,6 +21,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @RestController
 @RequestMapping("/api/member/")
 @RequiredArgsConstructor
@@ -27,12 +31,14 @@ import org.springframework.web.bind.annotation.*;
 public class MemberController {
 
     private final MemberService memberService;
+    private final MemberRepository memberRepository;
 
-//    @GetMapping("/test")
-//    public String test(@AuthenticationPrincipal UserDetails member) {
-//        return null
-//
-//    }
+    @GetMapping("/test")
+    public ResponseEntity<List<String>> test() {
+        return ResponseEntity.ok(memberRepository.findAll().stream().map(Member::getMemberId).collect(Collectors.toList()));
+
+    }
+
 
     @PostMapping("signIn")
     @Operation(summary = "로그인", description = "사용자가 아이디와 비밀번호를 입력하여 로그인합니다.")
