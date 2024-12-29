@@ -2,8 +2,7 @@
 FROM openjdk:17-jdk-slim
 
 # 애플리케이션 JAR 파일을 컨테이너에 복사
-COPY ./app/*.jar app.jar
+COPY ./build/libs/*.jar app.jar
 
 # ENTRYPOINT 실행 명령어 설정
 ENTRYPOINT ["java", "-jar", "app.jar"]
-
