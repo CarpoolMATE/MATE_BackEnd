@@ -16,19 +16,19 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/member/")
+@RequestMapping("/api/member")
 @RequiredArgsConstructor
 public class CarpoolController {
 
     private final CarpoolService carpoolService;
 
-    @GetMapping("list")
+    @GetMapping("/list")
     @Operation(summary = "카풀 목록", description = "홈 화면 카풀 목록 리스트를 요청합니다.")
     public ResponseEntity<List<CarpoolResponseDTO>> carpoolList() {
         return carpoolService.GetCarpoolList();
     }
 
-    @GetMapping("carpool")
+    @GetMapping("/carpool")
     @Operation(summary = "내 카풀", description = "진행중인 카풀 정보를 요청합니다.")
     public ResponseEntity<List<PassengerInfoDTO>> myCarpool(@AuthenticationPrincipal CustomUserDetails userDetails) {
         return carpoolService.myCarpool(userDetails);
@@ -36,7 +36,7 @@ public class CarpoolController {
 
     @PostMapping("makeCarpool")
     @Operation(summary = "카풀 생성", description = "드라이버가 카풀 생성을 합니다.")
-    public ResponseEntity<List<PassengerInfoDTO>> makeCarpool(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CarpoolRequestDTO carpoolRequestDTO) {
+    public ResponseEntity<CarpoolResponseDTO> makeCarpool(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CarpoolRequestDTO carpoolRequestDTO) {
         return carpoolService.makeCarpool(userDetails, carpoolRequestDTO);
     }
 

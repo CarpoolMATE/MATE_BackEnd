@@ -2,6 +2,7 @@ package MATE.Carpool.domain.carpool.repository;
 
 import MATE.Carpool.domain.carpool.entity.ReservationEntity;
 import MATE.Carpool.domain.member.entity.Member;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,10 +12,10 @@ import java.util.List;
 public interface ReservationRepository extends JpaRepository<ReservationEntity, Long> {
 
     // 특정 카풀에 해당하는 예약 정보를 가져오는 메서드
-    List<ReservationEntity> findByCarpoolHis(Long Id);
+    List<ReservationEntity> findByCarpool(Long Id);
 
-    @Query("select r from ReservationEntity r join fetch r.carpool c join fetch r.member m where c.id =carpoolId")
-    List<ReservationEntity> findAllByCarpoolId(@Param("carpoolId") Long Id);
+    @Query("select r from ReservationEntity r join fetch r.carpool c join fetch r.member m where c.id = :carpoolId")
+    List<ReservationEntity> findAllByCarpoolId(@Param("carpoolId") Long Id, Pageable pageable);
 
     //@Query("SELECT r FROM ReservationEntity r where r.Carpool AND r.member")
     @Query("SELECT r FROM ReservationEntity r WHERE r.carpool.id = :carpoolId AND r.member.id = :memberId")

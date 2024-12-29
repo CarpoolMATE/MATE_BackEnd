@@ -15,6 +15,8 @@ import MATE.Carpool.domain.carpool.repository.ReservationRepository;
 import MATE.Carpool.domain.member.entity.Member;
 import MATE.Carpool.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -66,21 +68,15 @@ public class CarpoolService {
         // 해당 카풀 엔티티 조회
         CarpoolEntity carpool = findByCarpool(member.getCarpoolId());
 
-        List<ReservationEntity> reservationEntities = reservationRepository.findByCarpoolHis(carpool.getId());
-
-        List<PassengerInfoDTO> passengerInfoDTOS = new ArrayList<>();
-        //여기서 오류가 발생하면 empty로 나옴 그걸 if(.empty)로 작성후 커스텀 에러를 보내주는게 좋을 듯 싶다
-
-        for (ReservationEntity r : reservationEntities) {
-            passengerInfoDTOS.add(new PassengerInfoDTO(r.getMember()));
-        }
+        List<PassengerInfoDTO> passengerInfoDTOS = getPassengerInfo(carpool);
 
         return ResponseEntity.ok(passengerInfoDTOS);
     }
 
     //카풀 생성
     //카풀 생성시간 오전 7:00에서 9:00으로 고정
-    public ResponseEntity<List<PassengerInfoDTO>> makeCarpool(CustomUserDetails userDetails,CarpoolRequestDTO carpoolRequestDTO) {
+    @Transactional
+    public ResponseEntity<CarpoolResponseDTO> makeCarpool(CustomUserDetails userDetails,CarpoolRequestDTO carpoolRequestDTO) {
 
         Member member = userDetails.getMember();
 
@@ -95,22 +91,16 @@ public class CarpoolService {
 
         carpoolRepository.save(carpool);
         //save를 먼저 했기 때문에 carpool.getId가 가능
+
         member.setReservation(true);
         member.setCarpoolId(carpool.getId());
 
         memberRepository.save(member);
 
-        // 성공시 바로 예약 화면으로 이동
-        try {
-            return myCarpool(userDetails);
-        } catch (Exception e) {
-            //이렇게 오류를 잡는게 맞을까요? mycarpool에서 발생할 오류가 뭐가 있고 그거에 맞게 미리 mycarpool에서 잡는게 맞나요?
-            throw new CustomException(ErrorCode.CARPOOL_HISTORY_ERROR);
-        }
+        return ResponseEntity.ok(new CarpoolResponseDTO(carpool));
     }
 
     //카플 예약
-    //여기서 바로 내가 예약한 화면으로 넘어가기 때문에 passngerInfo 넘겨야 하지 않나요
     @Transactional
     public ResponseEntity<List<PassengerInfoDTO>> reservationCarpool(CustomUserDetails userDetails, ReservationCarpoolRequestDTO requestDTO) {
 
@@ -141,13 +131,9 @@ public class CarpoolService {
 
         carpool.incrementReservationCount();
 
-        // 성공시 바로 예약 화면으로 이동
-        try {
-            return myCarpool(userDetails);
-        } catch (Exception e) {
-            //myCarpool에서 생기는 예외를 잡아서 반환
-            throw new CustomException(ErrorCode.CARPOOL_HISTORY_ERROR);
-        }
+        List<PassengerInfoDTO> passengerInfoDTOS = getPassengerInfo(carpool);
+
+        return ResponseEntity.ok(passengerInfoDTOS);
     }
 
     //카풀 취소
@@ -184,13 +170,14 @@ public class CarpoolService {
         Long carpoolId = driver.getCarpoolId();
 
         CarpoolEntity carpool = findByCarpool(carpoolId);
-        //삭제전에 멤버 다 찾아서
 
         //드라이버 정보 삭제
         List<Member> memberList = new ArrayList<>();
 
         //승객 모두 찾아서 멤버 데이터 수정
-        List<ReservationEntity> reservationEntities = reservationRepository.findAllByCarpoolId(carpoolId);
+        //JPA 제한 -> JPA 리미트 -> Pageable
+        Pageable pageable = PageRequest.of(0, carpool.getCapacity());
+        List<ReservationEntity> reservationEntities = reservationRepository.findAllByCarpoolId(carpoolId, pageable);
 
         for (ReservationEntity r : reservationEntities) {
             memberList.add(r.getMember());
@@ -213,6 +200,7 @@ public class CarpoolService {
     // 카풀 삭제하여 로그로 남기기
 
     //탑승한 카풀 조회
+    //
     @Transactional
     public ResponseEntity<List<CarpoolHistoryResponseDTO>> getCarpoolHistory(CustomUserDetails userDetails) {
 
@@ -239,8 +227,8 @@ public class CarpoolService {
 
         return ResponseEntity.ok(result);
     }
-
     // 매일 오전 10시에 실행되는 메서드
+
     @Scheduled(cron = "0 0 10 * * ?") // cron 표현식으로 매일 오전 10시 설정
     public void resetMemberReservationsAndCarpoolId() {
         memberRepository.updateReservationAndCarpoolId();
@@ -250,6 +238,18 @@ public class CarpoolService {
         return carpoolRepository.findById(carpoolId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CARPOOL_NOT_FOUND));
     }
+
+    private List<PassengerInfoDTO> getPassengerInfo(CarpoolEntity carpool) {
+        List<ReservationEntity> reservationEntities = reservationRepository.findByCarpool(carpool.getId());
+
+        List<PassengerInfoDTO> passengerInfoDTOS = new ArrayList<>();
+
+        for (ReservationEntity r : reservationEntities) {
+            passengerInfoDTOS.add(new PassengerInfoDTO(r.getMember()));
+        }
+        return passengerInfoDTOS;
+    }
+
 }
 
 
