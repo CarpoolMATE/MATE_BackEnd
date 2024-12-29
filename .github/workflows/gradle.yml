@@ -3,10 +3,10 @@ name: CI
 on:
   push:
     branches:
-      - develop
+      - deploytest
   pull_request:
     branches:
-      - develop
+      - deploytest
 
 jobs:
   build:
@@ -16,8 +16,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Set up Java 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'adoptopenjdk'
+
       - name: Run tests
         run: |
-          ./gradlew test  
-
-      
+          ./gradlew test  # 프로젝트에 맞는 테스트 명령어 사용
