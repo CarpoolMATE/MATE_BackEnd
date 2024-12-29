@@ -33,7 +33,7 @@ public class MemberController {
     private final MemberService memberService;
     private final MemberRepository memberRepository;
 
-    @GetMapping("/test")
+    @GetMapping("test")
     public ResponseEntity<List<String>> test() {
         return ResponseEntity.ok(memberRepository.findAll().stream().map(Member::getMemberId).collect(Collectors.toList()));
 
