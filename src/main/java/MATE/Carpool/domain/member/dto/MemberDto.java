@@ -27,6 +27,8 @@ public class MemberDto {
     private LocalDateTime createDate;
     private LocalDateTime updateDate;
     private LocalDateTime deleteDate;
+    private Boolean reservation;
+    private Long carpoolId;
 
     private String carNumber;
     private String phoneNumber;
@@ -50,6 +52,8 @@ public class MemberDto {
         this.carImage = member.getCarImage();
         this.driverRegistrationDate = member.getDriverRegistrationDate();
         this.driverCancellationDate = member.getDriverCancellationDate();
+        this.reservation = getReservation();
+        this.carpoolId = getCarpoolId();
 
     }
 
