@@ -8,7 +8,7 @@ on:
 
 jobs:
   ci:
-    if: github.ref_name == 'develop'
+    if: startsWith(github.ref, 'refs/heads/develop')
     runs-on: ubuntu-latest
 
     steps:
@@ -39,9 +39,8 @@ jobs:
         run: ./gradlew build -x test
 
   deploy:
-    if: github.ref_name == 'main'
+    if: startsWith(github.ref, 'refs/heads/main')
     runs-on: ubuntu-latest
-    needs: ci
 
     steps:
       - name: Checkout repository
