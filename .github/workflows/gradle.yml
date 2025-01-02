@@ -8,7 +8,6 @@ on:
 
 jobs:
   ci:
-    if: startsWith(github.ref, 'refs/heads/develop')
     runs-on: ubuntu-latest
 
     steps:
@@ -28,7 +27,6 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-
       - name: Resource 폴더 생성
         run: mkdir -p ./src/main/resources/
 
@@ -52,11 +50,13 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+
       - name: Docker 이미지 빌드
         run: docker build -t ${{ secrets.DOCKER_USERNAME}}/${{ secrets.PROJECT_NAME }} .
 
       - name: DockerHub 푸쉬
         run: docker push ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
+
 
       - name: 메인서버 배포
         uses: appleboy/ssh-action@v0.1.10
@@ -65,11 +65,9 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            sudo docker stop $(docker ps -q)
-            sudo docker rm $(docker ps -a -q)
-            sudo docker rmi $(docker images -q)
-            sudo docker volume prune -f
-            sudo docker network prune -f
+            sudo docker kill ${{ secrets.PROJECT_NAME }} || true
+            sudo docker rm -f ${{ secrets.PROJECT_NAME }} || true
+            sudo docker rmi ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }} || true
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
             sudo docker run -p 80:8080 \
             --name ${{ secrets.PROJECT_NAME }} \
