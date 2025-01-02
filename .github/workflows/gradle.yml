@@ -53,7 +53,7 @@ jobs:
      - name: Download artifact
        uses: actions/download-artifact@v3
        with:
-        name: my-artifact
+        name: app-artifact
     
      - name: List the downloaded files
        run: |
