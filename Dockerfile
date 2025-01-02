@@ -1,8 +1,8 @@
-# 베이스 이미지로 OpenJDK 사용
+# 베이스 이미지 설정
 FROM openjdk:17-jdk-slim
 
-# 애플리케이션 JAR 파일을 컨테이너에 복사
-COPY ./build/libs/*.jar app.jar
+# JAR 파일을 컨테이너로 복사
+COPY ./app-artifact/*.jar /app/app.jar
 
-# ENTRYPOINT 실행 명령어 설정
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# 애플리케이션 실행
+CMD ["java", "-jar", "/app/app.jar"]
