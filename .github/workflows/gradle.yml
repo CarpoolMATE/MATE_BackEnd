@@ -1,4 +1,4 @@
-name: CI/CD 
+name: CI/CD
 
 on:
   push:
@@ -50,10 +50,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: 아티팩트 다운로드
+      - name: Download artifact
         uses: actions/download-artifact@v3
         with:
           name: app-artifact
+
+      - name: List the downloaded files
+        run: |
+          ls -al ./  # 다운로드된 파일이 있는 디렉토리 확인
+
+      - name: Create app-artifact directory
+        run: |
+          mkdir -p app-artifact  # 디렉토리 생성
+
+      - name: Move JAR file to app-artifact
+        run: |
+          mv *.jar app-artifact/  # JAR 파일을 app-artifact 디렉토리로 이동
 
       - name: Docker 로그인
         uses: docker/login-action@v2
@@ -62,7 +74,8 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Docker 이미지 빌드
-        run: docker build -t ${{ secrets.DOCKER_USERNAME}}/${{ secrets.PROJECT_NAME }} .
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }} .
 
       - name: DockerHub 푸쉬
         run: docker push ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
@@ -78,6 +91,4 @@ jobs:
             sudo docker rm -f ${{ secrets.PROJECT_NAME }} || true
             sudo docker rmi ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }} || true
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
-            sudo docker run -p 80:8080 \
-            --name ${{ secrets.PROJECT_NAME }} \
-            -d ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
+            sudo docker run -d --name ${{ secrets.PROJECT_NAME }} ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
