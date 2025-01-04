@@ -30,6 +30,8 @@ public class MemberDto {
     private Boolean reservation;
     private Long carpoolId;
 
+    private Boolean isBanned;
+
     private String carNumber;
     private String phoneNumber;
     private String carImage;
@@ -52,8 +54,9 @@ public class MemberDto {
         this.carImage = member.getCarImage();
         this.driverRegistrationDate = member.getDriverRegistrationDate();
         this.driverCancellationDate = member.getDriverCancellationDate();
-        this.reservation = getReservation();
-        this.carpoolId = getCarpoolId();
+        this.reservation = member.getReservation();
+        this.carpoolId = member.getCarpoolId();
+        this.isBanned = member.getIsBanned();
 
     }
 

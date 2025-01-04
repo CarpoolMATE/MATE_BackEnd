@@ -22,6 +22,10 @@ public class CustomUserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String memberId) throws UsernameNotFoundException {
         Member member = memberRepository.findByMemberId(memberId)
                 .orElseThrow( () -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        if (member.getIsBanned()) {
+            throw new CustomException(ErrorCode.USER_IS_BANNED);
+
+        }
         return new CustomUserDetails(member);
     }
 }

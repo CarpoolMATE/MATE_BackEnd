@@ -13,10 +13,15 @@ import lombok.*;
 public class MemberResponseDto extends MemberDto {
 
     private Boolean isDriver;
+    private Boolean isBanned;
+    private Long carpoolCount;
 
     public MemberResponseDto(Member member) {
         super(member);
         this.isDriver=member.getIsDriver();
+        this.isBanned=member.getIsBanned();
+        this.carpoolCount=member.getCarpoolCount();
+
     }
 
 
