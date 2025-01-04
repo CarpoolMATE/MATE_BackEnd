@@ -126,6 +126,7 @@ public class CarpoolService {
         reservationRepository.save(reservation);
 
         member.setReservation(true);
+        member.incrementCarpoolCount();
         member.setCarpoolId(requestDTO.getCarpoolId());
         memberRepository.save(member);
 
@@ -156,6 +157,7 @@ public class CarpoolService {
 
         member.setCarpoolId(null);
         member.setReservation(false);
+        member.decrementCarpoolCount();
         memberRepository.save(member);
 
         return ResponseEntity.ok("카풀 예약이 성공적으로 취소 되었습니다.");
@@ -187,6 +189,7 @@ public class CarpoolService {
         for(Member m : memberList ){
             m.setCarpoolId(null);
             m.setReservation(false);
+            m.decrementCarpoolCount();
         }
         memberRepository.saveAll(memberList);
 

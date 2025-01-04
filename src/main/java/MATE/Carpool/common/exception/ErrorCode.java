@@ -14,6 +14,7 @@ public enum ErrorCode {
     DUPLICATE_MEMBER_ID(HttpStatus.BAD_REQUEST, "ACCOUNT-003", "존재하는 아이디 입니다."),
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "ACCOUNT-004", "사용자 정보가가 일치하지 않습니다."),
     NOT_EQUALS_MEMBER_INFO(HttpStatus.BAD_REQUEST, "ACCOUNT-005", "잘못된 접근입니다."),
+    USER_IS_BANNED(HttpStatus.UNAUTHORIZED, "ACCOUNT-005", "정지된 회원입니다."),
 
 
     CARPOOL_NOT_FOUND(HttpStatus.NOT_FOUND,"MATE-001","카풀 정보를 찾을 수 없습니다."),

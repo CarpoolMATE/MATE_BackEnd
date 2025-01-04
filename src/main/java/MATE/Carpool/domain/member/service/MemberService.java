@@ -59,7 +59,7 @@ public class MemberService {
     public ResponseEntity<Object> signIn(SignInRequestDto requestDto, HttpServletResponse httpServletResponse){
         String memberId = requestDto.getMemberId();
 
-        try {
+
             // 인증 토큰 생성
             UsernamePasswordAuthenticationToken authenticationToken =
                     new UsernamePasswordAuthenticationToken(memberId, requestDto.getPassword());
@@ -78,9 +78,7 @@ public class MemberService {
 
             return ResponseEntity.ok(memberResponseDto);
 
-        }  catch (Exception e) {
-            throw new CustomException(ErrorCode.USER_NOT_FOUND); // 사용자 정보 없음
-        }
+
 
     }
 
