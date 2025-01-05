@@ -35,10 +35,10 @@ public class SecurityConfig {
             "/api/member/test",
             "/h2-console/*",
             "/h2-console",
-            "/api/member/social/*",
-            "/api/member/social/callback",
+            "/api/social/**",
             "/api/member/social/callback/**",
             "/swagger-ui/**","/v3/api-docs/**",
+
 //            "/api/admin/**"
 
 
