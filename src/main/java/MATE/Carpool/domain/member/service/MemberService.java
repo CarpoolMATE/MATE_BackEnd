@@ -61,22 +61,22 @@ public class MemberService {
 
 
             // 인증 토큰 생성
-            UsernamePasswordAuthenticationToken authenticationToken =
-                    new UsernamePasswordAuthenticationToken(memberId, requestDto.getPassword());
-            Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+        UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(memberId, requestDto.getPassword());
+        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
-            // 토큰 생성 및 헤더 설정
-            jwtProvider.createTokenAndSavedRefresh(authentication, httpServletResponse, memberId);
+        // 토큰 생성 및 헤더 설정
+        jwtProvider.createTokenAndSavedRefresh(authentication, httpServletResponse, memberId);
 
-            // 인증된 Member 객체 가져오기
-            CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
-            Member member = customUserDetails.getMember();
+        // 인증된 Member 객체 가져오기
+        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+        Member member = customUserDetails.getMember();
 
 
-            // 응답 DTO 생성
-            MemberResponseDto memberResponseDto = new MemberResponseDto(member);
+        // 응답 DTO 생성
+        MemberResponseDto memberResponseDto = new MemberResponseDto(member);
 
-            return ResponseEntity.ok(memberResponseDto);
+        return ResponseEntity.ok(memberResponseDto);
 
 
 
