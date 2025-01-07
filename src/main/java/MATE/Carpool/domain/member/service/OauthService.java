@@ -83,10 +83,10 @@ public class OauthService {
     }
 
     public String getAccessKey(String provider, String code, HttpServletResponse response) throws JsonProcessingException {
-        Map<String ,String> providers = new HashMap<>();
-        providers.put("providerUrl",provider == "KAKAO" ? KAKAO_TOKEN_URL_HOST : LINE_TOKEN_URL_HOST );
-        providers.put("clientId",provider == "KAKAO" ? kakaoClientId : lineClientId);
-        providers.put("clientSecret",provider == "KAKAO" ? kakaoSecretKey : lineSecretKey);
+        Map<String, String> providers = new HashMap<>();
+        providers.put("providerUrl", provider.equals("KAKAO") ? KAKAO_TOKEN_URL_HOST : LINE_TOKEN_URL_HOST);
+        providers.put("clientId", provider.equals("KAKAO") ? kakaoClientId : lineClientId);
+        providers.put("clientSecret", provider.equals("KAKAO") ? kakaoSecretKey : lineSecretKey);
 
         MultiValueMap<String , String > params= new LinkedMultiValueMap<>();
 
@@ -102,16 +102,22 @@ public class OauthService {
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
 
         RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> responseEntity = restTemplate.postForEntity(providers.get("providerUrl"), request, String.class);
 
+        try {
+            ResponseEntity<String> responseEntity = restTemplate.postForEntity(providers.get("providerUrl"), request, String.class);
+            String responseBody = responseEntity.getBody();
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(responseBody);
 
-        String responseBody = responseEntity.getBody();
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(responseBody);
-
-        System.out.println("accessToken : "+jsonNode.get("access_token").asText());
-
-        return jsonNode.get("access_token").asText();
+            JsonNode accessTokenNode = jsonNode.get("access_token");
+            if (accessTokenNode != null) {
+                return accessTokenNode.asText();
+            } else {
+                throw new RuntimeException("토큰을 발급받지 못했습니다.");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("소셜로그인중 오류가 발생했습니다. 관리자에게 문의해주세요.", e);
+        }
 
     }
 
