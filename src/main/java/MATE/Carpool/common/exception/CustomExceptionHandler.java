@@ -34,12 +34,12 @@ public class CustomExceptionHandler {
                 .body(new ErrorResponseEntity(403, "FORBIDDEN_ACCESS", "접근이 거부되었습니다.", ""));
     }
 
-    @ExceptionHandler(Exception.class)
-    protected ResponseEntity<ErrorResponseEntity> handleGlobalException(Exception e) {
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponseEntity(500,"INTERNAL_SERVER_ERROR", "알 수 없는 오류가 발생했습니다.",""));
-    }
+//    @ExceptionHandler(Exception.class)
+//    protected ResponseEntity<ErrorResponseEntity> handleGlobalException(Exception e) {
+//        return ResponseEntity
+//                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                .body(new ErrorResponseEntity(500,"INTERNAL_SERVER_ERROR", "알 수 없는 오류가 발생했습니다.",""));
+//    }
     @ExceptionHandler(MethodArgumentNotValidException.class)
     protected ResponseEntity<ErrorResponseEntity> handleValidationExceptions(MethodArgumentNotValidException ex) {
         // 유효성 검사 오류 메시지 모으기

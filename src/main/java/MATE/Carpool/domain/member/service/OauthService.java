@@ -27,12 +27,15 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -53,8 +56,13 @@ public class OauthService {
 
 
 
-    public ResponseEntity<MemberResponseDto> kakaoLogin(String code, HttpServletResponse response,String clientId) throws Exception {
+    public ResponseEntity<MemberResponseDto> socialLogin(String provider,String code, HttpServletResponse response,String clientId) throws Exception {
+        
+        //code는 받아왔음
+        //accessToken 요청
         String accessKey= getAccessTokenFromKakao(code,clientId);
+        
+        
         SocialMemberInfoDto kakaoMemberInfoDto = getSocialMemberInfo(accessKey);
 
         Member member = registerKakaoMemberIfNeeded(kakaoMemberInfoDto);
@@ -81,6 +89,70 @@ public class OauthService {
 
         log.info(memberResponseDto.toString());
         return  ResponseEntity.ok(memberResponseDto);
+    }
+
+
+    //RestTemplate > Map 구조를 해석할수 없어서 "org.springframework.web.client.RestClientException: No HttpMessageConverter for java.util.HashMap and content type "application/x-www-form-urlencoded"
+    //MultiValueMap 로 바꿔서 해결
+    public String getAccessTokenFromLine(String provider,String code, HttpServletResponse response , String clientID) throws Exception {
+
+        String tokenUrl ="https://api.line.me/oauth2/v2.1/token";
+        MultiValueMap<String, String > params = new LinkedMultiValueMap<>();
+
+        params.add("client_id", clientID);
+        params.add("grant_type", "authorization_code");
+        params.add("code", code);
+        params.add("redirect_uri", "http://localhost:8080/api/social/line/callback");
+        params.add("client_secret","1bbd05a2c3cf5ab1a1501b2eae5fd992");
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
+
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<String> responseEntity = restTemplate.postForEntity(tokenUrl, request, String.class);
+
+
+        String responseBody = responseEntity.getBody();
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readTree(responseBody);
+
+        System.out.println("accessToken : "+jsonNode.get("access_token").asText());
+        String accessToken = jsonNode.get("access_token").asText();
+
+        return getProfileTokenFromLine(accessToken);
+    }
+
+
+    public String getProfileTokenFromLine(String accessToken) throws Exception {
+
+        String profile ="https://api.line.me/v2/profile";
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer " + accessToken);
+
+        HttpEntity<String> request = new HttpEntity<>(headers);
+
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<String> responseEntity = restTemplate.postForEntity(profile, request, String.class);
+
+        String responseBody = responseEntity.getBody();
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readTree(responseBody);
+
+        jsonNode.get("userId").asText();
+        String nickname =jsonNode.get("displayName").asText();
+
+        //회원가입 시키고
+
+        //인증객체 만들고
+
+        //accessToken , RefreshToken 발급
+
+
+        System.out.println(jsonNode.toString());
+
+        return null;
     }
 
 

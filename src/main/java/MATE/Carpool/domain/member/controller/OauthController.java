@@ -14,7 +14,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
-@RequestMapping("/api/member/social")
+@RequestMapping("/api/social")
 @RequiredArgsConstructor
 public class OauthController {
 
@@ -35,14 +35,25 @@ public class OauthController {
 
         return "socialLogin";
     }
-    @GetMapping("/callback")
-    public ResponseEntity<MemberResponseDto> callback(@RequestParam("code") String code, HttpServletResponse response) throws Exception {
-            System.out.println(code);
-        return oauthService.kakaoLogin(code,response,client_id);
-    }
     @GetMapping("/test2")
     public ResponseEntity<MemberResponseDto> callback2(@RequestParam("access_token") String access_token, HttpServletResponse response) throws Exception {
         System.out.println(access_token);
         return oauthService.kakaoLogin2(access_token,response,client_id);
     }
+
+
+
+    @GetMapping("/kakao/callback")
+    public ResponseEntity<MemberResponseDto> kakaoCallback(@RequestParam("code") String code, HttpServletResponse response) throws Exception {
+            System.out.println(code);
+        return oauthService.socialLogin("KAKAO",code,response,client_id);
+    }
+    @GetMapping("/line/callback")
+    public String lineCallback(@RequestParam("code") String code, HttpServletResponse response) throws Exception {
+        System.out.println(code);
+        return oauthService.getAccessTokenFromLine("LINE",code,response,"2006743266");
+//        return oauthService.socialLogin("LINE",code,response,client_id);
+    }
+
+
 }

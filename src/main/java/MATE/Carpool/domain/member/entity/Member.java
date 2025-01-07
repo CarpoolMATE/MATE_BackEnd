@@ -40,13 +40,17 @@ public class Member extends TimeStamped{
     @Enumerated(EnumType.STRING)
     private MemberType memberType =MemberType.STANDARD;
 
-    @Column
+    @Column(nullable = false)
     @Builder.Default
     private String profileImage="basic image";
 
-    @Column
+    @Column(nullable = false)
     @Builder.Default
     private Boolean reservation = false;
+
+    @Column
+    @Builder.Default
+    private Long carpoolCount = 0L;
 
     @Column
     @Builder.Default
@@ -55,7 +59,7 @@ public class Member extends TimeStamped{
     @Column
     private Long carpoolId;
 
-    @Column
+    @Column(nullable = false)
     @Builder.Default
     private Boolean isDriver = false;
     //driver
@@ -69,6 +73,13 @@ public class Member extends TimeStamped{
     private LocalDateTime driverRegistrationDate;
     @Column
     private LocalDateTime driverCancellationDate;
+
+    public void incrementCarpoolCount() {
+        this.carpoolCount++;
+    }
+    public void decrementCarpoolCount(){
+        this.carpoolCount--;
+    }
 
 
 
