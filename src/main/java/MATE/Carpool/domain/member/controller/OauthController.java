@@ -25,34 +25,15 @@ public class OauthController {
     @Value("${oauth.kakao.redirect_uri}")
     private String redirect_uri;
 
-    
-    //프론트작업
-    @GetMapping("/test")
-    public String test(Model model) {
-        String location = "https://kauth.kakao.com/oauth/authorize?response_type=code&client_id="+client_id+"&redirect_uri="+redirect_uri;
-        model.addAttribute("location", location);
-        System.out.println(location);
-
-        return "socialLogin";
-    }
-    @GetMapping("/test2")
-    public ResponseEntity<MemberResponseDto> callback2(@RequestParam("access_token") String access_token, HttpServletResponse response) throws Exception {
-        System.out.println(access_token);
-        return oauthService.kakaoLogin2(access_token,response,client_id);
-    }
-
-
-
     @GetMapping("/kakao/callback")
     public ResponseEntity<MemberResponseDto> kakaoCallback(@RequestParam("code") String code, HttpServletResponse response) throws Exception {
             System.out.println(code);
-        return oauthService.socialLogin("KAKAO",code,response,client_id);
+        return oauthService.socialLogin("KAKAO",code,response);
     }
     @GetMapping("/line/callback")
-    public String lineCallback(@RequestParam("code") String code, HttpServletResponse response) throws Exception {
+    public ResponseEntity<MemberResponseDto> lineCallback(@RequestParam("code") String code, HttpServletResponse response) throws Exception {
         System.out.println(code);
-        return oauthService.getAccessTokenFromLine("LINE",code,response,"2006743266");
-//        return oauthService.socialLogin("LINE",code,response,client_id);
+        return oauthService.socialLogin("LINE",code,response);
     }
 
 

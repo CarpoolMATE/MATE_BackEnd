@@ -19,5 +19,5 @@ public class RefreshToken {
     @Column(unique=true,nullable = false)
     private String memberId;
     @Column
-    private Long expiresAt;
+    private Integer expiresAt;
 }

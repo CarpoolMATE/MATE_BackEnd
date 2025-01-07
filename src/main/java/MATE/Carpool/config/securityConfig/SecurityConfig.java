@@ -75,7 +75,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
 //
                 )
-                .exceptionHandling((handling) -> handling
+                .exceptionHandling(handling -> handling
                         .authenticationEntryPoint(new CustomAuthenticationEntryPoint())  // 401 처리
                         .accessDeniedHandler(new CustomAccessDeniedHandler())           // 403 처리
                 );
