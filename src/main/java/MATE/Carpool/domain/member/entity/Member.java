@@ -32,6 +32,12 @@ public class Member extends TimeStamped{
     @Column(nullable = false)
     private String password;
 
+    @Column
+    private String university;
+
+    @Column
+    private Boolean isUniversity =false;
+
     @Builder.Default
     @Enumerated(EnumType.STRING)
     private ProviderType providerType = ProviderType.MATE;
@@ -48,6 +54,8 @@ public class Member extends TimeStamped{
     @Builder.Default
     private Boolean reservation = false;
 
+
+
     @Column
     @Builder.Default
     private Long carpoolCount = 0L;
@@ -62,6 +70,8 @@ public class Member extends TimeStamped{
     @Column(nullable = false)
     @Builder.Default
     private Boolean isDriver = false;
+
+
     //driver
     @Column
     private String carNumber;
