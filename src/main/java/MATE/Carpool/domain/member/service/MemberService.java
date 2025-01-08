@@ -63,11 +63,20 @@ public class MemberService {
                 new UsernamePasswordAuthenticationToken(memberId, requestDto.getPassword());
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
+        UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(memberId, requestDto.getPassword());
+        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+
         jwtProvider.createTokenAndSavedRefresh(authentication, httpServletResponse, memberId);
 
         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
-
+      
         Member member = customUserDetails.getMember();
+ 
+        MemberResponseDto memberResponseDto = new MemberResponseDto(member);
+
+        return ResponseEntity.ok(memberResponseDto);
+
 
         MemberResponseDto memberResponseDto = new MemberResponseDto(member);
 
@@ -116,7 +125,7 @@ public class MemberService {
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
 
-    //드라이버등록
+  
     @Transactional
     public ResponseEntity<MemberResponseDto> registerDriver(DriverRequestDto driverRequestDto,CustomUserDetails userDetails) {
 
@@ -148,7 +157,6 @@ public class MemberService {
         return ResponseEntity.ok(responseDto);
     }
 
-    //이메일중복체크
     @Transactional(readOnly = true)
     public ResponseEntity<Boolean> checkEmail(String email) {
         boolean exists = memberRepository.existsByEmail(email);
@@ -158,7 +166,6 @@ public class MemberService {
         return ResponseEntity.ok(false);
     }
 
-    //비밀번호 찾기
     @Transactional
     public ResponseEntity<String> findPassword(FindPasswordRequestDto requestDto) throws Exception {
 
@@ -180,7 +187,6 @@ public class MemberService {
 
     }
 
-    //아이디찾기
     @Transactional(readOnly = true)
     public ResponseEntity<String> findMemberId(String email) {
         Member member = memberRepository.findByEmail(email)
@@ -189,14 +195,9 @@ public class MemberService {
         return ResponseEntity.ok(member.getMemberId());
     }
 
-
     private String generateTemporaryPassword() {
         return UUID.randomUUID().toString().substring(0, 8);
     }
-
-
-
-
 
 
 

@@ -10,6 +10,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 
 @Service
 @RequiredArgsConstructor
@@ -20,13 +22,13 @@ public class CustomUserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String memberId) throws UsernameNotFoundException {
-        Member member = memberRepository.findByMemberId(memberId)
-                .orElseThrow( () -> new CustomException(ErrorCode.USER_NOT_FOUND));
-        if (member.getIsBanned()) {
-            throw new CustomException(ErrorCode.USER_IS_BANNED);
+        return new CustomUserDetails(memberRepository.findByMemberId(memberId)
+                .map(m -> {
+                    if (m.getIsBanned()) throw new CustomException(ErrorCode.USER_IS_BANNED);
+                    return m;
+                })
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND)));
 
-        }
-        return new CustomUserDetails(member);
     }
 }
 
