@@ -63,10 +63,6 @@ public class MemberService {
                 new UsernamePasswordAuthenticationToken(memberId, requestDto.getPassword());
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
-        UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(memberId, requestDto.getPassword());
-        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
-
         jwtProvider.createTokenAndSavedRefresh(authentication, httpServletResponse, memberId);
 
         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
@@ -77,10 +73,6 @@ public class MemberService {
 
         return ResponseEntity.ok(memberResponseDto);
 
-
-        MemberResponseDto memberResponseDto = new MemberResponseDto(member);
-
-        return ResponseEntity.ok(memberResponseDto);
 
     }
 
