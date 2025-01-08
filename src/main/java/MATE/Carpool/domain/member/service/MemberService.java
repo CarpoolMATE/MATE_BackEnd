@@ -59,26 +59,19 @@ public class MemberService {
     public ResponseEntity<Object> signIn(SignInRequestDto requestDto, HttpServletResponse httpServletResponse){
         String memberId = requestDto.getMemberId();
 
+        UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(memberId, requestDto.getPassword());
+        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
-            // 인증 토큰 생성
-            UsernamePasswordAuthenticationToken authenticationToken =
-                    new UsernamePasswordAuthenticationToken(memberId, requestDto.getPassword());
-            Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+        jwtProvider.createTokenAndSavedRefresh(authentication, httpServletResponse, memberId);
 
-            // 토큰 생성 및 헤더 설정
-            jwtProvider.createTokenAndSavedRefresh(authentication, httpServletResponse, memberId);
+        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
 
-            // 인증된 Member 객체 가져오기
-            CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
-            Member member = customUserDetails.getMember();
+        Member member = customUserDetails.getMember();
 
+        MemberResponseDto memberResponseDto = new MemberResponseDto(member);
 
-            // 응답 DTO 생성
-            MemberResponseDto memberResponseDto = new MemberResponseDto(member);
-
-            return ResponseEntity.ok(memberResponseDto);
-
-
+        return ResponseEntity.ok(memberResponseDto);
 
     }
 
@@ -99,11 +92,28 @@ public class MemberService {
                 .email(requestDto.getEmail())
                 .password(password)
                 .nickname(requestDto.getNickname())
+                .isUniversity(true)
+                .university(requestDto.getUniversity())
                 .build();
 
         memberRepository.save(member);
 
         return ResponseEntity.ok("회원가입 성공");
+    }
+
+    @Transactional
+    public ResponseEntity<MemberResponseDto> socialMemberRegisterUniversity(CustomUserDetails userDetails,String university){
+
+        return Optional.ofNullable(userDetails.getMember())
+                .map(member ->{
+                    member.setUniversity(university);
+                    member.setIsUniversity(true);
+                    return member;
+                })
+                .map(memberRepository::save)
+                .map(MemberResponseDto::new)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
 
     //드라이버등록
@@ -183,6 +193,9 @@ public class MemberService {
     private String generateTemporaryPassword() {
         return UUID.randomUUID().toString().substring(0, 8);
     }
+
+
+
 
 
 

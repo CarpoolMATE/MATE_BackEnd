@@ -33,5 +33,8 @@ public class SignupRequestDto {
 
     @Schema(description = "사용자 닉네임", example = "닉네임")
     private String nickname;
+
+    @Schema(description = "대학교", example = "서울대학교")
+    private String university;
 }
 

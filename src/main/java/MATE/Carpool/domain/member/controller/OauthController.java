@@ -3,8 +3,6 @@ package MATE.Carpool.domain.member.controller;
 
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
 import MATE.Carpool.domain.member.service.OauthService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,7 +23,6 @@ public class OauthController {
     @Value("${oauth.kakao.redirect_uri}")
     private String redirect_uri;
 
-    
     //프론트작업
     @GetMapping("/test")
     public String test(Model model) {
@@ -35,13 +32,12 @@ public class OauthController {
 
         return "socialLogin";
     }
+
     @GetMapping("/test2")
     public ResponseEntity<MemberResponseDto> callback2(@RequestParam("access_token") String access_token, HttpServletResponse response) throws Exception {
         System.out.println(access_token);
         return oauthService.kakaoLogin2(access_token,response,client_id);
     }
-
-
 
     @GetMapping("/kakao/callback")
     public ResponseEntity<MemberResponseDto> kakaoCallback(@RequestParam("code") String code, HttpServletResponse response) throws Exception {
