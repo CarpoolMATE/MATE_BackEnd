@@ -272,8 +272,6 @@ public class CarpoolService {
             result.add(new CarpoolHistoryResponseDTO(r.getCarpool()));
         }
 
-        result.sort((o1, o2) -> o2.getCreateAt().compareTo(o1.getCreateAt()));
-
         return ResponseEntity.ok(result);
     }
 
@@ -285,22 +283,14 @@ public class CarpoolService {
 
         List<CarpoolHistoryResponseDTO> result = new ArrayList<>();
 
-        //드라이버의 경우 생성한 목록에서도 가져오기
         if (member.getIsDriver()) {
             List<CarpoolEntity> driverCarpool = carpoolRepository.findByMemberHis(member);
             for (CarpoolEntity c : driverCarpool) {
                 result.add(new CarpoolHistoryResponseDTO(c));
             }
+        } else {
+            throw new CustomException(ErrorCode.DRIVER_NOT_FOUND);
         }
-
-        //예약에서 목록 가져오기
-        List<ReservationEntity> reservationEntities = reservationRepository.findByCarpoolHis(member);
-        for (ReservationEntity r : reservationEntities) {
-            result.add(new CarpoolHistoryResponseDTO(r.getCarpool()));
-        }
-
-        //정렬은 이해하지 못해서 GPT를 통해 일단 해결함
-        result.sort((o1, o2) -> o2.getCreateAt().compareTo(o1.getCreateAt()));
 
         return ResponseEntity.ok(result);
     }

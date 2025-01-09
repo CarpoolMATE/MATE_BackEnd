@@ -26,6 +26,6 @@ public interface ReservationRepository extends JpaRepository<ReservationEntity, 
     @Query("delete from ReservationEntity r where r.carpool.id =:carpoolId")
     void deleteCarpool(@Param("carpoolId") Long carpoolId);
 
-    @Query("SELECT r from ReservationEntity r join fetch r.carpool c where r.member = :member")
+    @Query("SELECT r from ReservationEntity r join fetch r.carpool c where r.member = :member ORDER BY c.departureDateTime DESC")
     List<ReservationEntity> findByCarpoolHis(@Param("member") Member member);
 }
