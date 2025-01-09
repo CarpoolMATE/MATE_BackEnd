@@ -31,4 +31,5 @@ public class CarpoolRequestDTO {
 
     private int cost;
 
+    private String university;
 }

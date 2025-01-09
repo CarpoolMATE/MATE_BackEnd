@@ -29,8 +29,3 @@ public interface ReservationRepository extends JpaRepository<ReservationEntity, 
     @Query("SELECT r from ReservationEntity r join fetch r.carpool c where r.member = :member")
     List<ReservationEntity> findByCarpoolHis(@Param("member") Member member);
 }
-
-    //JPA 역사도 공부
-    //스프링JPA, 마이바티스 나온 이유
-    //엔티티매니저 매서드마다 호출 , em.close()
-    //초기 개발자가 작성해야했던 string  sql = " select ex from ... "을 mybatis > jpa > spring/jpa

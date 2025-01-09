@@ -24,8 +24,8 @@ public class CarpoolController {
 
     @GetMapping("/list")
     @Operation(summary = "카풀 목록", description = "홈 화면 카풀 목록 리스트를 요청합니다.")
-    public ResponseEntity<List<CarpoolResponseDTO>> carpoolList() {
-        return carpoolService.GetCarpoolList();
+    public ResponseEntity<List<CarpoolResponseDTO>> carpoolList(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        return carpoolService.getCarpoolList(userDetails);
     }
 
     @GetMapping("/carpool")
