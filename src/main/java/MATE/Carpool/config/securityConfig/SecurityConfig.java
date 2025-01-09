@@ -36,12 +36,7 @@ public class SecurityConfig {
             "/h2-console/*",
             "/h2-console",
             "/api/social/**",
-            "/api/member/social/callback/**",
-            "/swagger-ui/**","/v3/api-docs/**",
-
-//            "/api/admin/**"
-
-
+//            "/swagger-ui/**","/v3/api-docs/**","/v3/api-docs","/v3/**"
     };
 
     /**
@@ -71,6 +66,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PERMIT_URI).permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/api/member/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
 //

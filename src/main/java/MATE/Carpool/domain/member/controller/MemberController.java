@@ -11,6 +11,7 @@ import MATE.Carpool.domain.member.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -37,17 +38,25 @@ public class MemberController {
     }
 
     @PostMapping("/signIn")
-    @Operation(summary = "로그인", description = "사용자가 아이디와 비밀번호를 입력하여 로그인합니다.")
+    @Operation(summary = "일반로그인", description = "사용자가 아이디와 비밀번호를 입력하여 로그인합니다.(일반 로그인 입니다)")
     public ResponseEntity<Object> signIn(
             @Valid @RequestBody SignInRequestDto requestDto,
-            HttpServletResponse httpServletResponse){
-        return memberService.signIn(requestDto, httpServletResponse);
+            HttpServletResponse response,
+            HttpServletRequest request) throws Exception {
+        return memberService.signIn(requestDto, response, request);
     }
+
 
     @PostMapping("/signUp")
     @Operation(summary = "회원가입", description = "새로운 회원을 가입시킵니다.")
     public ResponseEntity<String> signUp(@Valid @RequestBody SignupRequestDto requestDto) {
         return memberService.signUp(requestDto);
+    }
+
+    @DeleteMapping("/signOut")
+    @Operation(summary = "로그아웃", description = "로그아웃 메서드입니다. 쿠키를 모두 삭제합니다.")
+    public ResponseEntity<String> signOut(@AuthenticationPrincipal CustomUserDetails userDetails, HttpServletResponse response, HttpServletRequest request) {
+        return memberService.signOut(userDetails,request,response);
     }
 
     @PostMapping("/checkEmail")
@@ -83,10 +92,11 @@ public class MemberController {
     }
 
     @PostMapping("/registerUniversity")
-    @Operation(summary = "소셜회원 대학등록", description = "Line, Kakao 소셜가입한 멤버의 대학을 등록합니다.")
     public ResponseEntity<MemberResponseDto> registerUniversity(@AuthenticationPrincipal CustomUserDetails userDetails,@RequestBody String universityName) {
         return memberService.socialMemberRegisterUniversity(userDetails, universityName);
     }
+
+
 
 
 
