@@ -38,8 +38,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        String accessToken = getCookieValue(request, "ACCESS_TOKEN");
 
+        //swagger 처리용
+        if (request.getHeader("Referer") !=null && request.getHeader("Referer").contains("swagger")) {
+
+            String accessTokenHeader = jwtProvider.resolveAccessToken(request);
+            String refreshTokenHeader = jwtProvider.resolveRefreshToken(request);
+
+            if(accessTokenHeader != null &&jwtProvider.validateToken(accessTokenHeader)) {
+                setAuthentication(accessTokenHeader);
+            }else if(refreshTokenHeader != null &&jwtProvider.validateToken(refreshTokenHeader)) {
+                handleRefreshToken(refreshTokenHeader, response);
+            }
+            log.info("Authentication method: {}",  "Header(Swagger)");
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
+        //일반 처리
+        String accessToken = getCookieValue(request, "ACCESS_TOKEN");
         String refreshToken = getCookieValue(request, "REFRESH_TOKEN");
 
         if(accessToken != null && jwtProvider.validateToken(accessToken)) {
@@ -47,6 +64,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }else if (refreshToken != null && jwtProvider.validateToken(refreshToken)) {
             handleRefreshToken(refreshToken, response);
         }
+        log.info("Authentication method: {}",  "Cookie");
+
         filterChain.doFilter(request, response);
     }
 
