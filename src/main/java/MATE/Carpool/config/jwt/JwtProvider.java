@@ -4,6 +4,7 @@ package MATE.Carpool.config.jwt;
 import MATE.Carpool.common.exception.CustomException;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.config.userDetails.CustomUserDetailsServiceImpl;
+import MATE.Carpool.domain.member.entity.Member;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.io.Encoders;
@@ -265,6 +266,11 @@ public class JwtProvider {
                 .expiresAt(refreshTimeMillis)
                 .build();
         refreshTokenRepository.save(rToken);
+    }
+    public void deleteRefreshToken(String memberId) {
+        refreshTokenRepository.deleteByMemberId(memberId);
+
+
     }
 
 

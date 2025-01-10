@@ -21,6 +21,7 @@ public class MemberDto {
     private String memberId;
     private String nickname;
     private String email;
+    private String university;
     private String profileImage;
     private MemberType memberType;
     private ProviderType providerType;
@@ -43,6 +44,7 @@ public class MemberDto {
         this.memberId = member.getMemberId();
         this.nickname = member.getNickname();
         this.email = member.getEmail();
+        this.university = member.getUniversity();
         this.profileImage = member.getProfileImage();
         this.memberType = member.getMemberType();
         this.providerType = member.getProviderType();
