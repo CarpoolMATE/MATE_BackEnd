@@ -36,16 +36,15 @@ public class CarpoolService {
     private final ReservationRepository reservationRepository;
     private final MemberRepository memberRepository;
 
-
+    //최신순으로 카풀 정보 리스트로 받기
     @Transactional(readOnly = true)
-    public ResponseEntity<List<CarpoolResponseDTO>> GetCarpoolList(){
+    public ResponseEntity<List<CarpoolResponseDTO>> getCarpoolList(CustomUserDetails userDetails){
 
-        LocalDateTime blockStart = LocalDateTime.of(LocalDate.now(), LocalTime.of(10,0));
-        if (LocalDateTime.now().isBefore(blockStart)) {
-            blockStart = blockStart.minusDays(1);
-        }
+        String university = getUniversity(userDetails);
 
-        List<CarpoolEntity> carpoolEntityList = carpoolRepository.findByAllList(blockStart);
+        LocalDateTime blockStart = getBlockStart();
+
+        List<CarpoolEntity> carpoolEntityList = carpoolRepository.findByAllList(blockStart, university);
 
         List<CarpoolResponseDTO> carpoolResponseDTOS = new ArrayList<>();
 
@@ -57,9 +56,62 @@ public class CarpoolService {
 
     }
 
-    // 현재 진행중인 카풀
-    /*throws Exception 이 경우는 언제 사용하고 어떻게 해결해야 하나요*/
-    //throws Exception
+    //TODO: 현재 모집중인 카풀 리스트만 조회
+    @Transactional
+    public ResponseEntity<List<CarpoolResponseDTO>> onlyActiveCarpoolList(CustomUserDetails userDetails){
+
+        String university = getUniversity(userDetails);
+
+        LocalDateTime blockStart = getBlockStart();
+
+        List<CarpoolEntity> carpoolEntityList = carpoolRepository.findByActiveList(blockStart, university);
+
+        List<CarpoolResponseDTO> carpoolResponseDTOS = new ArrayList<>();
+
+        for (CarpoolEntity c : carpoolEntityList) {
+            carpoolResponseDTOS.add(new CarpoolResponseDTO(c));
+        }
+
+        return ResponseEntity.ok(carpoolResponseDTOS);
+    }
+
+    //TODO: 빠른 시간순으로 카풀 리스트 조회
+    public ResponseEntity<List<CarpoolResponseDTO>> fastCarpoolList(CustomUserDetails userDetails){
+
+        String university = getUniversity(userDetails);
+
+        LocalDateTime blockStart = getBlockStart();
+
+        List<CarpoolEntity> carpoolEntityList = carpoolRepository.findByFastList(blockStart, university);
+
+        List<CarpoolResponseDTO> carpoolResponseDTOS = new ArrayList<>();
+
+        for (CarpoolEntity c : carpoolEntityList) {
+            carpoolResponseDTOS.add(new CarpoolResponseDTO(c));
+        }
+
+        return ResponseEntity.ok(carpoolResponseDTOS);
+    }
+
+    //TODO: 가격 낮은 순으로 카풀 리스트 조회
+    public ResponseEntity<List<CarpoolResponseDTO>> lowCostCarpoolList(CustomUserDetails userDetails){
+
+        String university = getUniversity(userDetails);
+
+        LocalDateTime blockStart = getBlockStart();
+
+        List<CarpoolEntity> carpoolEntityList = carpoolRepository.findByLowCostList(blockStart, university);
+
+        List<CarpoolResponseDTO> carpoolResponseDTOS = new ArrayList<>();
+
+        for (CarpoolEntity c : carpoolEntityList) {
+            carpoolResponseDTOS.add(new CarpoolResponseDTO(c));
+        }
+
+        return ResponseEntity.ok(carpoolResponseDTOS);
+    }
+
+    //진행중인 카풀
     @Transactional
     public ResponseEntity<List<PassengerInfoDTO>> myCarpool(CustomUserDetails userDetails) {
 
@@ -88,6 +140,8 @@ public class CarpoolService {
         carpool.setChatLink(carpoolRequestDTO.getChatLink());
         carpool.setCapacity(carpoolRequestDTO.getCapacity());
         carpool.setCost(carpoolRequestDTO.getCost());
+        //TODO: 드라이버 대학 정보를 기준으로 카풀 정보에 추가
+        carpool.setUniversity(member.getUniversity());
 
         carpoolRepository.save(carpool);
         //save를 먼저 했기 때문에 carpool.getId가 가능
@@ -126,6 +180,7 @@ public class CarpoolService {
         reservationRepository.save(reservation);
 
         member.setReservation(true);
+        member.incrementCarpoolCount();
         member.setCarpoolId(requestDTO.getCarpoolId());
         memberRepository.save(member);
 
@@ -137,6 +192,7 @@ public class CarpoolService {
     }
 
     //카풀 취소
+    //TODO: 드라이버 패신저를 프론트에서 어떻게 알 수 있는가
     @Transactional
     public ResponseEntity<String> cancelCarpool(CustomUserDetails userDetails) {
 
@@ -156,6 +212,7 @@ public class CarpoolService {
 
         member.setCarpoolId(null);
         member.setReservation(false);
+        member.decrementCarpoolCount();
         memberRepository.save(member);
 
         return ResponseEntity.ok("카풀 예약이 성공적으로 취소 되었습니다.");
@@ -187,6 +244,7 @@ public class CarpoolService {
         for(Member m : memberList ){
             m.setCarpoolId(null);
             m.setReservation(false);
+            m.decrementCarpoolCount();
         }
         memberRepository.saveAll(memberList);
 
@@ -200,7 +258,7 @@ public class CarpoolService {
     // 카풀 삭제하여 로그로 남기기
 
     //탑승한 카풀 조회
-    //
+    //TODO: 패신저의 경우 드라이버의 경우로 나누기
     @Transactional
     public ResponseEntity<List<CarpoolHistoryResponseDTO>> getCarpoolHistory(CustomUserDetails userDetails) {
 
@@ -208,30 +266,55 @@ public class CarpoolService {
 
         List<CarpoolHistoryResponseDTO> result = new ArrayList<>();
 
-        //드라이버의 경우 생성한 목록에서도 가져오기
-        if (member.getIsDriver()) {
-            List<CarpoolEntity> driverCarpool = carpoolRepository.findByMemberHis(member);
-            for (CarpoolEntity c : driverCarpool) {
-                result.add(new CarpoolHistoryResponseDTO(c));
-            }
-        }
-
         //예약에서 목록 가져오기
         List<ReservationEntity> reservationEntities = reservationRepository.findByCarpoolHis(member);
         for (ReservationEntity r : reservationEntities) {
             result.add(new CarpoolHistoryResponseDTO(r.getCarpool()));
         }
 
-        //정렬은 이해하지 못해서 GPT를 통해 일단 해결함
-        result.sort((o1, o2) -> o2.getCreateAt().compareTo(o1.getCreateAt()));
+        return ResponseEntity.ok(result);
+    }
+
+    //TODO: 드라이버 카풀 이용 목록 조회
+    @Transactional
+    public ResponseEntity<List<CarpoolHistoryResponseDTO>> getDriverHistory(CustomUserDetails userDetails) {
+
+        Member member = userDetails.getMember();
+
+        List<CarpoolHistoryResponseDTO> result = new ArrayList<>();
+
+        if (member.getIsDriver()) {
+            List<CarpoolEntity> driverCarpool = carpoolRepository.findByMemberHis(member);
+            for (CarpoolEntity c : driverCarpool) {
+                result.add(new CarpoolHistoryResponseDTO(c));
+            }
+        } else {
+            throw new CustomException(ErrorCode.DRIVER_NOT_FOUND);
+        }
 
         return ResponseEntity.ok(result);
     }
-    // 매일 오전 10시에 실행되는 메서드
 
+    // 매일 오전 10시에 실행되는 메서드
     @Scheduled(cron = "0 0 10 * * ?") // cron 표현식으로 매일 오전 10시 설정
     public void resetMemberReservationsAndCarpoolId() {
         memberRepository.updateReservationAndCarpoolId();
+    }
+
+    /*유틸리티 클래스*/
+
+    private static String getUniversity(CustomUserDetails userDetails) {
+        Member member = userDetails.getMember();
+        String university = member.getUniversity();
+        return university;
+    }
+
+    private static LocalDateTime getBlockStart() {
+        LocalDateTime blockStart = LocalDateTime.of(LocalDate.now(), LocalTime.of(10,0));
+        if (LocalDateTime.now().isBefore(blockStart)) {
+            blockStart = blockStart.minusDays(1);
+        }
+        return blockStart;
     }
 
     private CarpoolEntity findByCarpool(Long carpoolId){

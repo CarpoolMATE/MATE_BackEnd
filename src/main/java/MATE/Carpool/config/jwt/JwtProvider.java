@@ -4,12 +4,14 @@ package MATE.Carpool.config.jwt;
 import MATE.Carpool.common.exception.CustomException;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.config.userDetails.CustomUserDetailsServiceImpl;
+import MATE.Carpool.domain.member.entity.Member;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -53,10 +55,10 @@ public class JwtProvider {
     private String secretKey;
 
     @Value("${jwt.access.time}")
-    private long accessTimeMillis;
+    private int accessTimeMillis;
 
     @Value("${jwt.refresh.time}")
-    private long refreshTimeMillis;
+    private int refreshTimeMillis;
 
     @PostConstruct
     public void init() {
@@ -74,7 +76,8 @@ public class JwtProvider {
     }
 
     public JwtTokenDto createAllToken(Authentication authentication) {
-        return new JwtTokenDto(createJwtToken(authentication, "Access"), createJwtToken(authentication, "Refresh"));
+        return new JwtTokenDto(createJwtToken(authentication, "Access"),
+                createJwtToken(authentication, "Refresh"));
     }
 
 
@@ -194,11 +197,11 @@ public class JwtProvider {
         return new Date(date.getTime() + expirationMillisecond);
     }
 
-    public long getExpirationTime(String token) {
+    public int getExpirationTime(String token) {
         Date expirationDate = Jwts.parserBuilder().setSigningKey(secretKey).build()
                 .parseClaimsJws(token).getBody().getExpiration();
         Date now = new Date();
-        return expirationDate.getTime() - now.getTime(); // 남은 시간(밀리초 단위)
+        return (int)(expirationDate.getTime() - now.getTime()); // 남은 시간(밀리초 단위)
     }
 
 
@@ -236,6 +239,40 @@ public class JwtProvider {
             throw new RuntimeException("리프레시 토큰 처리 중 오류가 발생했습니다.");
         }
     }
+    public void createTokenAndSavedRefreshHttponly(Authentication authentication, HttpServletResponse response, String memberId) {
+        JwtTokenDto token = createAllToken(authentication);
+        String accessToken = token.getAccessToken();
+        String refreshToken = token.getRefreshToken();
+
+        Cookie accessTokenCookie = new Cookie("ACCESS_TOKEN", accessToken);
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setSecure(false);
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(accessTimeMillis/1000);
+
+        Cookie refreshTokenCookie = new Cookie("REFRESH_TOKEN", refreshToken);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(false);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(refreshTimeMillis/1000);
+
+        // 쿠키를 응답에 추가
+        response.addCookie(accessTokenCookie);
+        response.addCookie(refreshTokenCookie);
+
+        RefreshToken rToken = RefreshToken.builder()
+                .refreshToken(token.getRefreshToken())
+                .memberId(memberId)
+                .expiresAt(refreshTimeMillis)
+                .build();
+        refreshTokenRepository.save(rToken);
+    }
+    public void deleteRefreshToken(String memberId) {
+        refreshTokenRepository.deleteByMemberId(memberId);
+
+
+    }
+
 
 
 

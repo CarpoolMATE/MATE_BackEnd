@@ -21,6 +21,7 @@ public class MemberDto {
     private String memberId;
     private String nickname;
     private String email;
+    private String university;
     private String profileImage;
     private MemberType memberType;
     private ProviderType providerType;
@@ -29,6 +30,8 @@ public class MemberDto {
     private LocalDateTime deleteDate;
     private Boolean reservation;
     private Long carpoolId;
+
+    private Boolean isBanned;
 
     private String carNumber;
     private String phoneNumber;
@@ -41,6 +44,7 @@ public class MemberDto {
         this.memberId = member.getMemberId();
         this.nickname = member.getNickname();
         this.email = member.getEmail();
+        this.university = member.getUniversity();
         this.profileImage = member.getProfileImage();
         this.memberType = member.getMemberType();
         this.providerType = member.getProviderType();
@@ -52,8 +56,9 @@ public class MemberDto {
         this.carImage = member.getCarImage();
         this.driverRegistrationDate = member.getDriverRegistrationDate();
         this.driverCancellationDate = member.getDriverCancellationDate();
-        this.reservation = getReservation();
-        this.carpoolId = getCarpoolId();
+        this.reservation = member.getReservation();
+        this.carpoolId = member.getCarpoolId();
+        this.isBanned = member.getIsBanned();
 
     }
 

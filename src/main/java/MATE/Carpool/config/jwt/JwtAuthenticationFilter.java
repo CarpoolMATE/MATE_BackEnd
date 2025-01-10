@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -36,35 +37,61 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-            String accessToken = jwtProvider.resolveAccessToken(request);
-            String refreshToken = jwtProvider.resolveRefreshToken(request);
 
-            if (accessToken != null) {
 
-                if (jwtProvider.validateToken(accessToken)) {
-                    setAuthentication(accessToken);
-                } else if (refreshToken != null && jwtProvider.validateToken(refreshToken)) {
-                    handleRefreshToken(refreshToken, response);
-                } else {
-                    throw new CustomException(ErrorCode.TOKEN_NOT_FOUND);
-                }
+        //swagger 처리용
+        if (request.getHeader("Referer") !=null && request.getHeader("Referer").contains("swagger")) {
+
+            String accessTokenHeader = jwtProvider.resolveAccessToken(request);
+            String refreshTokenHeader = jwtProvider.resolveRefreshToken(request);
+
+            if(accessTokenHeader != null &&jwtProvider.validateToken(accessTokenHeader)) {
+                setAuthentication(accessTokenHeader);
+            }else if(refreshTokenHeader != null &&jwtProvider.validateToken(refreshTokenHeader)) {
+                handleRefreshToken(refreshTokenHeader, response);
             }
+            log.info("Authentication method: {}",  "Header(Swagger)");
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
+        //일반 처리
+        String accessToken = getCookieValue(request, "ACCESS_TOKEN");
+        String refreshToken = getCookieValue(request, "REFRESH_TOKEN");
+
+        if(accessToken != null && jwtProvider.validateToken(accessToken)) {
+            setAuthentication(accessToken);
+        }else if (refreshToken != null && jwtProvider.validateToken(refreshToken)) {
+            handleRefreshToken(refreshToken, response);
+        }
+        log.info("Authentication method: {}",  "Cookie");
+
         filterChain.doFilter(request, response);
     }
 
+    private String getCookieValue(HttpServletRequest request, String cookieName) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookieName.equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
+    }
 
     private void handleRefreshToken(String refreshToken, HttpServletResponse response) {
         String memberId = jwtProvider.getMemberInfoFromToken(refreshToken);
         Member member = memberRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        // 새 Access Token 및 Refresh Token 발급
         CustomUserDetails userDetails = new CustomUserDetails(member);
         Authentication authentication =
                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         String newAccessToken = jwtProvider.createJwtToken(authentication,"Access");
 
-        long refreshTokenTime = jwtProvider.getExpirationTime(refreshToken);
+        int refreshTokenTime = jwtProvider.getExpirationTime(refreshToken);
         String newRefreshToken = jwtProvider.createNewRefreshToken(authentication, refreshTokenTime);
 
         RefreshToken token = refreshTokenRepository.findByMemberId(memberId)
@@ -72,7 +99,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         token.setExpiresAt(refreshTokenTime);
         refreshTokenRepository.save(token);
 
-        // 새 토큰을 헤더에 추가
         jwtProvider.accessTokenSetHeader(newAccessToken, response);
         jwtProvider.refreshTokenSetHeader(newRefreshToken, response);
 

@@ -1,6 +1,5 @@
 package MATE.Carpool.domain.carpool.repository;
 
-import MATE.Carpool.domain.carpool.dto.response.CarpoolHistoryResponseDTO;
 import MATE.Carpool.domain.carpool.entity.CarpoolEntity;
 import MATE.Carpool.domain.member.entity.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,10 +11,19 @@ import java.util.List;
 
 public interface CarpoolRepository extends JpaRepository<CarpoolEntity, Long> {
 
-    //파라미터 값으로 기준 시간을 받고 그 이후에 생성된 카풀ID 넘기기
-    @Query("SELECT c from CarpoolEntity c where c.createdAt > :blockStart ")
-    List<CarpoolEntity> findByAllList(@Param("blockStart")LocalDateTime blockStart);
+    @Query("SELECT c from CarpoolEntity c where c.createdAt > :blockStart AND c.university =: university")
+    List<CarpoolEntity> findByAllList(@Param("blockStart")LocalDateTime blockStart, @Param("university")String university);
 
-    @Query("SELECT c from CarpoolEntity c where c.member = :member")
+    @Query("SELECT c from CarpoolEntity c where c.createdAt > :blockStart AND c.university = :university AND c.capacity > c.reservationCount")
+    List<CarpoolEntity> findByActiveList(@Param("blockStart")LocalDateTime blockStart, @Param("university")String university);
+
+    //ASC는 오름차순, DESC는 내림차
+    @Query("SELECT c FROM CarpoolEntity c WHERE c.createdAt > :blockStart AND c.university = :university ORDER BY c.departureDateTime ASC")
+    List<CarpoolEntity> findByLowCostList(@Param("blockStart")LocalDateTime blockStart, @Param("university")String university);
+
+    @Query("SELECT c FROM CarpoolEntity c WHERE c.createdAt > :blockStart AND c.university = :university ORDER BY c.cost ASC")
+    List<CarpoolEntity> findByFastList(@Param("blockStart")LocalDateTime blockStart, @Param("university")String university);
+
+    @Query("SELECT c from CarpoolEntity c where c.member = :member ORDER BY c.departureDateTime DESC")
     List<CarpoolEntity> findByMemberHis(@Param("member")Member member);
 }

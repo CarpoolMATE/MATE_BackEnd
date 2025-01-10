@@ -2,6 +2,8 @@ package MATE.Carpool.domain.member.service;
 
 
 import MATE.Carpool.common.PKEncryption;
+import MATE.Carpool.common.exception.CustomException;
+import MATE.Carpool.common.exception.ErrorCode;
 import MATE.Carpool.config.jwt.JwtProvider;
 import MATE.Carpool.config.jwt.JwtTokenDto;
 import MATE.Carpool.config.jwt.RefreshToken;
@@ -26,128 +28,150 @@ import org.springframework.http.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class OauthService {
 
-    @Value("${jwt.refresh.time}")
-    private long refreshTimeMillis;
+    @Value("${oauth.line.client_id}")
+    private String lineClientId;
+    @Value("${oauth.kakao.client_id}")
+    private String kakaoClientId;
+
+    @Value("${oauth.line.secret_id}")
+    private String lineSecretKey;
+    @Value("${oauth.kakao.secret_id}")
+    private String kakaoSecretKey;
 
     private final JwtProvider jwtProvider;
     private final MemberRepository memberRepository;
-    private final RefreshTokenRepository refreshTokenRepository;
-    private final PKEncryption pkEncryption;
+    private final PasswordEncoder passwordEncoder;
 
-    private final static String KAUTH_TOKEN_URL_HOST="https://kauth.kakao.com";
-
-
-
-    public ResponseEntity<MemberResponseDto> kakaoLogin(String code, HttpServletResponse response,String clientId) throws Exception {
-        String accessKey= getAccessTokenFromKakao(code,clientId);
-        SocialMemberInfoDto kakaoMemberInfoDto = getSocialMemberInfo(accessKey);
-
-        Member member = registerKakaoMemberIfNeeded(kakaoMemberInfoDto);
-        Authentication authentication=forceLogin(member);
-        jwtProvider.createTokenAndSavedRefresh(authentication,response,member.getMemberId());
-
-        MemberResponseDto memberResponseDto = new MemberResponseDto(member);
+    private final static String KAKAO_TOKEN_URL_HOST="https://kauth.kakao.com";
+    private final static String LINE_TOKEN_URL_HOST="https://api.line.me/oauth2/v2.1/token";
 
 
-        log.info(memberResponseDto.toString());
-        return  ResponseEntity.ok(memberResponseDto);
-    }
+    public ResponseEntity<MemberResponseDto> socialLogin(String provider,String code, HttpServletResponse response ) throws JsonProcessingException {
 
+        String accessKey = getAccessKey(provider, code, response);
 
-    public ResponseEntity<MemberResponseDto> kakaoLogin2(String accessKey, HttpServletResponse response,String clientId) throws Exception {
-        SocialMemberInfoDto kakaoMemberInfoDto = getSocialMemberInfo(accessKey);
+        SocialMemberInfoDto socialMemberInfoDto = getMemberInfo(provider , accessKey);
 
-        Member member = registerKakaoMemberIfNeeded(kakaoMemberInfoDto);
-        Authentication authentication=forceLogin(member);
-        jwtProvider.createTokenAndSavedRefresh(authentication,response,member.getMemberId());
+        Member member  = registerMember(provider , socialMemberInfoDto);
+
+        Authentication authentication = forceLogin(member);
+
+        jwtProvider.createTokenAndSavedRefreshHttponly(authentication,response,member.getMemberId());
 
         MemberResponseDto memberResponseDto = new MemberResponseDto(member);
 
-
         log.info(memberResponseDto.toString());
+
         return  ResponseEntity.ok(memberResponseDto);
+
     }
 
+    public String getAccessKey(String provider, String code, HttpServletResponse response) throws JsonProcessingException {
+        Map<String, String> providers = new HashMap<>();
+        providers.put("providerUrl", provider.equals("KAKAO") ? KAKAO_TOKEN_URL_HOST : LINE_TOKEN_URL_HOST);
+        providers.put("clientId", provider.equals("KAKAO") ? kakaoClientId : lineClientId);
+        providers.put("clientSecret", provider.equals("KAKAO") ? kakaoSecretKey : lineSecretKey);
 
-    public String getAccessTokenFromKakao(String code,String clientId) {
+        MultiValueMap<String , String > params= new LinkedMultiValueMap<>();
 
-        KakaoTokenResponseDto kakaoTokenResponseDto = WebClient.create(KAUTH_TOKEN_URL_HOST).post()
-                .uri(uriBuilder -> uriBuilder
-                        .scheme("https")
-                        .path("/oauth/token")
-                        .queryParam("grant_type", "authorization_code")
-                        .queryParam("client_id", clientId)
-                        .queryParam("code", code)
-                        .build(true))
-                .header(HttpHeaders.CONTENT_TYPE, HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString())
-                .retrieve()
-                .bodyToMono(KakaoTokenResponseDto.class)
-                .block();
+        params.add("client_id", providers.get("clientId"));
+        params.add("grant_type", "authorization_code");
+        params.add("code", code);
+        params.add("redirect_uri", "http://localhost:8080/api/social/"+provider.toLowerCase()+"/callback");
+        params.add("client_secret",providers.get("clientSecret"));
 
-        assert kakaoTokenResponseDto != null;
-        return kakaoTokenResponseDto.getAccessToken();
-    }
-
-
-    private SocialMemberInfoDto getSocialMemberInfo(String accessToken) throws JsonProcessingException {
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer " + accessToken);
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        HttpEntity<MultiValueMap<String, String>> kakaoUserInfoRequest = new HttpEntity<>(headers);
-        RestTemplate rt = new RestTemplate();
-        ResponseEntity<String> response = rt.exchange(
-                "https://kapi.kakao.com/v2/user/me",
-                HttpMethod.GET,
-                kakaoUserInfoRequest,
-                String.class
-        );
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
 
-        if (response.getStatusCode() != HttpStatus.OK) {
-            throw new RestClientException("카카오 서버가 원활하지 않음. Status : " + response.getStatusCode());
+        RestTemplate restTemplate = new RestTemplate();
+
+        try {
+            ResponseEntity<String> responseEntity = restTemplate.postForEntity(providers.get("providerUrl"), request, String.class);
+            String responseBody = responseEntity.getBody();
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(responseBody);
+
+            JsonNode accessTokenNode = jsonNode.get("access_token");
+            if (accessTokenNode != null) {
+                return accessTokenNode.asText();
+            } else {
+                throw new RuntimeException("토큰을 발급받지 못했습니다.");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("소셜로그인중 오류가 발생했습니다. 관리자에게 문의해주세요.", e);
         }
 
-        String responseBody = response.getBody();
+    }
+
+    public SocialMemberInfoDto getMemberInfo(String provider ,String accessToken) throws JsonProcessingException {
+
+
+        // TODO : 구글까지온다면?
+        String profile = provider =="KAKAO" ?"https://kapi.kakao.com/v2/user/me" : "https://api.line.me/v2/profile";
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer " + accessToken);
+
+        HttpEntity<String> request = new HttpEntity<>(headers);
+
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<String> responseEntity = restTemplate.postForEntity(profile, request, String.class);
+
+        String responseBody = responseEntity.getBody();
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(responseBody);
 
-        System.out.println(jsonNode);
+        if(provider =="KAKAO"){
+            return SocialMemberInfoDto.builder()
+                    .nickname(jsonNode.get("properties").get("nickname").asText())
+                    .profileImage(jsonNode.get("properties").get("profile_image").asText())
+                    .email(jsonNode.get("properties").get("email").asText()+"@kakao.com")
+                    .build();
 
+        }else{
+            return SocialMemberInfoDto.builder()
+                    .nickname(jsonNode.get("displayName").asText())
+                    .profileImage("profile_image")
+                    .email(jsonNode.get("userId").asText() + "@line.com")
+                    .build();
+        }
 
-        return SocialMemberInfoDto.builder()
-                .nickname(jsonNode.get("properties").get("nickname").asText())
-                .profileImage(jsonNode.get("properties").get("profile_image").asText())
-                .email("test@email.com")
-                .build();
     }
 
-    private Member registerKakaoMemberIfNeeded(SocialMemberInfoDto socialMemberInfoDto) {
+    private Member registerMember(String provider ,SocialMemberInfoDto socialMemberInfoDto) {
         Optional<Member> member = memberRepository.findByEmail(socialMemberInfoDto.getEmail());
+
         Member fMember = null;
+        String nickname = socialMemberInfoDto.getNickname();
+        if(memberRepository.existsByNickname(nickname)){
+            Long duplicateMember = memberRepository.countByNickname(nickname);
+            nickname+=duplicateMember;
+        }
         if (member.isEmpty()) {
             fMember = Member.builder()
                     .memberId(socialMemberInfoDto.getNickname()+UUID.randomUUID().toString())
                     .email(socialMemberInfoDto.getEmail())
                     .password(UUID.randomUUID().toString())
-                    .providerType(ProviderType.KAKAO)
-                    .nickname(socialMemberInfoDto.getNickname())
+                    .providerType(provider =="KAKAO" ? ProviderType.KAKAO: ProviderType.LINE)
+                    .nickname(nickname)
                     .build();
-
             memberRepository.save(fMember);
         }
         return fMember;
@@ -157,10 +181,10 @@ public class OauthService {
 
         CustomUserDetails userDetails = new CustomUserDetails(member);
 
-
-
         Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
+
         return authentication;
 
     }

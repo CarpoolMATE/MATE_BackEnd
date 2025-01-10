@@ -35,13 +35,8 @@ public class SecurityConfig {
             "/api/member/test",
             "/h2-console/*",
             "/h2-console",
-            "/api/member/social/*",
-            "/api/member/social/callback",
-            "/api/member/social/callback/**",
-            "/swagger-ui/**","/v3/api-docs/**",
-//            "/api/admin/**"
-
-
+            "/api/social/**",
+//            "/swagger-ui/**","/v3/api-docs/**","/v3/api-docs","/v3/**"
     };
 
     /**
@@ -71,11 +66,12 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PERMIT_URI).permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/api/member/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
 //
                 )
-                .exceptionHandling((handling) -> handling
+                .exceptionHandling(handling -> handling
                         .authenticationEntryPoint(new CustomAuthenticationEntryPoint())  // 401 처리
                         .accessDeniedHandler(new CustomAccessDeniedHandler())           // 403 처리
                 );

@@ -39,7 +39,9 @@ public class CarpoolEntity extends TimeStamped {
     @Column
     private Integer cost;
 
-    //null일수가있다
+    @Column
+    private String university;
+
     @Column
     private Integer reservationCount = 0;
 
