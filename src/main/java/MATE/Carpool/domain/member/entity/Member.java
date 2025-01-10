@@ -36,6 +36,7 @@ public class Member extends TimeStamped{
     private String university;
 
     @Column
+    @Builder.Default
     private Boolean isUniversity =false;
 
     @Builder.Default
