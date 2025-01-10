@@ -30,6 +30,7 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     private final static String[] PERMIT_URI={
+            "/",
             "/api/member/signUp",
             "/api/member/signIn",
             "/api/member/test",
