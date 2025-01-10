@@ -28,6 +28,24 @@ public class CarpoolController {
         return carpoolService.getCarpoolList(userDetails);
     }
 
+    @GetMapping("/active")
+    @Operation(summary = "카풀 모집중 필터", description = "모집중인 카풀 목록 리스트를 요청합니다.")
+    public ResponseEntity<List<CarpoolResponseDTO>> onlyActiveCarpoolList(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        return carpoolService.onlyActiveCarpoolList(userDetails);
+    }
+
+    @GetMapping("/fast")
+    @Operation(summary = "카풀 시간 필터", description = "빠른 출발 시간의 카풀 리스트를 요청합니다.")
+    public ResponseEntity<List<CarpoolResponseDTO>> fastCarpoolList(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        return carpoolService.fastCarpoolList(userDetails);
+    }
+
+    @GetMapping("/low")
+    @Operation(summary = "카풀 가격 필터", description = "가장 낮은 가격의 카풀 리스트를 요청합니다.")
+    public ResponseEntity<List<CarpoolResponseDTO>> lowCostCarpoolList(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        return carpoolService.lowCostCarpoolList(userDetails);
+    }
+
     @GetMapping("/carpool")
     @Operation(summary = "내 카풀", description = "진행중인 카풀 정보를 요청합니다.")
     public ResponseEntity<List<PassengerInfoDTO>> myCarpool(@AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -62,5 +80,11 @@ public class CarpoolController {
     @Operation(summary = "카풀 이용 목록", description = "사용자의 카풀 이용 목록을 요청합니다.")
     public ResponseEntity<List<CarpoolHistoryResponseDTO>> getCarpoolHistory(@AuthenticationPrincipal CustomUserDetails userDetails) {
         return carpoolService.getCarpoolHistory(userDetails);
+    }
+
+    @GetMapping("drivehis")
+    @Operation(summary = "카풀 이용 목록", description = "사용자의 카풀 이용 목록을 요청합니다.")
+    public ResponseEntity<List<CarpoolHistoryResponseDTO>> getDriverHistory(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        return carpoolService.getDriverHistory(userDetails);
     }
 }
