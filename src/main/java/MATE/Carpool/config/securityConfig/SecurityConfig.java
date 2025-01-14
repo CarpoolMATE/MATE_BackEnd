@@ -97,7 +97,7 @@ public class SecurityConfig {
         configuration.addAllowedOrigin("https://carple-front.vercel.app");
 
        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowCredentials(true);
+        configuration.setAllowCredentials(false);
 
         configuration.setExposedHeaders(List.of("*"));
 
