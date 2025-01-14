@@ -95,14 +95,14 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.addAllowedOrigin("http://localhost:3000");
-        configuration.addAllowedOrigin("http://localhost:3000/");
         configuration.addAllowedOrigin("https://carple-front.vercel.app");
 
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-     
-        configuration.setAllowCredentials(false);
+        configuration.setAllowCredentials(true);
 
-        configuration.setExposedHeaders(List.of(HttpHeaders.CONTENT_TYPE));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+
+
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
