@@ -97,11 +97,8 @@ public class SecurityConfig {
         configuration.addAllowedOrigin("http://localhost:3000");
         configuration.addAllowedOrigin("https://carple-front.vercel.app");
 
-        configuration.addAllowedOrigin("GET");
-        configuration.addAllowedOrigin("POST");
-        configuration.addAllowedOrigin("PUT");
-        configuration.addAllowedOrigin("DELETE");
-        configuration.addAllowedOrigin("OPTIONS");
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+     
         configuration.setAllowCredentials(false);
 
         configuration.setExposedHeaders(List.of(HttpHeaders.CONTENT_TYPE));
