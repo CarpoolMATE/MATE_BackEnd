@@ -19,5 +19,5 @@ public class HomeController {
     public ResponseEntity<String> post(@RequestBody String test){
         return ResponseEntity.ok("postMapping"+test);
     }
-
+}
 
