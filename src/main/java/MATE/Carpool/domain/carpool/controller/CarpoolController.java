@@ -27,15 +27,7 @@ public class CarpoolController {
     @GetMapping("/list")
     @Operation(summary = "카풀 목록", description = "홈 화면 카풀 목록 리스트를 요청합니다.")
     public ResponseEntity<List<CarpoolResponseDTO>> carpoolList(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        log.info(userDetails.getMember().getNickname());
         return carpoolService.getCarpoolList(userDetails);
-    }
-
-
-    @GetMapping("/{id}")
-    @Operation(summary = "카풀 상세조회", description = "카풀을 입력받은 id값으로 상세조회합니다.")
-    public ResponseEntity<CarpoolResponseDTO> readOne(@PathVariable("id")Long id) {
-        return carpoolService.readOne(id);
     }
 
     @GetMapping("/active")

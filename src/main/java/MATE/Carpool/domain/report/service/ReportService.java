@@ -32,26 +32,8 @@ public class ReportService {
     private final CarpoolRepository carpoolRepository;
     private final ReservationRepository reservationRepository;
 
-    //신고전체 조회
-    @Transactional(readOnly = true)
-    public ResponseEntity<List<ReportResponseDto>> reportFindAll(){
-        return ResponseEntity.ok(
-                reportRepository.findAllReports().stream()
-                        .map(ReportResponseDto::new)
-                        .toList()
-        );
-    }
-    //신고 상세조회
-    @Transactional(readOnly = true)
-    public ResponseEntity<ReportResponseDto> reportFindById(Long id){
-        return ResponseEntity.ok(
-                reportRepository.findReportById(id)
-                        .map(ReportResponseDto::new)
-                        .orElseThrow(()->new CustomException(ErrorCode.REPORT_NOT_FOUND))
-        );
-    }
 
-    
+
     //신고하기
     @Transactional
     public ResponseEntity<String> submitReport(ReportRequestDto requestDto, Long carpoolId, CustomUserDetails userDetails) {
@@ -95,18 +77,7 @@ public class ReportService {
 
     }
 
-    public ResponseEntity<ReportResponseDto> readOne(Long id) {
-        return reportRepository.findById(id)
-                .map(ReportResponseDto::new)
-                .map(ResponseEntity::ok)
-                .orElseThrow(()->new CustomException(ErrorCode.REPORT_NOT_FOUND));
-    }
 
-    public ResponseEntity<List<ReportResponseDto>> readAllByCarpool(Long id) {
-        return ResponseEntity.ok(
-                reportRepository.findByCarpoolId(id)
-                        .stream()
-                        .map(ReportResponseDto::new)
-                        .collect(Collectors.toList()));
-    }
+
+
 }
