@@ -62,6 +62,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 
+	//redis
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
 
 
 }
