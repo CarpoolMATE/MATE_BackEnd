@@ -14,9 +14,9 @@ import MATE.Carpool.domain.carpool.repository.CarpoolRepository;
 import MATE.Carpool.domain.carpool.repository.ReservationRepository;
 import MATE.Carpool.domain.member.entity.Member;
 import MATE.Carpool.domain.member.repository.MemberRepository;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -29,12 +29,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor //자동으로 생성자 작성
 public class CarpoolService {
 
     private final CarpoolRepository carpoolRepository;
     private final ReservationRepository reservationRepository;
     private final MemberRepository memberRepository;
+    private final EntityManager em;
 
     //최신순으로 카풀 정보 리스트로 받기
     @Transactional(readOnly = true)
@@ -54,6 +56,13 @@ public class CarpoolService {
 
         return ResponseEntity.ok(carpoolResponseDTOS);
 
+    }
+
+    public ResponseEntity<CarpoolResponseDTO> readOne(Long id) {
+        return   carpoolRepository.findById(id)
+                .map(CarpoolResponseDTO::new)
+                .map(ResponseEntity::ok)
+                .orElseThrow(()->new CustomException(ErrorCode.CARPOOL_NOT_FOUND));
     }
 
     //TODO: 현재 모집중인 카풀 리스트만 조회
@@ -130,23 +139,30 @@ public class CarpoolService {
     @Transactional
     public ResponseEntity<CarpoolResponseDTO> makeCarpool(CustomUserDetails userDetails,CarpoolRequestDTO carpoolRequestDTO) {
 
+
         Member member = userDetails.getMember();
+
+        if(!member.getIsDriver()){
+            throw new CustomException(ErrorCode.ONLY_POSSIBLE_DRIVER);
+        }
+        if(member.getReservation()){
+            throw new CustomException(ErrorCode.ALREADY_CARPOOL_EXIST);
+        }
 
         CarpoolEntity carpool = new CarpoolEntity();
         carpool.setMember(member);
         carpool.setDepartureCoordinate(carpoolRequestDTO.getDepartureCoordinate());
-        carpool.setDepartureDetailed(carpoolRequestDTO.getDepartureDetailed());
         carpool.setDepartureDateTime(carpoolRequestDTO.getDepartureTime());
         carpool.setChatLink(carpoolRequestDTO.getChatLink());
         carpool.setCapacity(carpoolRequestDTO.getCapacity());
         carpool.setCost(carpoolRequestDTO.getCost());
-        //TODO: 드라이버 대학 정보를 기준으로 카풀 정보에 추가
         carpool.setUniversity(member.getUniversity());
 
         carpoolRepository.save(carpool);
         //save를 먼저 했기 때문에 carpool.getId가 가능
 
         member.setReservation(true);
+        member.incrementCarpoolCount();
         member.setCarpoolId(carpool.getId());
 
         memberRepository.save(member);
@@ -160,16 +176,19 @@ public class CarpoolService {
 
         Member member = userDetails.getMember();
 
-        //중복예약 검증
-        if(member.getReservation()){
-            throw new CustomException(ErrorCode.CARPOOL_ALREADY_RESERVATIONS);
-        }
-
         //카풀 테이블에 있는 해당 카풀 정보 다 가져옴
         CarpoolEntity carpool = findByCarpool(requestDTO.getCarpoolId());
 
+        //중복예약 검증
+        if(member.getReservation()){
+            if(member.getId().equals(carpool.getMember().getId())){
+                throw new CustomException(ErrorCode.CAN_NOT_RESERVATION_MY_CARPOOL);
+            }
+            throw new CustomException(ErrorCode.CARPOOL_ALREADY_RESERVATIONS);
+        }
+
         //좌석 수 검증
-        if (carpool.getCapacity() < carpool.getReservationCount()) {
+        if (carpool.getCapacity() <= carpool.getReservationCount()) {
            throw new CustomException(ErrorCode.CARPOOL_IS_FULL);
         }
 
@@ -200,15 +219,15 @@ public class CarpoolService {
 
         Long carpoolId = member.getCarpoolId();
 
-        CarpoolEntity carpool = findByCarpool(carpoolId);
+        CarpoolEntity carpool = carpoolRepository.findById(carpoolId).orElse(null);
 
         ReservationEntity reservation = reservationRepository.findByCarpoolAndMember(carpoolId, member.getId());
 
+        if(carpool != null){
+          carpoolRepository.save(carpool);
+          carpool.decrementReservationCount();
+        }
         reservationRepository.delete(reservation);
-
-        carpool.decrementReservationCount();
-        //영속성 컨텍스트에서 자동반영 됨
-        carpoolRepository.save(carpool);
 
         member.setCarpoolId(null);
         member.setReservation(false);
@@ -221,45 +240,41 @@ public class CarpoolService {
     //카풀 삭제
     @Transactional
     public ResponseEntity<String> deleteCarpool(CustomUserDetails userDetails) {
+        Member member = userDetails.getMember();
 
-        Member driver = userDetails.getMember();
+        CarpoolEntity carpool = carpoolRepository.findById(member.getCarpoolId()).orElseThrow(
+                () -> new CustomException(ErrorCode.CARPOOL_NOT_FOUND)
+        );
 
-        Long carpoolId = driver.getCarpoolId();
+        List<Member> members =new ArrayList<>();
 
-        CarpoolEntity carpool = findByCarpool(carpoolId);
-
-        //드라이버 정보 삭제
-        List<Member> memberList = new ArrayList<>();
-
-        //승객 모두 찾아서 멤버 데이터 수정
-        //JPA 제한 -> JPA 리미트 -> Pageable
-        Pageable pageable = PageRequest.of(0, carpool.getCapacity());
-        List<ReservationEntity> reservationEntities = reservationRepository.findAllByCarpoolId(carpoolId, pageable);
-
-        for (ReservationEntity r : reservationEntities) {
-            memberList.add(r.getMember());
+        if(!carpool.getMember().getId().equals(member.getId())){
+            throw new CustomException(ErrorCode.ONLY_DELETE_DRIVER);
         }
 
-        memberList.add(driver);
-        for(Member m : memberList ){
-            m.setCarpoolId(null);
+        List<ReservationEntity> r = reservationRepository.findByCarpoolId(carpool.getId());
+        for( ReservationEntity reservation : r){
+            reservation.setCarpoolNull();
+            members.add(reservation.getMember());
+        }
+
+        members.add(member);
+
+        for (Member m : members){
             m.setReservation(false);
+            m.setCarpoolId(null);
             m.decrementCarpoolCount();
         }
-        memberRepository.saveAll(memberList);
 
-        reservationRepository.deleteCarpool(carpoolId);
-
+        memberRepository.saveAll(members);
+        reservationRepository.deleteAll(r);
         carpoolRepository.delete(carpool);
+
 
         return ResponseEntity.ok("카풀이 정상적으로 삭제 되었습니다.");
     }
 
-    // 카풀 삭제하여 로그로 남기기
-
-    //탑승한 카풀 조회
-    //TODO: 패신저의 경우 드라이버의 경우로 나누기
-    @Transactional
+    @Transactional(readOnly = true)
     public ResponseEntity<List<CarpoolHistoryResponseDTO>> getCarpoolHistory(CustomUserDetails userDetails) {
 
         Member member = userDetails.getMember();
@@ -275,8 +290,7 @@ public class CarpoolService {
         return ResponseEntity.ok(result);
     }
 
-    //TODO: 드라이버 카풀 이용 목록 조회
-    @Transactional
+    @Transactional(readOnly = true)
     public ResponseEntity<List<CarpoolHistoryResponseDTO>> getDriverHistory(CustomUserDetails userDetails) {
 
         Member member = userDetails.getMember();
@@ -301,7 +315,6 @@ public class CarpoolService {
         memberRepository.updateReservationAndCarpoolId();
     }
 
-    /*유틸리티 클래스*/
 
     private static String getUniversity(CustomUserDetails userDetails) {
         Member member = userDetails.getMember();
@@ -316,6 +329,7 @@ public class CarpoolService {
         }
         return blockStart;
     }
+
 
     private CarpoolEntity findByCarpool(Long carpoolId){
         return carpoolRepository.findById(carpoolId)
@@ -333,21 +347,6 @@ public class CarpoolService {
         return passengerInfoDTOS;
     }
 
+
 }
 
-
-// webServer <nginx , apache 어떻게 request 를 분산할것인지전략 로드밸런싱.
-// 서버에서 데이터처리를 어떻게 효율적으로할것인지.
-// Lock을 공부해고 수업을 듣기
-// 키워드: transactional ACID (솔리드 법칙도 추가로)
-// I = isolatation <<<동시성
-// read_lock ***
-// write_lock ***
-// database 마다 isolation 이 다름 / 기본형isolation >> 어떤형태(1,2,3,4)
-// 샤딩>> 100석의 예약 서버를 5대 분산 1~20/1   21~40/2번
-// read > 서버
-// write >서버
-// 인증서버 따로
-// write = read re....그걸받아올수있는 방식도 공부..
-// 메모리가빠르잖아 > 레디스 ㄱㄱ 레디스> 단일쓰레드 메모리의단점 .. 누수..메모리 누수
-// 어셈블리, 가상메모리 , 커널, blocking , 네트워크 , 컨텍스트스위칭, 쓰레드, 프로세스, 자료구조, 10 3~4 5레벨도

@@ -24,8 +24,6 @@ public class CarpoolEntity extends TimeStamped {
     @Column
     private String departureCoordinate;
 
-    @Column
-    private String departureDetailed;
 
     @Column
     private LocalDateTime departureDateTime;
