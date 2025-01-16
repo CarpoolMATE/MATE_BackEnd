@@ -4,10 +4,7 @@ import MATE.Carpool.domain.member.entity.Member;
 import MATE.Carpool.domain.member.entity.MemberType;
 import MATE.Carpool.domain.member.entity.ProviderType;
 import jakarta.persistence.Column;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -16,6 +13,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
+@ToString
 public class MemberDto {
 
     private String memberId;
