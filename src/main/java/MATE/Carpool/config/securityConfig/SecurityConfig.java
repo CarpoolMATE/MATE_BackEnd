@@ -48,12 +48,6 @@ public class SecurityConfig {
             "/api/social/**",
     };
 
-    /**
-     * SpringBootWebSecurityConfiguration 에서 기본값으로 기본로그인폼을 제공한다.
-     * SecurityProperties.java 에서 default값 user생성
-     * 생성후 UserDetailsServiceAutoConfiguration 의 Bean으로 등록된 InMemoryUserDetailsManager 에서 User객체 생성후  메모리에 저장
-     */
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -61,9 +55,6 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
-
-
 
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -85,13 +76,10 @@ public class SecurityConfig {
                         .authenticationEntryPoint(new CustomAuthenticationEntryPoint())  // 401 처리
                         .accessDeniedHandler(new CustomAccessDeniedHandler())           // 403 처리
                 );
-        ;
-
         //h2-console
         http.headers(headers ->headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
         return http.build();
     }
-
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -104,14 +92,9 @@ public class SecurityConfig {
 
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
 
-
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
-
-
 
 }

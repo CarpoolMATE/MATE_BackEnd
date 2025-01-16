@@ -10,6 +10,8 @@ import MATE.Carpool.domain.carpool.service.CarpoolService;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
 import MATE.Carpool.domain.member.entity.Member;
 import MATE.Carpool.domain.member.repository.MemberRepository;
+import MATE.Carpool.domain.report.dto.ReportResponseDto;
+import MATE.Carpool.domain.report.repository.ReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -27,6 +29,7 @@ public class AdminService {
 
     private final MemberRepository memberRepository;
     private final CarpoolRepository carpoolRepository;
+    private final ReportRepository reportRepository;
 
     //회원전체조회
     @Transactional(readOnly = true)
@@ -57,6 +60,13 @@ public class AdminService {
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
 
+    public ResponseEntity<CarpoolResponseDTO> readOne(Long id) {
+        return   carpoolRepository.findById(id)
+                .map(CarpoolResponseDTO::new)
+                .map(ResponseEntity::ok)
+                .orElseThrow(()->new CustomException(ErrorCode.CARPOOL_NOT_FOUND));
+    }
+
 
     //클라이언트 사이드
     public ResponseEntity<List<CarpoolResponseDTO>> readAllCarpool() {
@@ -74,6 +84,35 @@ public class AdminService {
 
         return ResponseEntity.ok(responseDTOS);
 
+    }
+
+    //신고 상세조회
+    @Transactional(readOnly = true)
+    public ResponseEntity<ReportResponseDto> reportFindById(Long id){
+        return ResponseEntity.ok(
+                reportRepository.findReportById(id)
+                        .map(ReportResponseDto::new)
+                        .orElseThrow(()->new CustomException(ErrorCode.REPORT_NOT_FOUND))
+        );
+    }
+
+    //신고전체 조회
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<ReportResponseDto>> reportFindAll(){
+        return ResponseEntity.ok(
+                reportRepository.findAllReports().stream()
+                        .map(ReportResponseDto::new)
+                        .toList()
+        );
+    }
+
+    @Transactional
+    public ResponseEntity<List<ReportResponseDto>> readAllByCarpool(Long id) {
+        return ResponseEntity.ok(
+                reportRepository.findByCarpoolId(id)
+                        .stream()
+                        .map(ReportResponseDto::new)
+                        .collect(Collectors.toList()));
     }
 
 

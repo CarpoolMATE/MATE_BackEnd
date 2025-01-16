@@ -25,7 +25,7 @@ import java.util.List;
 public class AdminController {
 
     private final AdminService adminService;
-    private final ReportService reportService;
+
 
 
     //회원 전체조회
@@ -41,14 +41,21 @@ public class AdminController {
     public ResponseEntity<String> isBanned(@AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable("memberId") String memberId) {
         return adminService.isBanned(userDetails,memberId);
     }
-    //
+
+    @GetMapping("/carpool/{id}")
+    @Operation(summary = "카풀 상세조회", description = "카풀을 입력받은 id값으로 상세조회합니다.")
+    public ResponseEntity<CarpoolResponseDTO> readOne(@PathVariable("id")Long id) {
+        return adminService.readOne(id);
+    }
 
     @GetMapping("/carpools")
+    @Operation(summary = "카풀 목록조회 ", description = "카풀전체목록을 조회합니다")
     public ResponseEntity<List<CarpoolResponseDTO>> readAllCarpool(){
         return adminService.readAllCarpool();
     }
 
     @GetMapping("/carpoolsPage")
+    @Operation(summary = "카풀 목록조회 페이징", description = "카풀전체목록을 조회합니다(페이징  ex) carpools?page=2&size=5)")
     public ResponseEntity<List<CarpoolResponseDTO>> readAllCarpool(Pageable pageable){
         return adminService.readAllCarpool(pageable);
     }
@@ -56,7 +63,7 @@ public class AdminController {
     @GetMapping("/carpool/report/{id}")
     @Operation(summary = "카풀 신고 조회", description = "입력받은 카풀id에 해당하는 모든 신고목록을 조회합니다.")
     public ResponseEntity<List<ReportResponseDto>> readAllByCarpool(@PathVariable("id") Long id){
-        return reportService.readAllByCarpool(id);
+        return adminService.readAllByCarpool(id);
     }
 
 
@@ -64,13 +71,13 @@ public class AdminController {
     @GetMapping("/reports")
     @Operation(summary = "신고 접수 모아보기", description = "관리자가 유저가 신고한 전체목록을 확인합니다.")
     public ResponseEntity<List<ReportResponseDto>> readAllReports() {
-        return reportService.reportFindAll();
+        return adminService.reportFindAll();
 
     }
     @GetMapping("/report/{id}")
     @Operation(summary = "신고 내용 상세보기", description = "관리자가 유저가 신고한 목록을 상세보기 합니다.")
     public ResponseEntity<ReportResponseDto> readReport(@PathVariable("id") Long id) {
-        return reportService.reportFindById(id);
+        return adminService.reportFindById(id);
 
     }
 

@@ -58,12 +58,7 @@ public class CarpoolService {
 
     }
 
-    public ResponseEntity<CarpoolResponseDTO> readOne(Long id) {
-        return   carpoolRepository.findById(id)
-                .map(CarpoolResponseDTO::new)
-                .map(ResponseEntity::ok)
-                .orElseThrow(()->new CustomException(ErrorCode.CARPOOL_NOT_FOUND));
-    }
+
 
     //TODO: 현재 모집중인 카풀 리스트만 조회
     @Transactional
