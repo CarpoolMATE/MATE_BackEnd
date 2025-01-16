@@ -51,22 +51,20 @@ public class Member extends TimeStamped{
     @Builder.Default
     private String profileImage="basic image";
 
-    @Column(nullable = false)
-    @Builder.Default
-    private Boolean reservation = false;
-
-
-
     @Column
     @Builder.Default
     private Long carpoolCount = 0L;
 
     @Column
+    private Long carpoolId;
+
+    @Column(nullable = false)
     @Builder.Default
-    private Boolean isBanned =false;
+    private Boolean reservation = false;
 
     @Column
-    private Long carpoolId;
+    @Builder.Default
+    private Boolean isBanned =false;
 
     @Column(nullable = false)
     @Builder.Default

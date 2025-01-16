@@ -30,9 +30,7 @@ public class ReportEntity extends TimeStamped {
     private Member member;
 
     @ManyToOne
+    @JoinColumn(name = "carpool_id")
     private CarpoolEntity carpool;
-
-
-
 
 }

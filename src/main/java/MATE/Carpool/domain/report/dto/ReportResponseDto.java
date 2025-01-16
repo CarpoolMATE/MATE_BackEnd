@@ -15,9 +15,9 @@ public class ReportResponseDto {
 
     private Long reportId;
     private Long memberId;
+    private Long carpoolId;
     private String reportTitle;
     private String reportContent;
-    private Long carpoolId;
 
     public ReportResponseDto(ReportEntity report) {
         this.reportId = report.getId();

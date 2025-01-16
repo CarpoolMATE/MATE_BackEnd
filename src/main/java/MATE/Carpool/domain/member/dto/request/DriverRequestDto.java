@@ -2,12 +2,13 @@ package MATE.Carpool.domain.member.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@Data
 public class DriverRequestDto {
 
     @Schema(description = "차량번호 입니다.", example="12가 3456")

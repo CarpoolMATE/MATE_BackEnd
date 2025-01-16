@@ -1,9 +1,6 @@
 package MATE.Carpool.domain.carpool.dto.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -12,16 +9,11 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class CarpoolRequestDTO {
-
-    //Member IDENTITY 값
-    private String memberId;
 
     //탑승 좌표
     private String departureCoordinate;
-
-    //상세 주소
-    private String departureDetailed;
 
     private LocalDateTime departureTime;
 
@@ -31,5 +23,4 @@ public class CarpoolRequestDTO {
 
     private int cost;
 
-    private String university;
 }

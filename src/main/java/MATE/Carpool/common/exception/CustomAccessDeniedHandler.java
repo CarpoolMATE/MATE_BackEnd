@@ -19,7 +19,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         response.setCharacterEncoding("UTF-8");
 
         // Custom error message (예: ErrorCode.FORBIDDEN_ACCESS에 맞는 메시지 반환)
-        String errorMessage = "{\"status\": 403, \"code\": \"FORBIDDEN_ACCESS\", \"message\": \"접근이 거부되었습니다.\"}";
+        String errorMessage = "{\"status\": 403, \"name\" : \"FORBIDDEN_ACCESS\", \"code\": \"ACCOUNT-403\", \"message\": \"접근이 권한이 없습니다.\"}";
 
         // 응답으로 전달
         response.getWriter().write(errorMessage);

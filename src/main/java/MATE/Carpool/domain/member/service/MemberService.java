@@ -1,6 +1,7 @@
 package MATE.Carpool.domain.member.service;
 
 
+import MATE.Carpool.common.Message;
 import MATE.Carpool.common.PKEncryption;
 import MATE.Carpool.common.email.EmailService;
 import MATE.Carpool.common.exception.CustomException;
@@ -8,11 +9,8 @@ import MATE.Carpool.common.exception.ErrorCode;
 import MATE.Carpool.config.jwt.JwtProvider;
 import MATE.Carpool.config.jwt.RefreshTokenRepository;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
-import MATE.Carpool.domain.member.dto.request.DriverRequestDto;
-import MATE.Carpool.domain.member.dto.request.FindPasswordRequestDto;
-import MATE.Carpool.domain.member.dto.request.SignInRequestDto;
+import MATE.Carpool.domain.member.dto.request.*;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
-import MATE.Carpool.domain.member.dto.request.SignupRequestDto;
 import MATE.Carpool.domain.member.entity.Member;
 import MATE.Carpool.domain.member.repository.MemberRepository;
 import jakarta.servlet.http.Cookie;
@@ -22,7 +20,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -36,9 +33,7 @@ import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.HandlerMapping;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 
 @Service
@@ -65,9 +60,17 @@ public class MemberService {
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
 
+    @Transactional(readOnly = true)
+    public ResponseEntity<MemberResponseDto> readOne(Long memberId){
+        return memberRepository.findById(memberId)
+                .map(MemberResponseDto::new)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+    }
+
     //로그인
     @Transactional
-    public ResponseEntity<Object> signIn(SignInRequestDto requestDto, HttpServletResponse response, HttpServletRequest request) throws Exception {
+    public ResponseEntity<Message<Object>> signIn(SignInRequestDto requestDto, HttpServletResponse response, HttpServletRequest request) throws Exception {
         String memberId = requestDto.getMemberId();
 
         UsernamePasswordAuthenticationToken authenticationToken =
@@ -90,7 +93,7 @@ public class MemberService {
  
         MemberResponseDto memberResponseDto = new MemberResponseDto(member);
 
-        return ResponseEntity.ok(memberResponseDto);
+        return ResponseEntity.ok(new Message<>("로그인","success",memberResponseDto));
     }
 
     //회원가입
@@ -136,7 +139,7 @@ public class MemberService {
 
   
     @Transactional
-    public ResponseEntity<MemberResponseDto> registerDriver(DriverRequestDto driverRequestDto,CustomUserDetails userDetails) {
+    public ResponseEntity<MemberResponseDto> registerDriver(CustomUserDetails userDetails,DriverRequestDto driverRequestDto) {
 
         Member member = userDetails.getMember();
 
@@ -197,11 +200,14 @@ public class MemberService {
     }
 
     @Transactional(readOnly = true)
-    public ResponseEntity<String> findMemberId(String email) {
-        Member member = memberRepository.findByEmail(email)
+    public ResponseEntity<Map<String, String>> findMemberId(FindMemberIdRequestDto requestDto){
+        Member member = memberRepository.findByEmail(requestDto.getEmail())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        if(!member.getNickname().equals(requestDto.getNickname())){
+            throw new CustomException(ErrorCode.INVALID_NICKNAME);
+        }
+        return ResponseEntity.ok(Collections.singletonMap("memberId",member.getMemberId()));
 
-        return ResponseEntity.ok(member.getMemberId());
     }
 
     private String generateTemporaryPassword() {
@@ -228,8 +234,5 @@ public class MemberService {
         cookie.setMaxAge(0);
         response.addCookie(cookie);
     }
-
-
-
 
 }
