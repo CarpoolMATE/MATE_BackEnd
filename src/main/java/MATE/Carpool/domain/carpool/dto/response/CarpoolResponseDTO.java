@@ -1,10 +1,7 @@
 package MATE.Carpool.domain.carpool.dto.response;
 
 import MATE.Carpool.domain.carpool.entity.CarpoolEntity;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -13,6 +10,7 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class CarpoolResponseDTO {
 
     private Long carpoolId;
@@ -26,8 +24,6 @@ public class CarpoolResponseDTO {
     private String carNumber;
 
     private String departureCoordinate;
-
-    private String departureDetail;
 
     private LocalDateTime departureTime;
 
@@ -46,7 +42,6 @@ public class CarpoolResponseDTO {
         this.carImg = carpool.getMember().getCarImage();
         this.carNumber = carpool.getMember().getCarNumber();
         this.departureCoordinate = carpool.getDepartureCoordinate();
-        this.departureDetail =carpool.getDepartureCoordinate();
         this.departureTime =carpool.getDepartureDateTime();
         this.chatLink = carpool.getChatLink();
         this.capacity =carpool.getCapacity();

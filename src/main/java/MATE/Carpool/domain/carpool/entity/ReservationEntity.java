@@ -15,9 +15,13 @@ public class ReservationEntity extends TimeStamped {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     private CarpoolEntity carpool;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Member member;
+
+    public void setCarpoolNull() {
+        this.carpool = null;
+    }
 }

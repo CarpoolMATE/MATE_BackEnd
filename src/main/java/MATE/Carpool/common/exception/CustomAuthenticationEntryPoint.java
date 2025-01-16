@@ -18,7 +18,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         response.setCharacterEncoding("UTF-8");  // 문자 인코딩을 UTF-8로 설정
 
         // 한글 메시지 출력
-        String errorMessage = "{\"status\": 401, \"code\": \"UNAUTHORIZED\", \"message\": \"권한이 없습니다.\"}";
+        String errorMessage = "{\"status\": 401,\"name\" : \"UNAUTHORIZED\", \"code\": \"ACCOUNT-401\", \"message\": \"인증이 필요합니다.\"}";
         response.getWriter().write(errorMessage);
     }
 }

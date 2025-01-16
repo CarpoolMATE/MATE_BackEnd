@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface CarpoolRepository extends JpaRepository<CarpoolEntity, Long> {
 
-    @Query("SELECT c from CarpoolEntity c where c.createdAt > :blockStart AND c.university =: university")
+    @Query("SELECT c from CarpoolEntity c where c.createdAt > :blockStart AND c.university = :university")
     List<CarpoolEntity> findByAllList(@Param("blockStart")LocalDateTime blockStart, @Param("university")String university);
 
     @Query("SELECT c from CarpoolEntity c where c.createdAt > :blockStart AND c.university = :university AND c.capacity > c.reservationCount")
@@ -26,4 +26,5 @@ public interface CarpoolRepository extends JpaRepository<CarpoolEntity, Long> {
 
     @Query("SELECT c from CarpoolEntity c where c.member = :member ORDER BY c.departureDateTime DESC")
     List<CarpoolEntity> findByMemberHis(@Param("member")Member member);
+
 }

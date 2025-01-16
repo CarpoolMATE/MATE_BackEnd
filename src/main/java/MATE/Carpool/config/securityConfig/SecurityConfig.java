@@ -3,10 +3,13 @@ package MATE.Carpool.config.securityConfig;
 
 import MATE.Carpool.common.exception.CustomAccessDeniedHandler;
 import MATE.Carpool.common.exception.CustomAuthenticationEntryPoint;
+import MATE.Carpool.common.exception.CustomException;
+import MATE.Carpool.common.exception.ErrorCode;
 import MATE.Carpool.config.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -34,14 +37,15 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    private final static String[] PERMIT_URI={
+    private final static String[] PERMIT_URI = {
             "/api/member/signUp",
             "/api/member/signIn",
+            "/api/member/findMemberId",
+            "/api/member/findPassword",
             "/api/member/test",
             "/h2-console/*",
             "/h2-console",
             "/api/social/**",
-//            "/swagger-ui/**","/v3/api-docs/**","/v3/api-docs","/v3/**"
     };
 
     /**
@@ -73,7 +77,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PERMIT_URI).permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/api/member/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin","/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
 //
                 )
@@ -95,10 +99,12 @@ public class SecurityConfig {
         configuration.addAllowedOrigin("http://localhost:3000");
         configuration.addAllowedOrigin("https://carple-front.vercel.app");
 
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowCredentials(true);
 
-        configuration.setExposedHeaders(List.of("*"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+
+
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
