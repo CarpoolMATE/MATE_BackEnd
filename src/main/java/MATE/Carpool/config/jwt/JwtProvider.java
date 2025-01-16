@@ -267,10 +267,10 @@ public class JwtProvider {
                 .build();
         refreshTokenRepository.save(rToken);
     }
+
+    @Transactional
     public void deleteRefreshToken(String memberId) {
-        refreshTokenRepository.deleteByMemberId(memberId);
-
-
+        refreshTokenRepository.deleteMemberId(memberId);
     }
 
 
