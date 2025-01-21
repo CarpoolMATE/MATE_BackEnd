@@ -2,6 +2,7 @@ package MATE.Carpool.config.jwt;
 
 
 import MATE.Carpool.common.exception.CustomException;
+import MATE.Carpool.config.redis.RedisService;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.config.userDetails.CustomUserDetailsServiceImpl;
 import MATE.Carpool.domain.member.entity.Member;
@@ -17,6 +18,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -32,6 +34,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static MATE.Carpool.common.exception.ErrorCode.*;
@@ -48,6 +51,8 @@ public class JwtProvider {
     private final CustomUserDetailsServiceImpl userDetailsService;
     private final RefreshTokenRepository refreshTokenRepository;
     private final EntityManager entityManager;
+    private final RedisService redisService;
+
 
     private Key key;
 
@@ -260,23 +265,12 @@ public class JwtProvider {
         response.addCookie(accessTokenCookie);
         response.addCookie(refreshTokenCookie);
 
-        RefreshToken rToken = RefreshToken.builder()
-                .refreshToken(token.getRefreshToken())
-                .memberId(memberId)
-                .expiresAt(refreshTimeMillis)
-                .build();
-        refreshTokenRepository.save(rToken);
+        redisService.saveRefreshToken(memberId,refreshToken,refreshTimeMillis);
     }
 
     @Transactional
     public void deleteRefreshToken(String memberId) {
         refreshTokenRepository.deleteMemberId(memberId);
     }
-
-
-
-
-
-
 
 }

@@ -1,5 +1,8 @@
 package MATE.Carpool.domain.home;
 
+import jakarta.annotation.security.PermitAll;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.*;
@@ -12,10 +15,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @Slf4j
 public class HomeController {
+    @PermitAll
     @GetMapping("/")
     public String index() {
         return "카풀 메이트 API 서버";
     }
+
     @GetMapping("/ip")
     public void ipTest(HttpServletRequest request){
         String ip =request.getHeader("X-Forwarded-For");
