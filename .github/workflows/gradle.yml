@@ -99,6 +99,10 @@ jobs:
 #            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
 #            sudo docker run -d -p 80:8080 --name ${{ secrets.PROJECT_NAME }} ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
 
+      - name: 현재 작업 디렉토리 출력
+        run: echo $GITHUB_WORKSPACE
+
+
       - name: 메인서버 배포
         uses: appleboy/ssh-action@v0.1.10
         with:
