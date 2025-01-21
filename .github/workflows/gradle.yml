@@ -98,3 +98,24 @@ jobs:
             sudo docker rmi ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }} || true
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
             sudo docker run -d -p 80:8080 --name ${{ secrets.PROJECT_NAME }} ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
+
+      - name: 메인서버 배포
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+
+            # docker-compose.yml 파일을 EC2 서버로 복사
+            scp /path/to/docker-compose.yml ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/
+            
+            # 최신 이미지 다운로드
+            cd /home/ubuntu
+            sudo docker-compose pull
+
+            # 기존 컨테이너 종료 및 제거 (필요한 경우)
+            sudo docker-compose down
+
+            # 새 컨테이너 시작
+            sudo docker-compose up -d
