@@ -101,6 +101,12 @@ jobs:
 
       - name: 현재 작업 디렉토리 출력
         run: echo $GITHUB_WORKSPACE
+      - name: 확인 docker-compose.yml 파일 위치
+        run: |
+          echo "path: $(pwd)"
+          echo "docker-compose.yml contains: $(ls -l docker-compose.yml)"
+
+
 
 
       - name: 메인서버 배포
