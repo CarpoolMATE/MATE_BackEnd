@@ -14,3 +14,4 @@ public class SocialMemberInfoDto {
     private String email;
     private String profileImage;
 }
+//TODO: 용도가 궁금합니다

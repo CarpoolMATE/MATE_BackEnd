@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @AllArgsConstructor
@@ -15,6 +16,6 @@ public class DriverRequestDto {
     @Schema(description = "드라이버의 전화번호 입니다.", example="010-1234-5678")
     private String phoneNumber;
     @Schema(description = "등록될 차량의 사진입니다.", example="test.img")
-    private String carImage;
+    private MultipartFile carImage;
 
 }

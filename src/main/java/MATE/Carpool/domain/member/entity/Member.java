@@ -48,8 +48,7 @@ public class Member extends TimeStamped{
     private MemberType memberType =MemberType.STANDARD;
 
     @Column(nullable = false)
-    @Builder.Default
-    private String profileImage="basic image";
+    private String profileImage;
 
     @Column(nullable = false)
     @Builder.Default
@@ -88,11 +87,10 @@ public class Member extends TimeStamped{
     public void incrementCarpoolCount() {
         this.carpoolCount++;
     }
+
     public void decrementCarpoolCount(){
         this.carpoolCount--;
     }
-
-
 
 }
 

@@ -17,8 +17,15 @@ public class AwsS3Service {
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
 
+    @Value("${default.driver.car.image.key}")
+    private String defaultProfileImageKey;
+
+    // 기본 드라이버 차량 이미지 URL 반환
+    public String getDefaultProfileImageUrl() {
+        return s3Client.getUrl(bucketName, defaultProfileImageKey).toString();
+    }
+
     private final AmazonS3 s3Client;
-    private final MemberService memberService;
 
     // 사용자 프로필 이미지 업로드
     public String uploadProfileImage(MultipartFile file, Long memberId) {
@@ -30,6 +37,26 @@ public class AwsS3Service {
     public String uploadDriverCarImage(MultipartFile file, Long memberId) {
         String key = "member" + memberId + "-driver"; // 차량 이미지 키
         return uploadFile(file, key);
+    }
+
+    // 사용자 프로필 이미지 가져오기
+    public String getProfileImage(Long memberId) {
+        String key = "member" + memberId;
+        if (s3Client.doesObjectExist(bucketName, key)) {
+            return s3Client.getUrl(bucketName, key).toString();
+        } else {
+            throw new RuntimeException("해당 사용자의 프로필 이미지를 찾을 수 없습니다.: " + memberId);
+        }
+    }
+
+    // 드라이버 차량 이미지 가져오기
+    public String getDriverCarImage(Long memberId) {
+        String key = "member" + memberId + "-driver";
+        if (s3Client.doesObjectExist(bucketName, key)) {
+            return s3Client.getUrl(bucketName, key).toString();
+        } else {
+            throw new RuntimeException("해당 드라이버의 차량 사진을 찾을 수 없습니다.: " + memberId);
+        }
     }
 
     // 파일 업로드 처리 (중복 이름 처리 포함)
@@ -52,27 +79,6 @@ public class AwsS3Service {
         // S3 URL 반환
         return s3Client.getUrl(bucketName, key).toString();
 
-        //업로드 완료 후 멤버 테이블에 주소 넣기
-
     }
 
-    // 사용자 프로필 이미지 가져오기
-    public String getProfileImage(Long memberId) {
-        String key = "member" + memberId;
-        if (s3Client.doesObjectExist(bucketName, key)) {
-            return s3Client.getUrl(bucketName, key).toString();
-        } else {
-            throw new RuntimeException("Profile image not found for member: " + memberId);
-        }
-    }
-
-    // 드라이버 차량 이미지 가져오기
-    public String getDriverCarImage(Long memberId) {
-        String key = "member" + memberId + "-driver";
-        if (s3Client.doesObjectExist(bucketName, key)) {
-            return s3Client.getUrl(bucketName, key).toString();
-        } else {
-            throw new RuntimeException("Driver car image not found for member: " + memberId);
-        }
-    }
 }

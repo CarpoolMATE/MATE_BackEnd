@@ -26,18 +26,18 @@ public class AmazonS3Controller {
         String response = awsS3Service.uploadDriverCarImage(file, memberId);
         return ResponseEntity.ok(response);
     }
-
-    // 사용자 프로필 이미지 가져오기
-    @GetMapping("/{memberId}/profile")
-    public ResponseEntity<String> getUserProfile(@PathVariable Long memberId) {
-        String fileUrl = awsS3Service.getProfileImage(memberId);
-        return ResponseEntity.ok(fileUrl);
-    }
-
-    // 드라이버 차량 이미지 가져오기
-    @GetMapping("/{memberId}/driver")
-    public ResponseEntity<String> getDriverCarImage(@PathVariable Long memberId) {
-        String fileUrl = awsS3Service.getDriverCarImage(memberId);
-        return ResponseEntity.ok(fileUrl);
-    }
+//
+//    // 사용자 프로필 이미지 가져오기
+//    @GetMapping("/{memberId}/profile")
+//    public ResponseEntity<String> getUserProfile(@PathVariable Long memberId) {
+//        String fileUrl = awsS3Service.getProfileImage(memberId);
+//        return ResponseEntity.ok(fileUrl);
+//    }
+//
+//    // 드라이버 차량 이미지 가져오기
+//    @GetMapping("/{memberId}/driver")
+//    public ResponseEntity<String> getDriverCarImage(@PathVariable Long memberId) {
+//        String fileUrl = awsS3Service.getDriverCarImage(memberId);
+//        return ResponseEntity.ok(fileUrl);
+//    }
 }

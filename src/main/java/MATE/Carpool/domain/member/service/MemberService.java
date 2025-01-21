@@ -8,11 +8,9 @@ import MATE.Carpool.common.exception.ErrorCode;
 import MATE.Carpool.config.jwt.JwtProvider;
 import MATE.Carpool.config.jwt.RefreshTokenRepository;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
-import MATE.Carpool.domain.member.dto.request.DriverRequestDto;
-import MATE.Carpool.domain.member.dto.request.FindPasswordRequestDto;
-import MATE.Carpool.domain.member.dto.request.SignInRequestDto;
+import MATE.Carpool.domain.S3.service.AwsS3Service;
+import MATE.Carpool.domain.member.dto.request.*;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
-import MATE.Carpool.domain.member.dto.request.SignupRequestDto;
 import MATE.Carpool.domain.member.entity.Member;
 import MATE.Carpool.domain.member.repository.MemberRepository;
 import jakarta.servlet.http.Cookie;
@@ -46,8 +44,6 @@ import java.util.UUID;
 @Slf4j
 public class MemberService {
 
-
-
     private final MemberRepository memberRepository;
     private final PKEncryption pkEncryption;
     private final PasswordEncoder passwordEncoder;
@@ -56,6 +52,7 @@ public class MemberService {
     private final EmailService emailService;
     private final ApplicationContext applicationContext;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final AwsS3Service awsS3Service;
 
     @Transactional(readOnly = true)
     public ResponseEntity<MemberResponseDto> getMember(CustomUserDetails userDetails){
@@ -112,6 +109,8 @@ public class MemberService {
                 .nickname(requestDto.getNickname())
                 .isUniversity(true)
                 .university(requestDto.getUniversity())
+                //기본 이미지 저장
+                .profileImage(awsS3Service.getDefaultProfileImageUrl())
                 .build();
 
         memberRepository.save(member);
@@ -120,6 +119,7 @@ public class MemberService {
     }
 
     @Transactional
+    // TODO: 이 부분도 설명을 듣고 싶습니다.
     public ResponseEntity<MemberResponseDto> socialMemberRegisterUniversity(CustomUserDetails userDetails,String university){
 
         return Optional.ofNullable(userDetails.getMember())
@@ -134,6 +134,22 @@ public class MemberService {
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
 
+    @Transactional
+    public ResponseEntity<MemberResponseDto> updateProfileInformation(CustomUserDetails userDetails, UpdateMemberDTO updateMemberDTO){
+
+        Member member = userDetails.getMember();
+
+        member.setProfileImage(awsS3Service.uploadProfileImage(updateMemberDTO.getProfileImage(), member.getId()));
+        member.setUniversity(updateMemberDTO.getUniversity());
+        member.setNickname(updateMemberDTO.getNickName());
+
+        memberRepository.save(member);
+
+        MemberResponseDto responseDto = new MemberResponseDto(member);
+
+        return ResponseEntity.ok(responseDto);
+    }
+
   
     @Transactional
     public ResponseEntity<MemberResponseDto> registerDriver(DriverRequestDto driverRequestDto,CustomUserDetails userDetails) {
@@ -143,8 +159,24 @@ public class MemberService {
         member.setIsDriver(true);
         member.setCarNumber(driverRequestDto.getCarNumber());
         member.setPhoneNumber(driverRequestDto.getPhoneNumber());
-        member.setCarImage(driverRequestDto.getCarImage());
+        member.setCarImage(awsS3Service.uploadDriverCarImage(driverRequestDto.getCarImage(), member.getId()));
         member.setDriverRegistrationDate(LocalDateTime.now());
+        memberRepository.save(member);
+
+        MemberResponseDto responseDto = new MemberResponseDto(member);
+
+        return ResponseEntity.ok(responseDto);
+    }
+
+    @Transactional
+    //TODO: 질문 MemberResponseDto로 반환하는 이유
+    public ResponseEntity<MemberResponseDto> updateDriver(DriverRequestDto driverRequestDto,CustomUserDetails userDetails) {
+
+        Member member = userDetails.getMember();
+
+        member.setCarNumber(driverRequestDto.getCarNumber());
+        member.setPhoneNumber(driverRequestDto.getPhoneNumber());
+        member.setCarImage(awsS3Service.uploadDriverCarImage(driverRequestDto.getCarImage(), member.getId()));
         memberRepository.save(member);
 
         MemberResponseDto responseDto = new MemberResponseDto(member);
@@ -228,8 +260,5 @@ public class MemberService {
         cookie.setMaxAge(0);
         response.addCookie(cookie);
     }
-
-
-
 
 }

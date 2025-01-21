@@ -2,11 +2,8 @@ package MATE.Carpool.domain.member.controller;
 
 
 import MATE.Carpool.config.userDetails.CustomUserDetails;
-import MATE.Carpool.domain.member.dto.request.DriverRequestDto;
-import MATE.Carpool.domain.member.dto.request.FindPasswordRequestDto;
-import MATE.Carpool.domain.member.dto.request.SignInRequestDto;
+import MATE.Carpool.domain.member.dto.request.*;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
-import MATE.Carpool.domain.member.dto.request.SignupRequestDto;
 import MATE.Carpool.domain.member.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -46,7 +43,6 @@ public class MemberController {
         return memberService.signIn(requestDto, response, request);
     }
 
-
     @PostMapping("/signUp")
     @Operation(summary = "회원가입", description = "새로운 회원을 가입시킵니다.")
     public ResponseEntity<String> signUp(@Valid @RequestBody SignupRequestDto requestDto) {
@@ -83,6 +79,22 @@ public class MemberController {
             @RequestBody DriverRequestDto driverRequestDto,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         return memberService.registerDriver(driverRequestDto,userDetails);
+    }
+
+    @PostMapping("/member/update")
+    @Operation(summary = "사용자 프로필 수정", description = "프로필 정보를 수정합니다.")
+    public ResponseEntity<MemberResponseDto> updateUser(
+            @RequestBody UpdateMemberDTO updateMemberDTO,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return memberService.updateProfileInformation(userDetails, updateMemberDTO);
+    }
+
+    @PostMapping("/driver/update")
+    @Operation(summary = "드라이버 정보 수정", description = "차량사진, 차량번호, 전화번호를 수정합니다.")
+    public ResponseEntity<MemberResponseDto> updateDriver(
+            @RequestBody DriverRequestDto driverRequestDto,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return memberService.updateDriver(driverRequestDto,userDetails);
     }
 
     @PostMapping("/cancelDriver/{id}")

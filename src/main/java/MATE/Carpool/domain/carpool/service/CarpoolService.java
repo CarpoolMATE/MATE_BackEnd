@@ -170,7 +170,7 @@ public class CarpoolService {
 
         //좌석 수 검증
         if (carpool.getCapacity() < carpool.getReservationCount()) {
-           throw new CustomException(ErrorCode.CARPOOL_IS_FULL);
+            throw new CustomException(ErrorCode.CARPOOL_IS_FULL);
         }
 
         ReservationEntity reservation = new ReservationEntity();
