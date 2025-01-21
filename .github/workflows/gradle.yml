@@ -105,9 +105,10 @@ jobs:
         run: |
           echo "path: $(pwd)"
           echo "docker-compose.yml contains: $(ls -l docker-compose.yml)"
-
-
-
+      - name: 확인 docker-compose.yml 파일 존재
+        run: |
+          echo "path: $(pwd)"
+          ls -l /home/runner/work/MATE_BackEnd/MATE_BackEnd/docker-compose.yml
 
       - name: 메인서버 배포
         uses: appleboy/ssh-action@v0.1.10
