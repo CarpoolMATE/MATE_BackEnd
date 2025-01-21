@@ -107,7 +107,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
 
-            scp /path/to/docker-compose.yml ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/
+            scp ./docker-compose.yml ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/
             
             cd /home/ubuntu
             sudo docker-compose pull
