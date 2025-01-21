@@ -119,8 +119,9 @@ jobs:
           script: |
 
             # scp $GITHUB_WORKSPACE/docker-compose.yml ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/
-            scp /home/runner/work/MATE_BackEnd/MATE_BackEnd/docker-compose.yml ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/
             
+            scp -v /home/runner/work/MATE_BackEnd/MATE_BackEnd/docker-compose.yml ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/
+
             cd /home/ubuntu
             
             sudo docker compose pull
