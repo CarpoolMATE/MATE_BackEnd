@@ -73,7 +73,7 @@ public class AwsS3Service {
             metadata.setContentType(file.getContentType());
             s3Client.putObject(bucketName, key, file.getInputStream(), metadata);
         } catch (IOException e) {
-            throw new RuntimeException("Error while uploading file to S3", e);
+            throw new RuntimeException("업로드 중 오류가 발생했습니다.: ", e);
         }
 
         // S3 URL 반환
