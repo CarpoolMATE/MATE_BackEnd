@@ -23,8 +23,12 @@ public class HomeController {
 
     @GetMapping("/ip")
     public void ipTest(HttpServletRequest request){
-        String ip =request.getHeader("X-Forwarded-For");
-        log.info(ip);
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip != null && ip.contains(",")) {
+            ip = ip.split(",")[0]; 
+        }
+        log.info("X-Forwarded-For : " + ip);
+    
         if (ip == null) {
             ip = request.getHeader("Proxy-Client-IP");
             log.info("Proxy-Client-IP : " + ip);
@@ -43,14 +47,11 @@ public class HomeController {
         }
         if (ip == null) {
             ip = request.getRemoteAddr();
-            log.info("getRemoteAddr : "+ip);
+            log.info("getRemoteAddr : " + ip);
         }
-        log.info("Result : IP Address : "+ip);
-
-
-
-
+        log.info("Result : IP Address : " + ip);
     }
+
     
    @PostMapping("/")
     public ResponseEntity<String> post(@RequestBody String test){
