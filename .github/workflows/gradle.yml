@@ -142,12 +142,14 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /home/ubuntu
+            echo "Current directory: $(pwd)"
+            ls -l
             if [ -f "docker-compose.yml" ]; then
-              echo "docker-compose.yml found. Proceeding with Docker Compose commands..."
+              echo "docker-compose.yml found. Proceeding..."
               sudo docker compose down --remove-orphans
               sudo docker compose pull
               sudo docker compose up -d
             else
-              echo "docker-compose.yml not found. Exiting."
+              echo "docker-compose.yml not found."
               exit 1
             fi
