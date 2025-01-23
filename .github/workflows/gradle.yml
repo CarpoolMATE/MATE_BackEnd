@@ -99,17 +99,7 @@ jobs:
 #            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
 #            sudo docker run -d -p 80:8080 --name ${{ secrets.PROJECT_NAME }} ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
 
-      - name: 현재 작업 디렉토리 출력
-        run: echo $GITHUB_WORKSPACE
-      - name: 확인 docker-compose.yml 파일 위치
-        run: |
-          echo "path: $(pwd)"
-          echo "docker-compose.yml contains: $(ls -l docker-compose.yml)"
-      - name: 확인 docker-compose.yml 파일 존재
-        run: |
-          echo "path: $(pwd)"
-          ls -l /home/runner/work/MATE_BackEnd/MATE_BackEnd/docker-compose.yml
-
+     
           
       - name: Clean up existing docker-compose.yml
         uses: appleboy/ssh-action@master
@@ -130,8 +120,8 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: /home/runner/work/MATE_BackEnd/MATE_BackEnd/docker-compose.yml
-          target: /home/ubuntu/docker-compose.yml
-          debug: true
+          target: /home/ubuntu
+          
 
      # 서버에서 Docker Compose 명령어 실행
       - name: Run Docker Compose
