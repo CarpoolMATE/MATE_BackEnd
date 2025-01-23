@@ -119,7 +119,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: /home/runner/work/MATE_BackEnd/MATE_BackEnd/docker-compose.yml
+          source: ./docker-compose.yml
           target: /home/ubuntu
           
 
