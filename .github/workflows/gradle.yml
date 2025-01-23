@@ -123,23 +123,22 @@ jobs:
           target: /home/ubuntu
           
 
-     # 서버에서 Docker Compose 명령어 실행
-      # - name: Run Docker Compose
-      #   uses: appleboy/ssh-action@master
-      #   with:
-      #     host: ${{ secrets.EC2_HOST }}
-      #     username: ${{ secrets.EC2_USER }}
-      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
-      #     script: |
-      #       cd /home/ubuntu
-      #       echo "Current directory: $(pwd)"
-      #       ls -l
-      #       if [ -f "docker-compose.yml" ]; then
-      #         echo "docker-compose.yml found. Proceeding..."
-      #         sudo docker compose down --remove-orphans
-      #         sudo docker compose pull
-      #         sudo docker compose up -d
-      #       else
-      #         echo "docker-compose.yml not found."
-      #         exit 1
-      #       fi
+      - name: Run Docker Compose
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/ubuntu
+            echo "Current directory: $(pwd)"
+            ls -l
+            if [ -f "docker-compose.yml" ]; then
+              echo "docker-compose.yml found. Proceeding..."
+              sudo docker compose down --remove-orphans
+              sudo docker compose pull
+              sudo docker compose up -d
+            else
+              echo "docker-compose.yml not found."
+              exit 1
+            fi
