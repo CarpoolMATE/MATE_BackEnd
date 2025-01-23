@@ -14,104 +14,104 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     steps:
-      - name: 자바 설치
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
+#       - name: 자바 설치
+#         uses: actions/setup-java@v4
+#         with:
+#           java-version: '17'
+#           distribution: 'temurin'
 
-      - name: Checkout repository
-        uses: actions/checkout@v2
+#       - name: Checkout repository
+#         uses: actions/checkout@v2
 
-      - name: Gradle 캐싱
-        uses: actions/cache@v2
-        with:
-         path: ~/.gradle/caches
-         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-         restore-keys: |
-           ${{ runner.os }}-gradle-
+#       - name: Gradle 캐싱
+#         uses: actions/cache@v2
+#         with:
+#          path: ~/.gradle/caches
+#          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+#          restore-keys: |
+#            ${{ runner.os }}-gradle-
 
-      - name: Resource 폴더 생성
-        run: mkdir -p ./src/main/resources/
+#       - name: Resource 폴더 생성
+#         run: mkdir -p ./src/main/resources/
 
-      - name: properties 생성
-        run: echo "${{ secrets.APPLICATION_PROPERTIES }}" > ./src/main/resources/application.properties
+#       - name: properties 생성
+#         run: echo "${{ secrets.APPLICATION_PROPERTIES }}" > ./src/main/resources/application.properties
 
-      - name: 테스트 없는 Build
-        run: ./gradlew build -x test
+#       - name: 테스트 없는 Build
+#         run: ./gradlew build -x test
 
-      - name: 아티팩트 업로드
-        if: github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v3
-        with:
-          name: app-artifact
-          path: ./build/libs/*.jar
+#       - name: 아티팩트 업로드
+#         if: github.ref == 'refs/heads/main'
+#         uses: actions/upload-artifact@v3
+#         with:
+#           name: app-artifact
+#           path: ./build/libs/*.jar
 
-  deploy:
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    needs: ci
+#   deploy:
+#     if: github.ref == 'refs/heads/main'
+#     runs-on: ubuntu-latest
+#     needs: ci
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v2
 
-      - name: Download artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: app-artifact
+#       - name: Download artifact
+#         uses: actions/download-artifact@v3
+#         with:
+#           name: app-artifact
 
-      - name: List the downloaded files
-        run: |
-          ls -al ./  # 다운로드된 파일이 있는 디렉토리 확인
+#       - name: List the downloaded files
+#         run: |
+#           ls -al ./  # 다운로드된 파일이 있는 디렉토리 확인
 
-      - name: Create app-artifact directory
-        run: |
-          mkdir -p app-artifact  # 디렉토리 생성
+#       - name: Create app-artifact directory
+#         run: |
+#           mkdir -p app-artifact  # 디렉토리 생성
 
-      - name: Move JAR file to app-artifact
-        run: |
-          mv *.jar app-artifact/  # JAR 파일을 app-artifact 디렉토리로 이동
+#       - name: Move JAR file to app-artifact
+#         run: |
+#           mv *.jar app-artifact/  # JAR 파일을 app-artifact 디렉토리로 이동
 
-      - name: Docker 로그인
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+#       - name: Docker 로그인
+#         uses: docker/login-action@v2
+#         with:
+#           username: ${{ secrets.DOCKER_USERNAME }}
+#           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Docker 이미지 빌드
-        run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }} .
+#       - name: Docker 이미지 빌드
+#         run: |
+#           docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }} .
 
-      - name: DockerHub 푸쉬
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
+#       - name: DockerHub 푸쉬
+#         run: docker push ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
 
-#      - name: 메인서버 배포
-#        uses: appleboy/ssh-action@v0.1.10
-#        with:
-#          host: ${{ secrets.EC2_HOST }}
-#          username: ${{ secrets.EC2_USER }}
-#          key: ${{ secrets.SSH_PRIVATE_KEY }}
-#          script: |
-#            sudo docker kill ${{ secrets.PROJECT_NAME }} || true
-#            sudo docker rm -f ${{ secrets.PROJECT_NAME }} || true
-#            sudo docker rmi ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }} || true
-#            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
-#            sudo docker run -d -p 80:8080 --name ${{ secrets.PROJECT_NAME }} ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
+# #      - name: 메인서버 배포
+# #        uses: appleboy/ssh-action@v0.1.10
+# #        with:
+# #          host: ${{ secrets.EC2_HOST }}
+# #          username: ${{ secrets.EC2_USER }}
+# #          key: ${{ secrets.SSH_PRIVATE_KEY }}
+# #          script: |
+# #            sudo docker kill ${{ secrets.PROJECT_NAME }} || true
+# #            sudo docker rm -f ${{ secrets.PROJECT_NAME }} || true
+# #            sudo docker rmi ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }} || true
+# #            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
+# #            sudo docker run -d -p 80:8080 --name ${{ secrets.PROJECT_NAME }} ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
 
      
           
-      - name: Clean up existing docker-compose.yml
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            if [ -d "/home/ubuntu/docker-compose.yml" ]; then
-              echo "A directory named docker-compose.yml exists. Removing it..."
-              rm -rf /home/ubuntu/docker-compose.yml
-            fi
+#       - name: Clean up existing docker-compose.yml
+#         uses: appleboy/ssh-action@master
+#         with:
+#           host: ${{ secrets.EC2_HOST }}
+#           username: ${{ secrets.EC2_USER }}
+#           key: ${{ secrets.SSH_PRIVATE_KEY }}
+#           script: |
+#             if [ -d "/home/ubuntu/docker-compose.yml" ]; then
+#               echo "A directory named docker-compose.yml exists. Removing it..."
+#               rm -rf /home/ubuntu/docker-compose.yml
+#             fi
 
       - name: Send docker-compose.yml
         uses: appleboy/scp-action@master
@@ -124,22 +124,22 @@ jobs:
           
 
      # 서버에서 Docker Compose 명령어 실행
-      - name: Run Docker Compose
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd /home/ubuntu
-            echo "Current directory: $(pwd)"
-            ls -l
-            if [ -f "docker-compose.yml" ]; then
-              echo "docker-compose.yml found. Proceeding..."
-              sudo docker compose down --remove-orphans
-              sudo docker compose pull
-              sudo docker compose up -d
-            else
-              echo "docker-compose.yml not found."
-              exit 1
-            fi
+      # - name: Run Docker Compose
+      #   uses: appleboy/ssh-action@master
+      #   with:
+      #     host: ${{ secrets.EC2_HOST }}
+      #     username: ${{ secrets.EC2_USER }}
+      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     script: |
+      #       cd /home/ubuntu
+      #       echo "Current directory: $(pwd)"
+      #       ls -l
+      #       if [ -f "docker-compose.yml" ]; then
+      #         echo "docker-compose.yml found. Proceeding..."
+      #         sudo docker compose down --remove-orphans
+      #         sudo docker compose pull
+      #         sudo docker compose up -d
+      #       else
+      #         echo "docker-compose.yml not found."
+      #         exit 1
+      #       fi
