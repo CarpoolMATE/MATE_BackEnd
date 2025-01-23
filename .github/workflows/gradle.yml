@@ -118,7 +118,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: /home/runner/work/MATE_BackEnd/MATE_BackEnd/docker-compose.yml
-          target: /home/ubuntu/
+          target: /home/ubuntu/docker-compose.yml
 
       # 서버에서 Docker Compose 명령어 실행
       - name: Run Docker Compose
