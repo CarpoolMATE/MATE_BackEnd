@@ -6,8 +6,6 @@ import MATE.Carpool.common.exception.CustomException;
 import MATE.Carpool.common.exception.ErrorCode;
 import MATE.Carpool.config.jwt.JwtProvider;
 import MATE.Carpool.config.jwt.JwtTokenDto;
-import MATE.Carpool.config.jwt.RefreshToken;
-import MATE.Carpool.config.jwt.RefreshTokenRepository;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.domain.member.dto.request.SocialMemberInfoDto;
 import MATE.Carpool.domain.member.dto.response.KakaoTokenResponseDto;
@@ -19,6 +17,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.codec.http.HttpHeaderValues;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,7 +61,7 @@ public class OauthService {
     private final static String LINE_TOKEN_URL_HOST="https://api.line.me/oauth2/v2.1/token";
 
 
-    public ResponseEntity<MemberResponseDto> socialLogin(String provider,String code, HttpServletResponse response ) throws JsonProcessingException {
+    public ResponseEntity<MemberResponseDto> socialLogin(String provider, String code, HttpServletResponse response, HttpServletRequest request ) throws JsonProcessingException {
 
         String accessKey = getAccessKey(provider, code, response);
 
@@ -72,7 +71,7 @@ public class OauthService {
 
         Authentication authentication = forceLogin(member);
 
-        jwtProvider.createTokenAndSavedRefreshHttponly(authentication,response,member.getMemberId());
+        jwtProvider.createTokenAndSavedTokenHttponly(authentication, response, request, member.getMemberId());
 
         MemberResponseDto memberResponseDto = new MemberResponseDto(member);
 
