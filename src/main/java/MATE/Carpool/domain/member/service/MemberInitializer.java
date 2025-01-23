@@ -1,5 +1,5 @@
 // package MATE.Carpool.domain.member.service;
-
+//
 // import MATE.Carpool.domain.member.entity.Member;
 // import MATE.Carpool.domain.member.entity.MemberType;
 // import MATE.Carpool.domain.member.repository.MemberRepository;
@@ -8,11 +8,11 @@
 // import org.springframework.security.crypto.password.PasswordEncoder;
 // import org.springframework.stereotype.Service;
 // import org.springframework.web.bind.annotation.RestController;
-
+//
 // @Service
 // @RequiredArgsConstructor
 // public class MemberInitializer implements CommandLineRunner {
-
+//
 //     private final MemberRepository memberRepository;
 //     private final PasswordEncoder passwordEncoder;
 //     @Override
@@ -26,10 +26,10 @@
 //                 .university("서울대학교")
 //                 .memberType(MemberType.ADMIN)
 //                 .build();
-
+//
 //         memberRepository.save(admin);
-
-
+//
+//
 //         Member member = Member.builder()
 //                 .memberId("testa")
 //                 .email("testa@test.com")
@@ -38,9 +38,9 @@
 //                 .isUniversity(true)
 //                 .university("서울대학교")
 //                 .build();
-
+//
 //         memberRepository.save(member);
-
+//
 //         Member member2 = Member.builder()
 //                 .memberId("testb")
 //                 .email("testb@test.com")
@@ -49,7 +49,7 @@
 //                 .isUniversity(true)
 //                 .university("서울대학교")
 //                 .build();
-
+//
 //         memberRepository.save(member2);
 //     }
 // }

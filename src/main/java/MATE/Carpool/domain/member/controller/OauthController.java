@@ -3,6 +3,7 @@ package MATE.Carpool.domain.member.controller;
 
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
 import MATE.Carpool.domain.member.service.OauthService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,14 +25,14 @@ public class OauthController {
     private String redirect_uri;
 
     @GetMapping("/kakao/callback")
-    public ResponseEntity<MemberResponseDto> kakaoCallback(@RequestParam("code") String code, HttpServletResponse response) throws Exception {
+    public ResponseEntity<MemberResponseDto> kakaoCallback(@RequestParam("code") String code, HttpServletResponse response, HttpServletRequest request) throws Exception {
             System.out.println(code);
-        return oauthService.socialLogin("KAKAO",code,response);
+        return oauthService.socialLogin("KAKAO",code,response,request);
     }
     @GetMapping("/line/callback")
-    public ResponseEntity<MemberResponseDto> lineCallback(@RequestParam("code") String code, HttpServletResponse response) throws Exception {
+    public ResponseEntity<MemberResponseDto> lineCallback(@RequestParam("code") String code, HttpServletResponse response, HttpServletRequest request) throws Exception {
         System.out.println(code);
-        return oauthService.socialLogin("LINE",code,response);
+        return oauthService.socialLogin("LINE",code,response,request);
     }
 
 

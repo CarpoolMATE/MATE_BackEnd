@@ -49,7 +49,8 @@ public enum ErrorCode {
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH-002", "만료된 토큰입니다."),
     UNSUPPORTED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH-003", "지원되지 않는 토큰입니다."),
     WRONG_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH-004", "잘못된 토큰입니다."),
-    TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "AUTH-005", "토큰이 존재하지 않습니다.");
+    TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "AUTH-005", "토큰이 존재하지 않습니다."),
+    IP_MISMATCH(HttpStatus.BAD_REQUEST, "AUTH-006", "사용자의 로그인 정보가 이전과 다릅니다. 재로그인 해주세요");
 
 
     private final HttpStatus httpStatus;	// HttpStatus

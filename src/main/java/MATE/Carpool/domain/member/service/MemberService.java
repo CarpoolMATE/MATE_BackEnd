@@ -7,7 +7,7 @@ import MATE.Carpool.common.email.EmailService;
 import MATE.Carpool.common.exception.CustomException;
 import MATE.Carpool.common.exception.ErrorCode;
 import MATE.Carpool.config.jwt.JwtProvider;
-import MATE.Carpool.config.jwt.RefreshTokenRepository;
+import MATE.Carpool.config.redis.RedisService;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.domain.member.dto.request.*;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
@@ -50,7 +50,7 @@ public class MemberService {
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final EmailService emailService;
     private final ApplicationContext applicationContext;
-    private final RefreshTokenRepository refreshTokenRepository;
+    private final RedisService redisService;
 
     @Transactional(readOnly = true)
     public ResponseEntity<MemberResponseDto> getMember(CustomUserDetails userDetails){
@@ -78,20 +78,17 @@ public class MemberService {
 
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
-        if (request.getHeader("Referer") !=null && request.getHeader("Referer").contains("swagger")) {
-            jwtProvider.createTokenAndSavedRefresh(authentication, response, memberId);
-            log.info("Swagger Request");
 
-        }else{
-            jwtProvider.createTokenAndSavedRefreshHttponly(authentication, response, memberId);
-            log.info("Standard Request");
-        }
+        jwtProvider.createTokenAndSavedTokenHttponly(authentication, response,request, memberId);
+        log.info("Standard Request");
+
 
         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
       
         Member member = customUserDetails.getMember();
  
         MemberResponseDto memberResponseDto = new MemberResponseDto(member);
+
 
         return ResponseEntity.ok(new Message<>("로그인","success",memberResponseDto));
     }
@@ -215,24 +212,16 @@ public class MemberService {
     }
 
     public ResponseEntity<String> signOut(CustomUserDetails userDetails,HttpServletRequest request, HttpServletResponse response) {
-        jwtProvider.deleteRefreshToken(userDetails.getMember().getMemberId());
+        redisService.deleteRefreshToken(userDetails.getUsername());
 
         SecurityContextHolder.clearContext();
 
-        deleteCookie(response, "ACCESS_TOKEN");
-        deleteCookie(response, "REFRESH_TOKEN");
+        jwtProvider.deleteCookie(response, "ACCESS_TOKEN");
+        jwtProvider.deleteCookie(response, "REFRESH_TOKEN");
 
         return ResponseEntity.ok(String.format("%s 회원 로그아웃 완료",userDetails.getMember().getNickname()));
     }
 
-    private void deleteCookie(HttpServletResponse response, String cookieName) {
-        // 만료 날짜를 과거로 설정하여 쿠키를 삭제
-        Cookie cookie = new Cookie(cookieName, null);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(false);
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
-    }
+
 
 }
