@@ -2,9 +2,12 @@ package MATE.Carpool.config.jwt;
 
 
 import MATE.Carpool.common.exception.CustomException;
+import MATE.Carpool.common.exception.ErrorCode;
+import MATE.Carpool.config.redis.RedisService;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.config.userDetails.CustomUserDetailsServiceImpl;
 import MATE.Carpool.domain.member.entity.Member;
+import MATE.Carpool.domain.member.repository.MemberRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.io.Encoders;
@@ -17,10 +20,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +38,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static MATE.Carpool.common.exception.ErrorCode.*;
@@ -46,8 +53,10 @@ public class JwtProvider {
     public static final String BEARER_PREFIX = "Bearer ";
 
     private final CustomUserDetailsServiceImpl userDetailsService;
-    private final RefreshTokenRepository refreshTokenRepository;
     private final EntityManager entityManager;
+    private final RedisService redisService;
+    private final MemberRepository memberRepository;
+
 
     private Key key;
 
@@ -55,10 +64,10 @@ public class JwtProvider {
     private String secretKey;
 
     @Value("${jwt.access.time}")
-    private int accessTimeMillis;
+    private int accessTimeSeconds;
 
     @Value("${jwt.refresh.time}")
-    private int refreshTimeMillis;
+    private int refreshTimeSeconds;
 
     @PostConstruct
     public void init() {
@@ -82,8 +91,8 @@ public class JwtProvider {
 
 
     public String createJwtToken(Authentication authentication,String type) {
-        Date accessTime = getTokenExpiration(accessTimeMillis);
-        Date refreshTime = getTokenExpiration(refreshTimeMillis);
+        Date accessTime = getTokenExpiration(accessTimeSeconds);
+        Date refreshTime = getTokenExpiration(refreshTimeSeconds);
         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
         String authority = authentication.getAuthorities()
                 .stream()
@@ -106,16 +115,6 @@ public class JwtProvider {
         }
     }
 
-    public String createNewRefreshToken(Authentication authentication, long time) {
-        Date date = new Date();
-        return BEARER_PREFIX +
-                Jwts.builder()
-                        .setSubject(authentication.getName())
-                        .setExpiration(new Date(date.getTime() + time))
-                        .setIssuedAt(date)
-                        .signWith(key)
-                        .compact();
-    }
 
     public Authentication getAuthentication(String accessToken) {
         Claims claims = parseClaims(accessToken);
@@ -140,32 +139,7 @@ public class JwtProvider {
         return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getSubject();
     }
 
-    public void accessTokenSetHeader(String accessToken, HttpServletResponse response) {
-        String headerValue = BEARER_PREFIX + accessToken;
-        response.setHeader(AUTHORIZATION_HEADER, headerValue);
-    }
 
-    public void refreshTokenSetHeader(String refreshToken, HttpServletResponse response) {
-        response.setHeader(REFRESH_HEADER, refreshToken);
-    }
-
-    // Request Header에 Access Token 정보를 추출하는 메서드
-    public String resolveAccessToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
-            return bearerToken.substring(7);
-        }
-        return null;
-    }
-
-    // Request Header에 Refresh Token 정보를 추출하는 메서드
-    public String resolveRefreshToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader(REFRESH_HEADER);
-        if (StringUtils.hasText(bearerToken)) {
-            return bearerToken;
-        }
-        return null;
-    }
 
     // 토큰 검증
 
@@ -192,89 +166,105 @@ public class JwtProvider {
                 .getBody();
     }
 
-    private Date getTokenExpiration(long expirationMillisecond) {
+    private Date getTokenExpiration(long expirationSecond) {
         Date date = new Date();
-        return new Date(date.getTime() + expirationMillisecond);
+        return new Date(date.getTime() + expirationSecond);
     }
 
-    public int getExpirationTime(String token) {
-        Date expirationDate = Jwts.parserBuilder().setSigningKey(secretKey).build()
-                .parseClaimsJws(token).getBody().getExpiration();
-        Date now = new Date();
-        return (int)(expirationDate.getTime() - now.getTime()); // 남은 시간(밀리초 단위)
-    }
+    public void handleRefreshToken(String refreshToken, HttpServletResponse response,HttpServletRequest request) {
+        String memberId = getMemberInfoFromToken(refreshToken);
+        UserIpTokenDto userIpTokenDto = redisService.getRefreshToken(memberId);
+        log.info("ip: {}" ,userIpTokenDto.getIp());
 
-
-
-    @Transactional
-    public void createTokenAndSavedRefresh(Authentication authentication, HttpServletResponse response, String memberId) {
-        try {
-            // JWT 토큰 생성
-            JwtTokenDto token = createAllToken(authentication);
-            accessTokenSetHeader(token.getAccessToken(), response);
-            refreshTokenSetHeader(token.getRefreshToken(), response);
-
-            // 기존 RefreshToken 삭제
-            Optional<RefreshToken> existingToken = refreshTokenRepository.findByMemberId(memberId);
-            if (existingToken.isPresent()) {
-                // 기존 토큰 삭제
-                refreshTokenRepository.delete(existingToken.get());
-                // 바로 데이터베이스에 반영되도록 flush
-                entityManager.flush();
+        String clientIp = request.getHeader("X-Forwarded-For");
+        if (clientIp == null || clientIp.isEmpty()) {
+            clientIp = request.getRemoteAddr();
+            if ("0:0:0:0:0:0:0:1".equals(clientIp)) {
+                clientIp = "127.0.0.1";
             }
-
-            // 새로운 RefreshToken 저장
-            RefreshToken refreshToken = RefreshToken.builder()
-                    .refreshToken(token.getRefreshToken())
-                    .memberId(memberId)
-                    .expiresAt(refreshTimeMillis)
-                    .build();
-
-            // 리프레시 토큰 저장
-            refreshTokenRepository.save(refreshToken);
-
-        } catch (Exception e) {
-            // 예외 처리
-            log.error("Error while creating or saving refresh token for memberId: " + memberId, e);
-            throw new RuntimeException("리프레시 토큰 처리 중 오류가 발생했습니다.");
+        } else {
+            clientIp = clientIp.split(",")[0].trim();
         }
+        if (!clientIp.equals(userIpTokenDto.getIp())) {
+            redisService.deleteRefreshToken(memberId);
+            throw new CustomException(ErrorCode.IP_MISMATCH);
+        }
+        Member member = memberRepository.findByMemberId(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        CustomUserDetails userDetails = new CustomUserDetails(member);
+        Authentication authentication =
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+
+        JwtTokenDto tokenDto = createAllToken(authentication);
+
+        redisService.saveRefreshToken(memberId, tokenDto.getRefreshToken(), clientIp, refreshTimeSeconds);
+        deleteCookie(response,"REFRESH_TOKEN");
+
+        addTokenToCookies(response, tokenDto.getAccessToken(), tokenDto.getRefreshToken());
+
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(authentication);
+        SecurityContextHolder.setContext(context);
     }
-    public void createTokenAndSavedRefreshHttponly(Authentication authentication, HttpServletResponse response, String memberId) {
+
+    public void createTokenAndSavedTokenHttponly(Authentication authentication, HttpServletResponse response,HttpServletRequest request, String memberId) {
         JwtTokenDto token = createAllToken(authentication);
         String accessToken = token.getAccessToken();
         String refreshToken = token.getRefreshToken();
 
+        addTokenToCookies(response,accessToken,refreshToken);
+
+        String clientIp = request.getHeader("X-Forwarded-For");
+        if (clientIp == null || clientIp.isEmpty()) {
+            clientIp = request.getRemoteAddr();
+            if ("0:0:0:0:0:0:0:1".equals(clientIp)) {
+                clientIp = "127.0.0.1";
+            }
+        } else {
+            clientIp = clientIp.split(",")[0].trim();
+        }
+
+        redisService.saveRefreshToken(memberId,refreshToken,clientIp,refreshTimeSeconds);
+    }
+
+    public void addTokenToCookies(HttpServletResponse response, String accessToken, String refreshToken) {
         Cookie accessTokenCookie = new Cookie("ACCESS_TOKEN", accessToken);
         accessTokenCookie.setHttpOnly(true);
         accessTokenCookie.setSecure(false);
         accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(accessTimeMillis/1000);
+        accessTokenCookie.setMaxAge(accessTimeSeconds/1000);
 
         Cookie refreshTokenCookie = new Cookie("REFRESH_TOKEN", refreshToken);
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setSecure(false);
         refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(refreshTimeMillis/1000);
+        refreshTokenCookie.setMaxAge(refreshTimeSeconds/1000);
 
         // 쿠키를 응답에 추가
         response.addCookie(accessTokenCookie);
         response.addCookie(refreshTokenCookie);
 
-        RefreshToken rToken = RefreshToken.builder()
-                .refreshToken(token.getRefreshToken())
-                .memberId(memberId)
-                .expiresAt(refreshTimeMillis)
-                .build();
-        refreshTokenRepository.save(rToken);
     }
 
-    @Transactional
-    public void deleteRefreshToken(String memberId) {
-        refreshTokenRepository.deleteMemberId(memberId);
+    public void setAuthentication(String access_token) {
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        Authentication authentication = getAuthentication(access_token);
+        context.setAuthentication(authentication);
+
+        SecurityContextHolder.setContext(context);
     }
 
-
-
+    public void deleteCookie(HttpServletResponse response, String cookieName) {
+        // 만료 날짜를 과거로 설정하여 쿠키를 삭제
+        Cookie cookie = new Cookie(cookieName, null);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+    }
 
 
 

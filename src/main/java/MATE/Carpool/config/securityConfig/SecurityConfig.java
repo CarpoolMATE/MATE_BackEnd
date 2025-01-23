@@ -46,6 +46,8 @@ public class SecurityConfig {
             "/h2-console/*",
             "/h2-console",
             "/api/social/**",
+            "/ip",
+            "/ip2"
     };
 
     @Bean
