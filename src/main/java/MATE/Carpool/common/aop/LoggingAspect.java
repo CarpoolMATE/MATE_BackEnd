@@ -3,6 +3,7 @@ package MATE.Carpool.common.aop;
 
 import MATE.Carpool.common.exception.CustomException;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
@@ -11,6 +12,8 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -25,22 +28,27 @@ public class LoggingAspect {
     public void logUserActionWithUserDetails(JoinPoint joinPoint) {
         String methodName = joinPoint.getSignature().getName();
         CustomUserDetails userDetail = (CustomUserDetails) Arrays.stream(joinPoint.getArgs())
-                .filter(arg-> arg instanceof CustomUserDetails)
+                .filter(arg -> arg instanceof CustomUserDetails)
                 .findFirst()
                 .orElse(null);
-        if(userDetail ==null){
-            log.info("Method : [{}] / Args : [{}]", methodName, joinPoint.getArgs());
-        }else{
+
+        String clientIp = getClientIp();
+
+        if (userDetail == null && joinPoint.getArgs() == null) {
+            log.info("Join : IP : [{}] / Method : [{}] ", clientIp, methodName);
+        } else if (userDetail == null) {
+            log.info("Join : IP : [{}] / Method : [{}] / Args : [{}]", clientIp, methodName, joinPoint.getArgs());
+        } else {
             Optional.ofNullable(joinPoint.getArgs())
                     .filter(args -> args.length > 0)
                     .map(args -> Arrays.stream(args)
                             .filter(arg -> !(arg instanceof CustomUserDetails))
                             .map(Object::toString)
                             .collect(Collectors.joining(",")))
-                    .ifPresent(arg ->log.info("MemberId [{}] / Method : [{}] / Args : [{}]", userDetail.getUsername(), methodName, arg));
+                    .ifPresent(arg -> log.info("Join : IP : [{}] / MemberId : [{}] / Method : [{}] / Args : [{}]", clientIp, userDetail.getUsername(), methodName, arg));
 
             if (joinPoint.getArgs().length == 0) {
-                log.info("MemberId [{}] Method: [{}]", userDetail.getUsername(), methodName);
+                log.info("Join : IP : [{}] / MemberId : [{}] / Method : [{}]", clientIp, userDetail.getUsername(), methodName);
             }
         }
     }
@@ -53,36 +61,43 @@ public class LoggingAspect {
                 .findFirst()
                 .orElse(null);
 
+        String clientIp = getClientIp();
+
         if (result instanceof ResponseEntity<?> response) {
             if (userDetails == null) {
-                log.info("Method [{}] / Status [{}] / Returned: [{}]", methodName, response.getStatusCode(), response.getBody());
+                log.info("Return : IP : [{}] / Method : [{}] / Status : [{}] / Returned : [{}]", clientIp, methodName, response.getStatusCode(), response.getBody());
             } else {
-                log.info("MemberId [{}] / Method [{}] / Status [{}] / Returned: [{}]", userDetails.getUsername(), methodName, response.getStatusCode(), response.getBody());
+                log.info("Return : IP : [{}] / MemberId : [{}] / Method : [{}] / Status : [{}] / Returned : [{}]", clientIp, userDetails.getUsername(), methodName, response.getStatusCode(), response.getBody());
             }
         }
     }
 
     @AfterThrowing(pointcut = "execution(* MATE.Carpool.domain.*.service..*(..))", throwing = "ex")
     public void logAfterThrowing(JoinPoint joinPoint, Throwable ex) {
-
         String methodName = joinPoint.getSignature().getName();
         CustomUserDetails userDetails = (CustomUserDetails) Arrays.stream(joinPoint.getArgs())
                 .filter(arg -> arg instanceof CustomUserDetails)
                 .findFirst()
                 .orElse(null);
 
-        String logMsg = "Method : [{}] ";
-        Object [] logArgs = {methodName, ex.getClass().getName()};
+        String clientIp = getClientIp();
 
-        if(userDetails != null){
-            logMsg += userDetails.getUsername();
-            logArgs = new Object[]{userDetails.getUsername() , methodName, ex.getClass().getName()};
-        }
-        if (ex instanceof CustomException ce) {
-            log.error(logMsg + " / Er.code : [{}]", logArgs[0], logArgs[1], ce.getErrorCode().name());
+        if (userDetails != null) {
+            log.error("Error : IP : [{}] / MemberId : [{}] / Method : [{}] / Exception : [{}]", clientIp, userDetails.getUsername(), methodName, ex.getClass().getName());
         } else {
-            log.error(logMsg, logArgs);
+            log.error("Error : IP : [{}] / Method : [{}] / Exception : [{}]", clientIp, methodName, ex.getClass().getName());
         }
-
+    }
+    private String getClientIp() {
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (attributes != null) {
+            HttpServletRequest request = attributes.getRequest();
+            String ip = request.getHeader("X-Forwarded-For");
+            if (ip == null || ip.isEmpty()) {
+                ip = request.getRemoteAddr();
+            }
+            return ip;
+        }
+        return "Unknown";
     }
 }
