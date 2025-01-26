@@ -10,10 +10,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 
-@Getter
-@Setter
 @NoArgsConstructor
-@ToString
+@Data
 public class MemberDto {
 
     private String memberId;
