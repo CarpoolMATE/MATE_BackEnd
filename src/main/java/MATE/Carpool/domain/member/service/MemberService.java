@@ -2,7 +2,6 @@ package MATE.Carpool.domain.member.service;
 
 
 import MATE.Carpool.common.Message;
-import MATE.Carpool.common.PKEncryption;
 import MATE.Carpool.common.email.EmailService;
 import MATE.Carpool.common.exception.CustomException;
 import MATE.Carpool.common.exception.ErrorCode;
@@ -13,24 +12,18 @@ import MATE.Carpool.domain.member.dto.request.*;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
 import MATE.Carpool.domain.member.entity.Member;
 import MATE.Carpool.domain.member.repository.MemberRepository;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationContext;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.HandlerExecutionChain;
-import org.springframework.web.servlet.HandlerMapping;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -44,12 +37,10 @@ public class MemberService {
 
 
     private final MemberRepository memberRepository;
-    private final PKEncryption pkEncryption;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final EmailService emailService;
-    private final ApplicationContext applicationContext;
     private final RedisService redisService;
 
     @Transactional(readOnly = true)
@@ -78,10 +69,7 @@ public class MemberService {
 
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
-
         jwtProvider.createTokenAndSavedTokenHttponly(authentication, response,request, memberId);
-        log.info("Standard Request");
-
 
         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
       
