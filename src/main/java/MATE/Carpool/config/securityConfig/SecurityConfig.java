@@ -47,7 +47,13 @@ public class SecurityConfig {
             "/h2-console",
             "/api/social/**",
             "/ip",
-            "/ip2"
+            "/ip2",
+            "/actuator/**",
+            "/actuator",
+            "/favicon.ico",
+            "/manage/prometheus",
+            "/manage/prometheus/**"
+
     };
 
     @Bean
@@ -73,11 +79,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin","/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
 //
-                )
-                .exceptionHandling(handling -> handling
-                        .authenticationEntryPoint(new CustomAuthenticationEntryPoint())  // 401 처리
-                        .accessDeniedHandler(new CustomAccessDeniedHandler())           // 403 처리
                 );
+//                .exceptionHandling(handling -> handling
+//                        .authenticationEntryPoint(new CustomAuthenticationEntryPoint())  // 401 처리
+//                        .accessDeniedHandler(new CustomAccessDeniedHandler())           // 403 처리
+//                );
         //h2-console
         http.headers(headers ->headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
         return http.build();

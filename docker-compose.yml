@@ -1,10 +1,11 @@
-version: "3"
 services:
   app:
-    image: mical150/carpoolmate
+    image: mical150/local
     container_name: carpoolmate
     ports:
       - "8080:8080"
+    volumes:
+      - ./logs:/logs
     environment:
       - JAVA_OPTS=-Xms512m -Xmx1024m
     networks:

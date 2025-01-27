@@ -1,0 +1,8 @@
+global:
+  scrape_interval: 15s  # 15초마다 데이터 수집
+
+scrape_configs:
+  - job_name: 'carpool-mate'  # 수집 작업 이름
+    metrics_path: '/actuator/prometheus'  # 엔드포인트 경로
+    static_configs:
+      - targets: ['app:8080']  # Spring Boot가 실행 중인 주소와 포트
