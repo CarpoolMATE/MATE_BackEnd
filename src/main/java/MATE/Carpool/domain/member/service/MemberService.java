@@ -109,7 +109,6 @@ public class MemberService {
                 .nickname(requestDto.getNickname())
                 .isUniversity(true)
                 .university(requestDto.getUniversity())
-                //기본 이미지 저장
                 .profileImage(awsS3Service.getDefaultProfileImageUrl())
                 .build();
 
@@ -119,7 +118,6 @@ public class MemberService {
     }
 
     @Transactional
-    // TODO: 이 부분도 설명을 듣고 싶습니다.
     public ResponseEntity<MemberResponseDto> socialMemberRegisterUniversity(CustomUserDetails userDetails,String university){
 
         return Optional.ofNullable(userDetails.getMember())
@@ -139,9 +137,9 @@ public class MemberService {
 
         Member member = userDetails.getMember();
 
-        member.setProfileImage(awsS3Service.uploadProfileImage(updateMemberDTO.getProfileImage(), member.getId()));
+        member.setProfileImage(updateMemberDTO.getProfileImage());
         member.setUniversity(updateMemberDTO.getUniversity());
-        member.setNickname(updateMemberDTO.getNickName());
+        member.setNickname(updateMemberDTO.getNickname());
 
         memberRepository.save(member);
 
@@ -159,7 +157,7 @@ public class MemberService {
         member.setIsDriver(true);
         member.setCarNumber(driverRequestDto.getCarNumber());
         member.setPhoneNumber(driverRequestDto.getPhoneNumber());
-        member.setCarImage(awsS3Service.uploadDriverCarImage(driverRequestDto.getCarImage(), member.getId()));
+        member.setCarImage(driverRequestDto.getCarImage());
         member.setDriverRegistrationDate(LocalDateTime.now());
         memberRepository.save(member);
 
@@ -169,14 +167,13 @@ public class MemberService {
     }
 
     @Transactional
-    //TODO: 질문 MemberResponseDto로 반환하는 이유
     public ResponseEntity<MemberResponseDto> updateDriver(DriverRequestDto driverRequestDto,CustomUserDetails userDetails) {
 
         Member member = userDetails.getMember();
 
         member.setCarNumber(driverRequestDto.getCarNumber());
         member.setPhoneNumber(driverRequestDto.getPhoneNumber());
-        member.setCarImage(awsS3Service.uploadDriverCarImage(driverRequestDto.getCarImage(), member.getId()));
+        member.setCarImage(driverRequestDto.getCarImage());
         memberRepository.save(member);
 
         MemberResponseDto responseDto = new MemberResponseDto(member);

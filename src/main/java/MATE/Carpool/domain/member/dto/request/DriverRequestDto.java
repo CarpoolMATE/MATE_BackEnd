@@ -16,6 +16,6 @@ public class DriverRequestDto {
     @Schema(description = "드라이버의 전화번호 입니다.", example="010-1234-5678")
     private String phoneNumber;
     @Schema(description = "등록될 차량의 사진입니다.", example="test.img")
-    private MultipartFile carImage;
+    private String carImage;
 
 }

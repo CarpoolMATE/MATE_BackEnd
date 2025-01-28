@@ -13,10 +13,10 @@ import org.springframework.web.multipart.MultipartFile;
 public class UpdateMemberDTO {
 
     @Schema(description = "닉네임 입니다.", example="고구마맛탕")
-    private String nickName;
+    private String nickname;
     @Schema(description = "대학교 이름 입니다.", example="서울대학교")
     private String university;
     @Schema(description = "프로필 이미지 입니다.", example="test.img")
-    private MultipartFile profileImage;
+    private String profileImage;
 
 }
