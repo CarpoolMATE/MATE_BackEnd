@@ -32,8 +32,9 @@ public class AmazonS3Controller {
     }
 
     @DeleteMapping("/imgDelete")
-    public void registerUniversity(@RequestBody String imgKey) {
-        awsS3Service.deleteImg(imgKey);
+    public ResponseEntity<String> registerUniversity(@RequestBody Map<String, String> request) {
+        String imgKey = request.get("imgKey");
+        return awsS3Service.deleteImg(imgKey);
     }
 
 }
