@@ -145,10 +145,10 @@ jobs:
             ls -l
             if [ -f "docker-compose.yml" ]; then
               echo "docker-compose.yml found. Proceeding..."
-              sudo docker compose down --remove-orphans
+              sudo docker-compose -f docker-compose.yml down --remove-orphans
               sudo docker rmi ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
-              sudo docker compose pull
-              sudo docker compose up -d
+              # sudo docker compose pull
+              sudo docker-compose -f docker-compose.yml up -d
             else
               echo "docker-compose.yml not found."
               exit 1
