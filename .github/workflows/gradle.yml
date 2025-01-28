@@ -145,7 +145,7 @@ jobs:
             ls -l
             if [ -f "docker-compose.yml" ]; then
               echo "docker-compose.yml found. Proceeding..."
-              sudo docker-compose -f docker-compose.yml down --remove-orphans
+              sudo docker-compose -f docker-compose.yml down
               sudo docker rmi ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
               # sudo docker compose pull
               sudo docker-compose -f docker-compose.yml up -d
