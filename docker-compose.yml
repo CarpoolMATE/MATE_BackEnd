@@ -1,6 +1,6 @@
 services:
   app:
-    image: mical150/local
+    image: mical150/carpoolmate
     container_name: carpoolmate
     ports:
       - "8080:8080"
