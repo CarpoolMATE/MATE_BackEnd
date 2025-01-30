@@ -11,14 +11,14 @@
 
 ## 🏗️ 아키텍처 개요  
 MATE 백엔드 시스템의 전체적인 구조를 나타낸 다이어그램입니다.  
-이 아키텍처는 **CI/CD 자동화, AWS 클라우드 인프라, Docker 기반 컨테이너 운영, 모니터링 및 로깅 시스템**을 포함합니다.  
+**CI/CD 자동화, AWS 클라우드 인프라, Docker 기반 컨테이너 운영, 모니터링 및 로깅 시스템**을 포함하고 있습니다..  
 
 ---
 
 ## 🛠️ 기술 스택
 | 분류          | 기술 스택 |
 |--------------|------------------------------------------------|
-| **언어**      | Java 17, Spring Boot 3.x |
+| **언어**      | Java 17, Spring Boot 3.4.0 |
 | **CI/CD**    | GitHub Actions, Docker Hub |
 | **서버**      | AWS EC2, Amazon S3, Amazon RDS |
 | **컨테이너**  | Docker, Docker Compose |
@@ -59,7 +59,10 @@ MATE 백엔드 시스템의 전체적인 구조를 나타낸 다이어그램입�
 | **Elasticsearch** | 로그 저장 및 검색 |
 | **Logstash** | 로그 수집 및 변환 |
 | **Kibana** | 로그 데이터 시각화 |
-
+<details>
+  <summary>Grafana 모니터링(클릭해서 보기)</summary>
+  ![Image](https://github.com/user-attachments/assets/861b16a7-ac68-4480-b3c1-215b61238250)
+</details>
 ---
 
 ## 📌 **기능 구성**
@@ -80,5 +83,13 @@ MATE 백엔드 시스템의 전체적인 구조를 나타낸 다이어그램입�
 5. 애플리케이션 모니터링 및 로깅 (Prometheus, Grafana, ELK)  
 
 ---
+## ⏳ 앞으로 해야 할 일 (TODO List)
 
+- [ ] **CI/CD 개선** (무중단 배포)
+- [x] **ELK Stack 구축** ✔️ (완료)
+- [x] **API 문서화 (Swagger/OpenAPI 추가)** ✔️ (완료)
+- [ ] **인덱스 쿼리 작성**
+- [ ] **DB Partitioning** (Redis 캐싱을위한)
+- [ ] **비밀번호 찾기 이메일 발신**
+- [ ] **전체적인 코드개선 및 리팩토링**
 
