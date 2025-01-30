@@ -38,7 +38,7 @@ MATE 백엔드 시스템의 전체적인 구조를 나타낸 다이어그램입�
 ## ⚙️ **서버 인프라 구성**
 - **AWS EC2**: 애플리케이션이 실행되는 서버  
 - **Amazon S3**: 파일 저장소  
-- **Amazon RDS**: 데이터베이스 (예: MySQL, PostgreSQL)  
+- **Amazon RDS**: 데이터베이스 (MySQL)  
 - **Docker & Docker Compose**: 컨테이너화된 서비스 운영  
 
 ---
@@ -60,7 +60,7 @@ MATE 백엔드 시스템의 전체적인 구조를 나타낸 다이어그램입�
 | `login` | 사용자 인증 및 로그인 기능 (Spring Security) |
 | `file` | 파일 업로드 및 다운로드 (Amazon S3 연동) |
 | `logging` | 서버 로그 관리 (ELK Stack 활용) |
-| `others` | 기타 서비스 및 유틸리티 기능 |
+| `others` | 기타 비즈니스 로직 및 유틸리티 기능 |
 
 ---
 
@@ -73,11 +73,4 @@ MATE 백엔드 시스템의 전체적인 구조를 나타낸 다이어그램입�
 
 ---
 
-## 📢 **문의 및 기여**
-- 질문이나 버그 리포트는 [Issues](https://github.com/your-repository/issues)에서 남겨주세요.  
-- 프로젝트 기여를 원하시면 **Pull Request**를 보내주세요! 🎉  
 
----
-
-💡 **이 문서를 더 멋지게 꾸미고 싶다면?**  
-👉 [GitHub Markdown 가이드](https://guides.github.com/features/mastering-markdown/) 참고
