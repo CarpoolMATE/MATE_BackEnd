@@ -61,7 +61,8 @@ MATE 백엔드 시스템의 전체적인 구조를 나타낸 다이어그램입�
 | **Kibana** | 로그 데이터 시각화 |
 <details>
   <summary>Grafana 모니터링(클릭해서 보기)</summary>
-  ![Image](https://github.com/user-attachments/assets/861b16a7-ac68-4480-b3c1-215b61238250)
+ ![Grafana Monitoring](https://github.com/user-attachments/assets/7fd0fe46-64ab-4b2e-b93f-14b56bffde98)
+  
 </details>
 ---
 
