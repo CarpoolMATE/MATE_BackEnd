@@ -50,7 +50,7 @@ MATE 백엔드 시스템의 전체적인 구조를 나타낸 다이어그램입�
 - **Docker & Docker Compose**: 컨테이너화된 서비스 운영  
 
 ---
-
+ ![Grafana Monitoring](https://github.com/user-attachments/assets/7fd0fe46-64ab-4b2e-b93f-14b56bffde98)
 ## 📡 **모니터링 및 로깅**
 | 시스템       | 역할 |
 |------------|-----------------------------------------------|
@@ -59,10 +59,12 @@ MATE 백엔드 시스템의 전체적인 구조를 나타낸 다이어그램입�
 | **Elasticsearch** | 로그 저장 및 검색 |
 | **Logstash** | 로그 수집 및 변환 |
 | **Kibana** | 로그 데이터 시각화 |
+
 <details>
-  <summary>Grafana 모니터링(클릭해서 보기)</summary>
- ![Grafana Monitoring](https://github.com/user-attachments/assets/7fd0fe46-64ab-4b2e-b93f-14b56bffde98)
+<summary>Grafana 모니터링(클릭해서 보기)</summary>
   
+ ![Grafana Monitoring](https://github.com/user-attachments/assets/7fd0fe46-64ab-4b2e-b93f-14b56bffde98)
+ 
 </details>
 ---
 
