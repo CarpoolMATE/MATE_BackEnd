@@ -1,3 +1,11 @@
+## 🙋‍♀️🙋‍♂️ Team
+
+|전민서|김현준|
+|:---:|:---:|
+|[@JEON-MIN-SEO](https://github.com/JEON-MIN-SEO)|[@kimhyunjun-55](https://github.com/kimhyunjun-55)|@|
+|기획 및 BE|BE||
+<br>
+
 # MATE Backend Architecture  
 ![MATE Backend Architecture](https://github.com/user-attachments/assets/4d7594b6-f964-4d9d-a504-cdd97d62e479)  
 
