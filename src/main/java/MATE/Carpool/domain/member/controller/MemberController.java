@@ -97,6 +97,22 @@ public class MemberController {
         return memberService.registerDriver(userDetails, driverRequestDto);
     }
 
+    @PostMapping("/member/update")
+    @Operation(summary = "사용자 프로필 수정", description = "프로필 정보를 수정합니다.")
+    public ResponseEntity<MemberResponseDto> updateUser(
+            @RequestBody UpdateMemberDTO updateMemberDTO,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return memberService.updateProfileInformation(userDetails, updateMemberDTO);
+    }
+
+    @PostMapping("/driver/update")
+    @Operation(summary = "드라이버 정보 수정", description = "차량사진, 차량번호, 전화번호를 수정합니다.")
+    public ResponseEntity<MemberResponseDto> updateDriver(
+            @RequestBody DriverRequestDto driverRequestDto,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return memberService.updateDriver(driverRequestDto,userDetails);
+    }
+
     @PostMapping("/cancelDriver/{id}")
     @Operation(summary = "운전기사 해제", description = "운전기사자격을 해제합니다.")
     public ResponseEntity<MemberResponseDto> cancelDriver(@AuthenticationPrincipal CustomUserDetails userDetails) throws Exception {

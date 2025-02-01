@@ -1,43 +1,71 @@
 package MATE.Carpool.domain.S3.service;
 
+import MATE.Carpool.common.exception.CustomException;
+import MATE.Carpool.common.exception.ErrorCode;
+import MATE.Carpool.config.userDetails.CustomUserDetails;
+import MATE.Carpool.domain.member.entity.Member;
+import MATE.Carpool.domain.member.repository.MemberRepository;
 import MATE.Carpool.domain.member.service.MemberService;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class AwsS3Service {
 
+    private final MemberRepository memberRepository;
+
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
 
+    @Value("${default.profile.image.url}")
+    private String defaultProfileImageKey;
+
+    // 기본 드라이버 차량 이미지 URL 반환
+    public String getDefaultProfileImageUrl() {
+        return defaultProfileImageKey;
+    }
+
     private final AmazonS3 s3Client;
-    private final MemberService memberService;
 
     // 사용자 프로필 이미지 업로드
-    public String uploadProfileImage(MultipartFile file, Long memberId) {
-        String key = "member" + memberId; // 프로필 이미지 키
+    public String uploadProfileImage(MultipartFile file) {
+        //String key = userDetails.getMember().getMemberId();
+        String key = UUID.randomUUID().toString()+(file.getOriginalFilename()).substring(1);
+
+        // 프로필 이미지 키
         return uploadFile(file, key);
     }
 
-    // 드라이버 차량 이미지 업로드
-    public String uploadDriverCarImage(MultipartFile file, Long memberId) {
-        String key = "member" + memberId + "-driver"; // 차량 이미지 키
-        return uploadFile(file, key);
-    }
-
-    // 파일 업로드 처리 (중복 이름 처리 포함)
-    private String uploadFile(MultipartFile file, String key) {
-        // 기존 파일이 있으면 삭제
-        if (s3Client.doesObjectExist(bucketName, key)) {
-            s3Client.deleteObject(bucketName, key);
+    // S3 파일 삭제 메서드
+    public ResponseEntity<String> deleteImg(String imgKey) {
+        try {
+            // 해당 키에 대한 파일이 존재하는지 확인
+            if (s3Client.doesObjectExist(bucketName, imgKey)) {
+                // 파일 삭제
+                s3Client.deleteObject(bucketName, imgKey);
+                return ResponseEntity.ok("이미지가 삭제되었습니다: " + imgKey);
+                //System.out.println("이미지가 삭제되었습니다: " + imgKey);
+            } else {
+                throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("이미지 삭제 중 오류가 발생했습니다.", e);
         }
+    }
+
+    private String uploadFile(MultipartFile file, String key) {
 
         // 파일 업로드
         try {
@@ -46,33 +74,11 @@ public class AwsS3Service {
             metadata.setContentType(file.getContentType());
             s3Client.putObject(bucketName, key, file.getInputStream(), metadata);
         } catch (IOException e) {
-            throw new RuntimeException("Error while uploading file to S3", e);
+            throw new RuntimeException("업로드 중 오류가 발생했습니다.: ", e);
         }
 
         // S3 URL 반환
         return s3Client.getUrl(bucketName, key).toString();
-
-        //업로드 완료 후 멤버 테이블에 주소 넣기
-
     }
 
-    // 사용자 프로필 이미지 가져오기
-    public String getProfileImage(Long memberId) {
-        String key = "member" + memberId;
-        if (s3Client.doesObjectExist(bucketName, key)) {
-            return s3Client.getUrl(bucketName, key).toString();
-        } else {
-            throw new RuntimeException("Profile image not found for member: " + memberId);
-        }
-    }
-
-    // 드라이버 차량 이미지 가져오기
-    public String getDriverCarImage(Long memberId) {
-        String key = "member" + memberId + "-driver";
-        if (s3Client.doesObjectExist(bucketName, key)) {
-            return s3Client.getUrl(bucketName, key).toString();
-        } else {
-            throw new RuntimeException("Driver car image not found for member: " + memberId);
-        }
-    }
 }
