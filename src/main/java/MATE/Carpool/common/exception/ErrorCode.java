@@ -9,15 +9,17 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum ErrorCode {
 
-    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "ACCOUNT-001", "사용자를 찾을 수 없습니다."),
+    USER_NOT_FOUND(HttpStatus.BAD_REQUEST, "ACCOUNT-001", "사용자를 찾을 수 없습니다."),
     DUPLICATE_EMAIL(HttpStatus.BAD_REQUEST, "ACCOUNT-002", "존재하는 이메일입니다."),
     DUPLICATE_MEMBER_ID(HttpStatus.BAD_REQUEST, "ACCOUNT-003", "존재하는 아이디 입니다."),
-    NOT_EQUALS_MEMBER_INFO(HttpStatus.BAD_REQUEST, "ACCOUNT-004", "잘못된 접근입니다."),
-    USER_IS_BANNED(HttpStatus.UNAUTHORIZED, "ACCOUNT-005", "정지된 회원입니다."),
-    DRIVER_NOT_FOUND(HttpStatus.UNAUTHORIZED, "ACCOUNT-006", "드라이버가 아닙니다."),
-    INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "ACCOUNT-007", "사용자 정보가 일치하지 않습니다."),
-    INVALID_NICKNAME(HttpStatus.BAD_REQUEST, "ACCOUNT-008", "사용자 정보가 일치하지 않습니다."),
-    CAN_NOT_BAN_ONESELF(HttpStatus.BAD_REQUEST, "ACCOUNT-009", "자기 자신을 정지시킬 수 없습니다."),
+    DUPLICATE_NICKNAME(HttpStatus.BAD_REQUEST, "ACCOUNT-004", "존재하는 닉네임 입니다."),
+    NOT_EQUALS_MEMBER_INFO(HttpStatus.BAD_REQUEST, "ACCOUNT-005", "잘못된 접근입니다."),
+    USER_IS_BANNED(HttpStatus.UNAUTHORIZED, "ACCOUNT-006", "정지된 회원입니다."),
+    DRIVER_NOT_FOUND(HttpStatus.UNAUTHORIZED, "ACCOUNT-007", "드라이버가 아닙니다."),
+    INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "ACCOUNT-008", "사용자 정보가 일치하지 않습니다."),
+    INVALID_NICKNAME(HttpStatus.BAD_REQUEST, "ACCOUNT-009", "사용자 정보가 일치하지 않습니다."),
+    CAN_NOT_BAN_ONESELF(HttpStatus.BAD_REQUEST, "ACCOUNT-010", "자기 자신을 정지시킬 수 없습니다."),
+    ALREADY_IS_DRIVER(HttpStatus.BAD_REQUEST, "ACCOUNT-011", "이미 등록한 아이디입니다."),
 
 
 

@@ -10,6 +10,8 @@ import MATE.Carpool.config.redis.RedisService;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.domain.member.dto.request.*;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
+import MATE.Carpool.domain.member.dto.response.UpdateDriverResponseDto;
+import MATE.Carpool.domain.member.dto.response.UpdateMemberResponseDto;
 import MATE.Carpool.domain.member.entity.Member;
 import MATE.Carpool.domain.member.repository.MemberRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,6 +23,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,7 +64,7 @@ public class MemberService {
 
     //로그인
     @Transactional
-    public ResponseEntity<Message<Object>> signIn(SignInRequestDto requestDto, HttpServletResponse response, HttpServletRequest request) throws Exception {
+    public ResponseEntity<Message<Object>> signIn(SignInRequestDto requestDto, HttpServletResponse response, HttpServletRequest request)  {
         String memberId = requestDto.getMemberId();
 
         UsernamePasswordAuthenticationToken authenticationToken =
@@ -88,9 +91,17 @@ public class MemberService {
         String memberId = requestDto.getMemberId();
         String password = passwordEncoder.encode(requestDto.getPassword());
         boolean checkId = memberRepository.existsByMemberId(memberId);
+        boolean checkEmail = memberRepository.existsByEmail(requestDto.getEmail());
+        boolean checkNickname = memberRepository.existsByNickname(requestDto.getNickname());
 
         if (checkId) {
             throw new CustomException(ErrorCode.DUPLICATE_MEMBER_ID);
+        }
+        if(checkEmail){
+            throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
+        }
+        if(checkNickname){
+            throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
         }
 
         Member member = Member.builder()
@@ -99,7 +110,7 @@ public class MemberService {
                 .password(password)
                 .nickname(requestDto.getNickname())
                 .isUniversity(true)
-                .university(requestDto.getUniversity())
+                .university("서울대학교")
                 .build();
 
         memberRepository.save(member);
@@ -127,6 +138,9 @@ public class MemberService {
     public ResponseEntity<MemberResponseDto> registerDriver(CustomUserDetails userDetails,DriverRequestDto driverRequestDto) {
 
         Member member = userDetails.getMember();
+        if(member.getIsDriver()){
+            throw new CustomException(ErrorCode.ALREADY_IS_DRIVER);
+        }
 
         member.setIsDriver(true);
         member.setCarNumber(driverRequestDto.getCarNumber());
@@ -141,23 +155,22 @@ public class MemberService {
     }
 
     @Transactional
-    public ResponseEntity<MemberResponseDto> updateProfileInformation(CustomUserDetails userDetails, UpdateMemberDTO updateMemberDTO){
+    public ResponseEntity<UpdateMemberResponseDto> updateProfileInformation(CustomUserDetails userDetails, UpdateMemberDTO updateMemberDTO){
 
         Member member = userDetails.getMember();
 
         member.setProfileImage(updateMemberDTO.getProfileImage());
-        member.setUniversity(updateMemberDTO.getUniversity());
         member.setNickname(updateMemberDTO.getNickname());
 
         memberRepository.save(member);
 
-        MemberResponseDto responseDto = new MemberResponseDto(member);
 
-        return ResponseEntity.ok(responseDto);
+
+        return ResponseEntity.ok(new UpdateMemberResponseDto(member));
     }
 
     @Transactional
-    public ResponseEntity<MemberResponseDto> updateDriver(DriverRequestDto driverRequestDto,CustomUserDetails userDetails) {
+    public ResponseEntity<UpdateDriverResponseDto> updateDriver(DriverRequestDto driverRequestDto,CustomUserDetails userDetails) {
 
         Member member = userDetails.getMember();
 
@@ -166,9 +179,8 @@ public class MemberService {
         member.setCarImage(driverRequestDto.getCarImage());
         memberRepository.save(member);
 
-        MemberResponseDto responseDto = new MemberResponseDto(member);
 
-        return ResponseEntity.ok(responseDto);
+        return ResponseEntity.ok(new UpdateDriverResponseDto(member));
     }
 
     @Transactional
@@ -191,7 +203,7 @@ public class MemberService {
         if (exists) {
             throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
         }
-        return ResponseEntity.ok(false);
+        return ResponseEntity.ok(true);
     }
 
     @Transactional
