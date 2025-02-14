@@ -42,7 +42,7 @@ public class SecurityConfig {
             "/api/member/signIn",
             "/api/member/findMemberId",
             "/api/member/findPassword",
-            "/api/member/test",
+            "/api/member/checkEmail",
             "/h2-console/*",
             "/h2-console",
             "/api/social/**",

@@ -30,7 +30,7 @@ public class CustomExceptionHandler {
     protected ResponseEntity<ErrorResponseEntity> handleBadCredentialsException(BadCredentialsException e) {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponseEntity(400, "BAE REQUEST","ACCOUNT-004", "사용자 정보가 일치하지않습니다"));
+                .body(new ErrorResponseEntity(400, "BAE REQUEST","ACCOUNT-001", "사용자 정보가 일치하지않습니다"));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
