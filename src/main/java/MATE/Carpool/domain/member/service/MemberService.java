@@ -141,6 +141,37 @@ public class MemberService {
     }
 
     @Transactional
+    public ResponseEntity<MemberResponseDto> updateProfileInformation(CustomUserDetails userDetails, UpdateMemberDTO updateMemberDTO){
+
+        Member member = userDetails.getMember();
+
+        member.setProfileImage(updateMemberDTO.getProfileImage());
+        member.setUniversity(updateMemberDTO.getUniversity());
+        member.setNickname(updateMemberDTO.getNickname());
+
+        memberRepository.save(member);
+
+        MemberResponseDto responseDto = new MemberResponseDto(member);
+
+        return ResponseEntity.ok(responseDto);
+    }
+
+    @Transactional
+    public ResponseEntity<MemberResponseDto> updateDriver(DriverRequestDto driverRequestDto,CustomUserDetails userDetails) {
+
+        Member member = userDetails.getMember();
+
+        member.setCarNumber(driverRequestDto.getCarNumber());
+        member.setPhoneNumber(driverRequestDto.getPhoneNumber());
+        member.setCarImage(driverRequestDto.getCarImage());
+        memberRepository.save(member);
+
+        MemberResponseDto responseDto = new MemberResponseDto(member);
+
+        return ResponseEntity.ok(responseDto);
+    }
+
+    @Transactional
     public ResponseEntity<MemberResponseDto> cancelDriver(CustomUserDetails userDetails) throws Exception {
 
         Member member = userDetails.getMember();
