@@ -32,7 +32,7 @@ public class MemberController {
 
 
     @GetMapping("")
-    @Operation(summary = "회원 조회", description = "주어진 ID로 회원 정보를 조회합니다.")
+    @Operation(summary = "회원 조회 - 자신의 회원조회", description = "로그인시 발급받은 토큰을 통해서 자신의 정보를 조회합니다.")
     public ResponseEntity<MemberResponseDto> getMember(
             @Parameter(description = "회원 ID")
             @AuthenticationPrincipal CustomUserDetails userDetails){
@@ -40,7 +40,7 @@ public class MemberController {
     }
 
     @GetMapping("/{memberId}")
-    @Operation(summary = "회원 조회", description = "주어진 ID로 회원 정보를 조회합니다.")
+    @Operation(summary = "회원 조회 - 아이디로 회원조회", description = "주어진 ID로 회원 정보를 조회합니다.")
     public ResponseEntity<MemberResponseDto> readOne(
             @Parameter(description = "회원 ID")
             @PathVariable("memberId") Long memberId,
@@ -49,7 +49,7 @@ public class MemberController {
     }
 
     @PostMapping("/signIn")
-    @Operation(summary = "일반로그인", description = "사용자가 아이디와 비밀번호를 입력하여 로그인합니다.(일반 로그인 입니다)")
+    @Operation(summary = "로그인 - 일반 로그인", description = "사용자가 아이디와 비밀번호를 입력하여 로그인합니다.(일반 로그인 입니다)")
     public ResponseEntity<Message<Object>> signIn(
             @Valid @RequestBody SignInRequestDto requestDto,
             HttpServletResponse response,
@@ -59,7 +59,7 @@ public class MemberController {
 
 
     @PostMapping("/signUp")
-    @Operation(summary = "회원가입", description = "새로운 회원을 가입시킵니다.")
+    @Operation(summary = "회원가입 - 일반 회원가입", description = "새로운 회원을 가입시킵니다.")
     public ResponseEntity<String> signUp(@Valid @RequestBody SignupRequestDto requestDto) {
         return memberService.signUp(requestDto);
     }

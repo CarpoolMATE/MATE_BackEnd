@@ -33,7 +33,7 @@ public class OauthController {
         return oauthService.socialLogin("KAKAO",code,response,request);
     }
     @GetMapping("/line/callback")
-    @Operation(summary = "회원가입", description = "라인 소셜 회원가입 api입니다 ")
+    @Operation(summary = "회원가입 - 소셜로그인(라인)", description = "라인 소셜 회원가입 api입니다 ")
     public ResponseEntity<MemberResponseDto> lineCallback(@RequestParam("code") String code, HttpServletResponse response, HttpServletRequest request) throws Exception {
         System.out.println(code);
         return oauthService.socialLogin("LINE",code,response,request);
