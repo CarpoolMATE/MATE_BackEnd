@@ -206,6 +206,24 @@ public class MemberService {
         return ResponseEntity.ok(true);
     }
 
+    @Transactional(readOnly = true)
+    public ResponseEntity<Boolean> checkNickname(String nickname) {
+        boolean exists = memberRepository.existsByNickname(nickname);
+        if (exists) {
+            throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
+        }
+        return ResponseEntity.ok(true);
+    }
+
+    @Transactional(readOnly = true)
+    public ResponseEntity<Boolean> checkMemberId(String memberId) {
+        boolean exists = memberRepository.existsByMemberId(memberId);
+        if (exists) {
+            throw new CustomException(ErrorCode.DUPLICATE_MEMBER_ID);
+        }
+        return ResponseEntity.ok(true);
+    }
+
     @Transactional
     public ResponseEntity<String> findPassword(FindPasswordRequestDto requestDto) throws Exception {
 

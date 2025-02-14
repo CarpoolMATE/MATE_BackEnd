@@ -4,7 +4,6 @@ package MATE.Carpool.common.swagger;
 import MATE.Carpool.common.Message;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.domain.member.dto.request.*;
-import MATE.Carpool.domain.member.dto.request.EmailRequest;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
 import MATE.Carpool.domain.member.dto.response.UpdateDriverResponseDto;
 import MATE.Carpool.domain.member.dto.response.UpdateMemberResponseDto;
@@ -19,7 +18,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.Map;
@@ -146,7 +144,7 @@ public interface MemberApi {
     ResponseEntity<String> signOut(CustomUserDetails userDetails, HttpServletResponse response, HttpServletRequest request);
 
 
-    @Operation(summary = "회원정보 중복검사", description = "입력한값으로 이미 존재하는 값인지 검사합니다")
+    @Operation(summary = "회원정보 중복검사 - 이메일 중복검사", description = "입력한값으로 이미 존재하는 값인지 검사합니다")
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", examples = {
                     @ExampleObject(name = "검사성공", value = """
@@ -166,7 +164,52 @@ public interface MemberApi {
             })),
 
     })
-    ResponseEntity<Boolean> checkEmail(@Valid @RequestBody EmailRequest emailResponse);
+    ResponseEntity<Boolean> checkEmail(@Valid @RequestBody Duplicate.DuplicateEmail email);
+    
+    
+    @Operation(summary = "회원정보 중복검사 - 닉네임 중복검사", description = "입력한값으로 이미 존재하는 값인지 검사합니다")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", examples = {
+                    @ExampleObject(name = "검사성공", value = """
+                    {
+                        "boolean": "true"
+                    }
+                """)})),
+            @ApiResponse(responseCode = "400", content = @Content(mediaType = "application/json", examples = {
+                    @ExampleObject(name = "검증 실패 - 닉네임중복", value = """
+                            {
+                                 "status": 400,
+                                 "name": "DUPLICATE_NICKNAME",
+                                 "code": "ACCOUNT-004",
+                                 "message": "존재하는 닉네임입니다."
+                             }
+            """)
+            })),
+
+    })
+    ResponseEntity<Boolean> checkNickname(@Valid @RequestBody Duplicate.DuplicateNickname nickname);
+    
+    @Operation(summary = "회원정보 중복검사 - 아이디 중복검사", description = "입력한값으로 이미 존재하는 값인지 검사합니다")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", examples = {
+                    @ExampleObject(name = "검사성공", value = """
+                    {
+                        "boolean": "true"
+                    }
+                """)})),
+            @ApiResponse(responseCode = "400", content = @Content(mediaType = "application/json", examples = {
+                    @ExampleObject(name = "검증 실패 - 아이디중복", value = """
+                            {
+                                 "status": 400,
+                                 "name": "DUPLICATE_MEMBER_ID",
+                                 "code": "ACCOUNT-003",
+                                 "message": "존재하는 아이디입니다."
+                             }
+            """)
+            })),
+
+    })
+    ResponseEntity<Boolean> checkMemberId(@Valid @RequestBody Duplicate.DuplicateMemberId memberId);
 
 
     @Operation(summary = "비밀번호 찾기", description = "가입하신정보로 회원의 비밀번호를 찾습니다.(이메일전송)")

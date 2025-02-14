@@ -5,7 +5,6 @@ import MATE.Carpool.common.Message;
 import MATE.Carpool.common.swagger.MemberApi;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.domain.member.dto.request.*;
-import MATE.Carpool.domain.member.dto.request.EmailRequest;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
 import MATE.Carpool.domain.member.dto.response.UpdateDriverResponseDto;
 import MATE.Carpool.domain.member.dto.response.UpdateMemberResponseDto;
@@ -64,11 +63,23 @@ public class MemberController implements MemberApi {
         return memberService.signOut(userDetails,request,response);
     }
 
+    @Override
     @PostMapping("/checkEmail")
-    public ResponseEntity<Boolean> checkEmail(@Valid @RequestBody EmailRequest emailResponse) {
-        return memberService.checkEmail(emailResponse.getEmail());
+    public ResponseEntity<Boolean> checkEmail(@Valid @RequestBody Duplicate.DuplicateEmail email) {
+        return memberService.checkEmail(email.email());
     }
 
+    @Override
+    @PostMapping("/checkNickname")
+    public ResponseEntity<Boolean> checkNickname(@Valid @RequestBody Duplicate.DuplicateNickname nickname) {
+        return memberService.checkMemberId(nickname.nickname());
+    }
+
+    @Override
+    @PostMapping("/checkMemberId")
+    public ResponseEntity<Boolean> checkMemberId(@Valid @RequestBody Duplicate.DuplicateMemberId memberId) {
+        return memberService.checkMemberId(memberId.memberId());
+    }
 
     @PostMapping("/findPassword")
     public ResponseEntity<String> findPassword(@RequestBody FindPasswordRequestDto requestDto) throws Exception {
