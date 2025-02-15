@@ -20,6 +20,7 @@ public enum ErrorCode {
     INVALID_NICKNAME(HttpStatus.BAD_REQUEST, "ACCOUNT-009", "사용자 정보가 일치하지 않습니다."),
     CAN_NOT_BAN_ONESELF(HttpStatus.BAD_REQUEST, "ACCOUNT-010", "자기 자신을 정지시킬 수 없습니다."),
     ALREADY_IS_DRIVER(HttpStatus.BAD_REQUEST, "ACCOUNT-011", "이미 등록한 아이디입니다."),
+    INVALID_EMAIL(HttpStatus.BAD_REQUEST, "ACCOUNT-012", "사용자 정보가 일치하지 않습니다."),
 
 
 

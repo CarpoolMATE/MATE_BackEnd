@@ -1,14 +1,9 @@
 package MATE.Carpool.domain.member.service;
 
 
-import MATE.Carpool.common.PKEncryption;
-import MATE.Carpool.common.exception.CustomException;
-import MATE.Carpool.common.exception.ErrorCode;
 import MATE.Carpool.config.jwt.JwtProvider;
-import MATE.Carpool.config.jwt.JwtTokenDto;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.domain.member.dto.request.SocialMemberInfoDto;
-import MATE.Carpool.domain.member.dto.response.KakaoTokenResponseDto;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
 import MATE.Carpool.domain.member.entity.Member;
 import MATE.Carpool.domain.member.entity.ProviderType;
@@ -16,12 +11,10 @@ import MATE.Carpool.domain.member.repository.MemberRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.netty.handler.codec.http.HttpHeaderValues;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -31,10 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 import java.util.*;
 
@@ -57,7 +47,7 @@ public class OauthService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
 
-    private final static String KAKAO_TOKEN_URL_HOST="https://kauth.kakao.com";
+    private final static String KAKAO_TOKEN_URL_HOST="https://kauth.kakao.com/oauth/token";
     private final static String LINE_TOKEN_URL_HOST="https://api.line.me/oauth2/v2.1/token";
 
 
@@ -141,7 +131,7 @@ public class OauthService {
             return SocialMemberInfoDto.builder()
                     .nickname(jsonNode.get("properties").get("nickname").asText())
                     .profileImage(jsonNode.get("properties").get("profile_image").asText())
-                    .email(jsonNode.get("properties").get("email").asText()+"@kakao.com")
+                    .email(jsonNode.get("properties").get("nickname").asText()+"@kakao.com")
                     .build();
 
         }else{
