@@ -1,11 +1,13 @@
 package MATE.Carpool.common.swagger;
 
 
+import MATE.Carpool.common.Message;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,14 +30,36 @@ public interface SocialApi {
     @ApiResponse(
             responseCode = "200",
             description = "로그인 성공",
-            content = @Content(mediaType = "application/json", schema = @Schema(implementation = MemberResponseDto.class))
+            content = @Content(mediaType = "application/json", examples ={
+                    @ExampleObject(name = "가입성공", value = """
+                                         {
+                                     "message": "소셜 회원가입 성공",
+                                     "requestMethod": "success",
+                                     "data": {
+                                         "memberId": "member",
+                                         "nickname": "닉네임",
+                                         "email": "member@test.com",
+                                         "profileImage": "basic image",
+                                         "memberType": "STANDARD",
+                                         "providerType": "MATE",
+                                         "createDate": "2025-02-14T16:53:27.047779",
+                                         "updateDate": "2025-02-14T16:53:27.047779",
+                                         "reservation": false,
+                                         "isBanned": false,
+                                         "isDriver": false,
+                                         "carpoolCount": 0
+                                     }
+                                 }
+                """)
+
+            })
     )
     @ApiResponse(
             responseCode = "400",
             description = "잘못된 요청 (code가 없거나 유효하지 않음)",
             content = @Content(mediaType = "application/json")
     )
-    ResponseEntity<MemberResponseDto> kakaoCallback(@RequestParam("code") String code, HttpServletResponse response, HttpServletRequest request)throws Exception;
+    ResponseEntity<Message<MemberResponseDto>> kakaoCallback(@RequestParam("code") String code, HttpServletResponse response, HttpServletRequest request)throws Exception;
 
 
     @Operation(
@@ -48,14 +72,37 @@ public interface SocialApi {
     @ApiResponse(
             responseCode = "200",
             description = "로그인 성공",
-            content = @Content(mediaType = "application/json", schema = @Schema(implementation = MemberResponseDto.class))
+            content = @Content(mediaType = "application/json", examples ={
+                    @ExampleObject(name = "가입성공", value = """
+                                         {
+                                     "message": "소셜 회원가입 성공",
+                                     "requestMethod": "success",
+                                     "data": {
+                                         "memberId": "member",
+                                         "nickname": "닉네임",
+                                         "email": "member@test.com",
+                                         "profileImage": "basic image",
+                                         "memberType": "STANDARD",
+                                         "providerType": "MATE",
+                                         "createDate": "2025-02-14T16:53:27.047779",
+                                         "updateDate": "2025-02-14T16:53:27.047779",
+                                         "reservation": false,
+                                         "isBanned": false,
+                                         "isDriver": false,
+                                         "carpoolCount": 0
+                                     }
+                                 }
+                """)
+
+            })
+
     )
     @ApiResponse(
             responseCode = "400",
             description = "잘못된 요청 (code가 없거나 유효하지 않음)",
             content = @Content(mediaType = "application/json")
     )
-    ResponseEntity<MemberResponseDto> lineCallback(@RequestParam("code") String code, HttpServletResponse response, HttpServletRequest request)throws Exception;
+    ResponseEntity<Message<MemberResponseDto>> lineCallback(@RequestParam("code") String code, HttpServletResponse response, HttpServletRequest request)throws Exception;
 
 
 }

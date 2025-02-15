@@ -1,6 +1,7 @@
 package MATE.Carpool.domain.member.controller;
 
 
+import MATE.Carpool.common.Message;
 import MATE.Carpool.common.swagger.SocialApi;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
 import MATE.Carpool.domain.member.service.OauthService;
@@ -26,12 +27,12 @@ public class OauthController implements SocialApi {
     private String redirect_uri;
 
     @GetMapping("/kakao/callback")
-    public ResponseEntity<MemberResponseDto> kakaoCallback(@RequestParam("code") String code, HttpServletResponse response, HttpServletRequest request) throws Exception {
+    public ResponseEntity<Message<MemberResponseDto>> kakaoCallback(@RequestParam("code") String code, HttpServletResponse response, HttpServletRequest request) throws Exception {
             System.out.println(code);
         return oauthService.socialLogin("KAKAO",code,response,request);
     }
     @GetMapping("/line/callback")
-    public ResponseEntity<MemberResponseDto> lineCallback(@RequestParam("code") String code, HttpServletResponse response, HttpServletRequest request) throws Exception {
+    public ResponseEntity<Message<MemberResponseDto>> lineCallback(@RequestParam("code") String code, HttpServletResponse response, HttpServletRequest request) throws Exception {
         System.out.println(code);
         return oauthService.socialLogin("LINE",code,response,request);
     }

@@ -1,6 +1,7 @@
 package MATE.Carpool.domain.member.service;
 
 
+import MATE.Carpool.common.Message;
 import MATE.Carpool.config.jwt.JwtProvider;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.domain.member.dto.request.SocialMemberInfoDto;
@@ -51,7 +52,7 @@ public class OauthService {
     private final static String LINE_TOKEN_URL_HOST="https://api.line.me/oauth2/v2.1/token";
 
 
-    public ResponseEntity<MemberResponseDto> socialLogin(String provider, String code, HttpServletResponse response, HttpServletRequest request ) throws JsonProcessingException {
+    public ResponseEntity<Message<MemberResponseDto>> socialLogin(String provider, String code, HttpServletResponse response, HttpServletRequest request ) throws JsonProcessingException {
 
         String accessKey = getAccessKey(provider, code, response);
 
@@ -67,7 +68,7 @@ public class OauthService {
 
         log.info(memberResponseDto.toString());
 
-        return  ResponseEntity.ok(memberResponseDto);
+        return  ResponseEntity.ok(new Message<>("소셜 회원가입 성공",HttpStatus.OK,memberResponseDto));
 
     }
 

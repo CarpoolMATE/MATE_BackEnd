@@ -5,31 +5,38 @@ import MATE.Carpool.common.Message;
 import MATE.Carpool.common.email.EmailService;
 import MATE.Carpool.common.exception.CustomException;
 import MATE.Carpool.common.exception.ErrorCode;
+import MATE.Carpool.common.generator.VerificationCodeGenerator;
 import MATE.Carpool.config.jwt.JwtProvider;
 import MATE.Carpool.config.redis.RedisService;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.domain.member.dto.request.*;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
+import MATE.Carpool.domain.member.dto.response.ResetPasswordResponse;
 import MATE.Carpool.domain.member.dto.response.UpdateDriverResponseDto;
 import MATE.Carpool.domain.member.dto.response.UpdateMemberResponseDto;
 import MATE.Carpool.domain.member.entity.Member;
 import MATE.Carpool.domain.member.repository.MemberRepository;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.protocol.HTTP;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.UUID;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 
 @Service
@@ -45,19 +52,22 @@ public class MemberService {
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final EmailService emailService;
     private final RedisService redisService;
+    private final StringRedisTemplate stringRedisTemplate;
 
     @Transactional(readOnly = true)
-    public ResponseEntity<MemberResponseDto> getMember(CustomUserDetails userDetails){
+    public ResponseEntity<Message<MemberResponseDto>> getMember(CustomUserDetails userDetails){
         return Optional.ofNullable(userDetails.getMember())
                 .map(MemberResponseDto::new)
+                .map(data ->new Message<>("조회성공",HttpStatus.OK,data))
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
 
     @Transactional(readOnly = true)
-    public ResponseEntity<MemberResponseDto> readOne(Long memberId){
+    public ResponseEntity<Message<MemberResponseDto>> readOne(Long memberId){
         return memberRepository.findById(memberId)
                 .map(MemberResponseDto::new)
+                .map(data ->new Message<>("조회성공",HttpStatus.OK,data))
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
@@ -81,12 +91,12 @@ public class MemberService {
         MemberResponseDto memberResponseDto = new MemberResponseDto(member);
 
 
-        return ResponseEntity.ok(new Message<>("로그인","success",memberResponseDto));
+        return ResponseEntity.ok(new Message<>("로그인",HttpStatus.OK,memberResponseDto));
     }
 
     //회원가입
     @Transactional
-    public ResponseEntity<String> signUp(SignupRequestDto requestDto) {
+    public ResponseEntity<Message<Boolean>> signUp(SignupRequestDto requestDto) {
 
         String memberId = requestDto.getMemberId();
         String password = passwordEncoder.encode(requestDto.getPassword());
@@ -115,27 +125,13 @@ public class MemberService {
 
         memberRepository.save(member);
 
-        return ResponseEntity.ok("회원가입 성공");
+        return ResponseEntity.ok(new Message<>("회원가입 성공",HttpStatus.CREATED,true));
     }
 
-    @Transactional
-    public ResponseEntity<MemberResponseDto> socialMemberRegisterUniversity(CustomUserDetails userDetails,String university){
-
-        return Optional.ofNullable(userDetails.getMember())
-                .map(member ->{
-                    member.setUniversity(university);
-                    member.setIsUniversity(true);
-                    return member;
-                })
-                .map(memberRepository::save)
-                .map(MemberResponseDto::new)
-                .map(ResponseEntity::ok)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-    }
 
   
     @Transactional
-    public ResponseEntity<MemberResponseDto> registerDriver(CustomUserDetails userDetails,DriverRequestDto driverRequestDto) {
+    public ResponseEntity<Message<MemberResponseDto>> registerDriver(CustomUserDetails userDetails,DriverRequestDto driverRequestDto) {
 
         Member member = userDetails.getMember();
         if(member.getIsDriver()){
@@ -151,13 +147,16 @@ public class MemberService {
 
         MemberResponseDto responseDto = new MemberResponseDto(member);
 
-        return ResponseEntity.ok(responseDto);
+        return ResponseEntity.ok(new Message<>("드라이버 등록 성공",HttpStatus.OK,responseDto));
     }
 
     @Transactional
-    public ResponseEntity<UpdateMemberResponseDto> updateProfileInformation(CustomUserDetails userDetails, UpdateMemberDTO updateMemberDTO){
+    public ResponseEntity<Message<UpdateMemberResponseDto>> updateProfileInformation(CustomUserDetails userDetails, UpdateMemberDTO updateMemberDTO){
 
         Member member = userDetails.getMember();
+        if(memberRepository.existsByNickname(updateMemberDTO.getNickname())){
+            throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
+        }
 
         member.setProfileImage(updateMemberDTO.getProfileImage());
         member.setNickname(updateMemberDTO.getNickname());
@@ -166,11 +165,11 @@ public class MemberService {
 
 
 
-        return ResponseEntity.ok(new UpdateMemberResponseDto(member));
+        return ResponseEntity.ok(new Message<>("프로필 수정",HttpStatus.OK,new UpdateMemberResponseDto(member)));
     }
 
     @Transactional
-    public ResponseEntity<UpdateDriverResponseDto> updateDriver(DriverRequestDto driverRequestDto,CustomUserDetails userDetails) {
+    public ResponseEntity<Message<UpdateDriverResponseDto>> updateDriver(DriverRequestDto driverRequestDto,CustomUserDetails userDetails) {
 
         Member member = userDetails.getMember();
 
@@ -180,87 +179,48 @@ public class MemberService {
         memberRepository.save(member);
 
 
-        return ResponseEntity.ok(new UpdateDriverResponseDto(member));
-    }
-
-    @Transactional
-    public ResponseEntity<MemberResponseDto> cancelDriver(CustomUserDetails userDetails) throws Exception {
-
-        Member member = userDetails.getMember();
-
-        member.setIsDriver(false);
-        member.setDriverCancellationDate(LocalDateTime.now());
-        memberRepository.save(member);
-
-        MemberResponseDto responseDto = new MemberResponseDto(member);
-
-        return ResponseEntity.ok(responseDto);
+        return ResponseEntity.ok(new Message<>("드라이버 수정",HttpStatus.OK,new UpdateDriverResponseDto(member)));
     }
 
     @Transactional(readOnly = true)
-    public ResponseEntity<Boolean> checkEmail(String email) {
+    public ResponseEntity<Message<Boolean>> checkEmail(String email) {
         boolean exists = memberRepository.existsByEmail(email);
         if (exists) {
             throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
         }
-        return ResponseEntity.ok(true);
+        return ResponseEntity.ok(new Message<>("이메일 체크", HttpStatus.OK,true));
     }
 
     @Transactional(readOnly = true)
-    public ResponseEntity<Boolean> checkNickname(String nickname) {
+    public ResponseEntity<Message<Boolean>> checkNickname(String nickname) {
         boolean exists = memberRepository.existsByNickname(nickname);
         if (exists) {
             throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
         }
-        return ResponseEntity.ok(true);
+        return ResponseEntity.ok(new Message<>("닉네임 체크", HttpStatus.OK,true));
     }
 
     @Transactional(readOnly = true)
-    public ResponseEntity<Boolean> checkMemberId(String memberId) {
+    public ResponseEntity<Message<Boolean>> checkMemberId(String memberId) {
         boolean exists = memberRepository.existsByMemberId(memberId);
         if (exists) {
             throw new CustomException(ErrorCode.DUPLICATE_MEMBER_ID);
         }
-        return ResponseEntity.ok(true);
-    }
-
-    @Transactional
-    public ResponseEntity<String> findPassword(FindPasswordRequestDto requestDto) throws Exception {
-
-        //TODO 사용자가 링크를 통해 비밀번호를 재설정할 수 있는 워크플로를 구현해보기
-
-        Member member = memberRepository.findByMemberId(requestDto.getMemberId())
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        if(requestDto.getEmail().equals(member.getEmail())) {
-            throw new CustomException(ErrorCode.NOT_EQUALS_MEMBER_INFO);
-        }
-        String newPassword = generateTemporaryPassword();
-
-        member.setPassword(passwordEncoder.encode(newPassword));
-
-        emailService.sendEmailNotice(requestDto.getEmail(),newPassword);
-
-        return ResponseEntity.ok("임시 비밀번호가 이메일로 전송되었습니다.");
-
+        return ResponseEntity.ok(new Message<>("아이디 체크", HttpStatus.OK,true));
     }
 
     @Transactional(readOnly = true)
-    public ResponseEntity<Map<String, String>> findMemberId(FindMemberIdRequestDto requestDto){
+    public ResponseEntity<Message<String>> findMemberId(FindMemberIdRequestDto requestDto){
         Member member = memberRepository.findByEmail(requestDto.getEmail())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         if(!member.getNickname().equals(requestDto.getNickname())){
             throw new CustomException(ErrorCode.INVALID_NICKNAME);
         }
-        return ResponseEntity.ok(Collections.singletonMap("memberId",member.getMemberId()));
+        return ResponseEntity.ok(new Message<>("멤버아이디 조회 성공",HttpStatus.OK,member.getMemberId()));
 
     }
 
-    private String generateTemporaryPassword() {
-        return UUID.randomUUID().toString().substring(0, 8);
-    }
-
-    public ResponseEntity<String> signOut(CustomUserDetails userDetails,HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<Message<String>> signOut(CustomUserDetails userDetails,HttpServletRequest request, HttpServletResponse response) {
         redisService.deleteRefreshToken(userDetails.getUsername());
 
         SecurityContextHolder.clearContext();
@@ -268,9 +228,49 @@ public class MemberService {
         jwtProvider.deleteCookie(response, "ACCESS_TOKEN");
         jwtProvider.deleteCookie(response, "REFRESH_TOKEN");
 
-        return ResponseEntity.ok(String.format("%s 회원 로그아웃 완료",userDetails.getMember().getNickname()));
+        return ResponseEntity.ok(new Message<>(String.format("%s 회원 로그아웃 완료",userDetails.getMember().getNickname()),HttpStatus.OK,""));
+    }
+
+
+    @Transactional
+    public ResponseEntity<Message<Boolean>> findPassword(GetMemberInfo.ForgotPassword memberInfo) throws MessagingException {
+
+        Member member = memberRepository.findByMemberId(memberInfo.memberId())
+                .orElseThrow( () -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        if(!member.getEmail().equals(memberInfo.email())){
+            throw new CustomException(ErrorCode.INVALID_EMAIL);
+        }
+
+        String newPassword = VerificationCodeGenerator.generatePassword();
+        member.setPassword(passwordEncoder.encode(newPassword));
+
+        emailService.sendEmailForgotPassword(memberInfo.email(),newPassword);
+
+        return ResponseEntity.ok(new Message<>("이메일이 발송되었습니다.",HttpStatus.OK,true));
     }
 
 
 
+    @Transactional
+    public ResponseEntity<Message<Boolean>> changePassword(CustomUserDetails userDetails,GetMemberInfo.Password password) {
+
+        Member member = userDetails.getMember();
+
+        member.setPassword(passwordEncoder.encode(password.password()));
+        memberRepository.save(member);
+
+        return ResponseEntity.ok(new Message<>("비밀번호가 변경되었습니다.",HttpStatus.OK,true));
+    }
+
+
+    public ResponseEntity<Message<Boolean>> checkPassword(CustomUserDetails userDetails, GetMemberInfo.Password password) {
+        Member member = userDetails.getMember();
+
+        if(passwordEncoder.matches(member.getPassword(),password.password())){
+            throw new CustomException(ErrorCode.INVALID_PASSWORD);
+
+        }
+        return ResponseEntity.ok(new Message<>("비밀번호 확인 완료",HttpStatus.OK,true));
+    }
 }

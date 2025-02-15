@@ -1,5 +1,6 @@
 package MATE.Carpool.common.email;
 
+import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,45 +17,40 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class EmailService {
+    private final JavaMailSender mailSender;
 
-    private final JavaMailSender javaMailSender;
-    private final SpringTemplateEngine templateEngine;
+    public void sendEmailForgotPassword(String to, String password) throws MessagingException {
 
-    @Async
-    public void sendEmailNotice(String email, String newPassword) {
-        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
-        try {
-            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
-            mimeMessageHelper.setTo(email);
-            mimeMessageHelper.setSubject("임시 비밀번호 발급 안내"); // 이메일 제목
-            mimeMessageHelper.setText(setContext(todayDate(), newPassword), true); // 이메일 본문, 비밀번호 포함
-            javaMailSender.send(mimeMessage);
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            log.info("Succeeded to send Email to {}", email);
-        } catch (Exception e) {
-            log.error("Failed to send Email to {}", email, e);
-            throw new RuntimeException("이메일 전송 실패");
+        String subject = "🚗 MATE 임시 비밀번호를 보내드립니다. ";
+
+
+        String content ="""
+         <div style="max-width: 500px; margin: auto; padding: 20px; 
+        border: 1px solid #ddd; border-radius: 10px;
+        font-family: Arial, sans-serif; background-color: #f9f9f9; text-align: center;">
+                <h2 style="color: #333;">🚗 MATE 에서  비밀번호 발급해 드립니다.</h2>
+                <div style="margin: 20px 0; padding: 15px; font-size: 24px; 
+        font-weight: bold; color: #ffffff; background-color: #007bff;
+        display: inline-block; border-radius: 5px;">
+                %s
+                </div>
+                <hr style="margin: 20px 0;">
+                <p style="font-size: 12px; color: #999;"> 메이트 팀 </p>
+                </div>
+                """.formatted(password);
+
+                helper.setFrom("mical0108@gmail.com");
+                helper.setTo(to);
+                helper.setSubject(subject);
+                helper.setText(content, true);
+
+                mailSender.send(message);
+            }
         }
-    }
-
-        public String todayDate(){
-            ZonedDateTime todayDate = LocalDateTime.now(ZoneId.of("Asia/Seoul")).atZone(ZoneId.of("Asia/Seoul"));
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M월 d일");
-            return todayDate.format(formatter);
-        }
-
-        //thymeleaf를 통한 html 적용
-        public String setContext(String date,String password) {
-            Context context = new Context();
-            context.setVariable("date", date);
-            context.setVariable("tentative", password);
-            return templateEngine.process("email", context);
-        }
-    }
-
 

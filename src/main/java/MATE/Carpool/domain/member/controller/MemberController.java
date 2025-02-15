@@ -6,14 +6,17 @@ import MATE.Carpool.common.swagger.MemberApi;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.domain.member.dto.request.*;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
+import MATE.Carpool.domain.member.dto.response.ResetPasswordResponse;
 import MATE.Carpool.domain.member.dto.response.UpdateDriverResponseDto;
 import MATE.Carpool.domain.member.dto.response.UpdateMemberResponseDto;
 import MATE.Carpool.domain.member.service.MemberService;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -30,14 +33,14 @@ public class MemberController implements MemberApi {
 
 
     @GetMapping("")
-    public ResponseEntity<MemberResponseDto> getMember(
+    public ResponseEntity<Message<MemberResponseDto>> getMember(
             @Parameter(description = "회원 ID")
             @AuthenticationPrincipal CustomUserDetails userDetails){
         return memberService.getMember(userDetails);
     }
 
     @GetMapping("/{memberId}")
-    public ResponseEntity<MemberResponseDto> readOne(
+    public ResponseEntity<Message<MemberResponseDto>> readOne(
             @Parameter(description = "회원 ID")
             @PathVariable("memberId") Long memberId,
             @AuthenticationPrincipal CustomUserDetails userDetails){
@@ -54,75 +57,80 @@ public class MemberController implements MemberApi {
 
 
     @PostMapping("/signUp")
-    public ResponseEntity<String> signUp(@Valid @RequestBody SignupRequestDto requestDto) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<Message<Boolean>> signUp(@Valid @RequestBody SignupRequestDto requestDto) {
         return memberService.signUp(requestDto);
     }
 
     @DeleteMapping("/signOut")
-    public ResponseEntity<String> signOut(@AuthenticationPrincipal CustomUserDetails userDetails, HttpServletResponse response, HttpServletRequest request) {
+    public ResponseEntity<Message<String>> signOut(@AuthenticationPrincipal CustomUserDetails userDetails, HttpServletResponse response, HttpServletRequest request) {
         return memberService.signOut(userDetails,request,response);
     }
 
     @Override
     @PostMapping("/checkEmail")
-    public ResponseEntity<Boolean> checkEmail(@Valid @RequestBody Duplicate.DuplicateEmail email) {
+    public ResponseEntity<Message<Boolean>> checkEmail(@Valid @RequestBody GetMemberInfo.DuplicateEmail email) {
         return memberService.checkEmail(email.email());
     }
 
     @Override
     @PostMapping("/checkNickname")
-    public ResponseEntity<Boolean> checkNickname(@Valid @RequestBody Duplicate.DuplicateNickname nickname) {
+    public ResponseEntity<Message<Boolean>> checkNickname(@Valid @RequestBody GetMemberInfo.DuplicateNickname nickname) {
         return memberService.checkMemberId(nickname.nickname());
     }
 
     @Override
     @PostMapping("/checkMemberId")
-    public ResponseEntity<Boolean> checkMemberId(@Valid @RequestBody Duplicate.DuplicateMemberId memberId) {
+    public ResponseEntity<Message<Boolean>> checkMemberId(@Valid @RequestBody GetMemberInfo.DuplicateMemberId memberId) {
         return memberService.checkMemberId(memberId.memberId());
     }
 
-    @PostMapping("/findPassword")
-    public ResponseEntity<String> findPassword(@RequestBody FindPasswordRequestDto requestDto) throws Exception {
-        return memberService.findPassword(requestDto);
-    }
-
     @PostMapping("/findMemberId")
-    public ResponseEntity<Map<String, String>> findMemberId(@RequestBody FindMemberIdRequestDto findMemberIdRequestDto)  {
+    public ResponseEntity<Message<String>> findMemberId(@RequestBody FindMemberIdRequestDto findMemberIdRequestDto)  {
         return memberService.findMemberId(findMemberIdRequestDto);
     }
 
     @PostMapping("/driver")
-    public ResponseEntity<MemberResponseDto> registerDriver(
+    public ResponseEntity<Message<MemberResponseDto>> registerDriver(
             @RequestBody @Valid DriverRequestDto driverRequestDto,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         return memberService.registerDriver(userDetails, driverRequestDto);
     }
 
     @PutMapping()
-    public ResponseEntity<UpdateMemberResponseDto> updateUser(
+    public ResponseEntity<Message<UpdateMemberResponseDto>> updateUser(
             @RequestBody UpdateMemberDTO updateMemberDTO,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         return memberService.updateProfileInformation(userDetails, updateMemberDTO);
     }
 
     @PutMapping("/driver")
-    public ResponseEntity<UpdateDriverResponseDto> updateDriver(
+    public ResponseEntity<Message<UpdateDriverResponseDto>> updateDriver(
             @RequestBody DriverRequestDto driverRequestDto,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         return memberService.updateDriver(driverRequestDto,userDetails);
     }
 
-//    @PostMapping("/cancelDriver/{id}")
-//    public ResponseEntity<MemberResponseDto> cancelDriver(@AuthenticationPrincipal CustomUserDetails userDetails) throws Exception {
-//        return memberService.cancelDriver(userDetails);
-//    }
-//
-//    @PostMapping("/registerUniversity")
-//    public ResponseEntity<MemberResponseDto> registerUniversity(@AuthenticationPrincipal CustomUserDetails userDetails,@RequestBody String universityName) {
-//        return memberService.socialMemberRegisterUniversity(userDetails, universityName);
-//    }
+    @PostMapping("/findPassword")
+    public ResponseEntity<Message<Boolean>> findPassword(
+            @RequestBody GetMemberInfo.ForgotPassword memberInfo)
+            throws MessagingException {
+        return memberService.findPassword(memberInfo);
 
+    }
 
+    @PostMapping("/changePassword")
+    public ResponseEntity<Message<Boolean>> changePassword(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody GetMemberInfo.Password password){
+        return memberService.changePassword(userDetails,password);
+
+    }
+
+    @PostMapping("/checkPassword")
+    public ResponseEntity<Message<Boolean>> checkPassword(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody GetMemberInfo.Password password) {
+        return memberService.checkPassword(userDetails,password);
+    }
 
 
 

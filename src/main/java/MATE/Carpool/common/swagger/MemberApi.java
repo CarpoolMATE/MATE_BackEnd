@@ -14,10 +14,12 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.Map;
@@ -29,9 +31,11 @@ public interface MemberApi {
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", examples = {
                     @ExampleObject(name = "가입성공", value = """
-                    {
-                        "String": "회원가입 성공"
-                    }
+                                        {
+                                                      "message": "회원가입 성공",
+                                                      "status": "CREATED",
+                                                      "data": true
+                                                    }
                 """)
             })),
             @ApiResponse(responseCode = "400", content = @Content(mediaType = "application/json", examples = {
@@ -78,14 +82,70 @@ public interface MemberApi {
             })),
 
     })
-    ResponseEntity<String> signUp(SignupRequestDto requestDto);
+    ResponseEntity<Message<Boolean>> signUp(SignupRequestDto requestDto);
 
 
     @Operation(summary = "회원 정보 조회", description = "로그인한 사용자의 회원 정보를 조회합니다.(토큰조회)")
-    ResponseEntity<MemberResponseDto> getMember(CustomUserDetails userDetails);
+    @ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", examples = {
+            @ExampleObject(name = "회원정보 조회 성공", value = """
+                               {
+                            "message": "조회성공",
+                            "status": "OK",
+                            "data": {
+                              "memberId": "member",
+                              "nickname": "닉네임",
+                              "email": "member@test.com",
+                              "profileImage": "basic image",
+                              "memberType": "STANDARD",
+                              "providerType": "MATE",
+                              "createDate": "2025-02-14T16:53:27.047779",
+                              "updateDate": "2025-02-14T17:39:09.3289",
+                              "reservation": false,
+                              "isBanned": false,
+                              "driverRegistrationDate": "2025-02-14T17:39:09.2809",
+                              "isDriver": true,
+                              "carpoolCount": 0
+                            }
+                          }
+                          """)
+    }))
+    ResponseEntity<Message<MemberResponseDto>> getMember(CustomUserDetails userDetails);
 
     @Operation(summary = "회원 정보 조회", description = "회원 ID를 통해서 해당회원의 정보를 조회합니다")
-    ResponseEntity<MemberResponseDto> readOne(@Parameter(description = "회원 ID") Long memberId, CustomUserDetails userDetails);
+    @ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", examples = {
+            @ExampleObject(name = "회원정보 조회 성공", value = """
+                               {
+                            "message": "조회성공",
+                            "status": "OK",
+                            "data": {
+                              "memberId": "member",
+                              "nickname": "닉네임",
+                              "email": "member@test.com",
+                              "profileImage": "basic image",
+                              "memberType": "STANDARD",
+                              "providerType": "MATE",
+                              "createDate": "2025-02-14T16:53:27.047779",
+                              "updateDate": "2025-02-14T17:39:09.3289",
+                              "reservation": false,
+                              "isBanned": false,
+                              "driverRegistrationDate": "2025-02-14T17:39:09.2809",
+                              "isDriver": true,
+                              "carpoolCount": 0
+                            }
+                          }
+                          """),
+            @ExampleObject(name = "조회 실패 - 아이디 오류", value = """
+                               {
+                                      "status": 404,
+                                      "name": "USER_NOT_FOUND",
+                                      "code": "ACCOUNT-001",
+                                      "message": "사용자를 찾을 수 없습니다."
+                                  }
+                            """)
+
+    }))
+
+    ResponseEntity<Message<MemberResponseDto>> readOne(@Parameter(description = "회원 ID") Long memberId, CustomUserDetails userDetails);
 
     @Operation(summary = "로그인", description = "가입하신 아이디와 비밀번호를 통해서 로그인을 요청합니다.")
     @ApiResponses({
@@ -136,22 +196,26 @@ public interface MemberApi {
     @Operation(summary = "로그아웃", description = "로그인한 사용자를 로그아웃 시킵니다.(쿠키삭제)")
     @ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", examples = {
             @ExampleObject(name = "로그아웃 성공", value = """
-                    {
-                        "String": "{닉네임} 회원 로그아웃 완료"
-                    }
+                   {
+                           "message": "닉닉네임 회원 로그아웃 완료",
+                           "status": "OK",
+                           "data": ""
+                         }
                 """)
     }))
-    ResponseEntity<String> signOut(CustomUserDetails userDetails, HttpServletResponse response, HttpServletRequest request);
+    ResponseEntity<Message<String>> signOut(CustomUserDetails userDetails, HttpServletResponse response, HttpServletRequest request);
 
 
     @Operation(summary = "회원정보 중복검사 - 이메일 중복검사", description = "입력한값으로 이미 존재하는 값인지 검사합니다")
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", examples = {
                     @ExampleObject(name = "검사성공", value = """
-                    {
-                        "boolean": "true"
-                    }
-                """)})),
+                                  {
+                                "message": "이메일 체크",
+                                "status": "OK",
+                                "data": true
+                              }
+                              """)})),
             @ApiResponse(responseCode = "400", content = @Content(mediaType = "application/json", examples = {
                     @ExampleObject(name = "검증 실패 - 이메일중복", value = """
                             {
@@ -164,7 +228,7 @@ public interface MemberApi {
             })),
 
     })
-    ResponseEntity<Boolean> checkEmail(@Valid @RequestBody Duplicate.DuplicateEmail email);
+    ResponseEntity<Message<Boolean>> checkEmail(@Valid @RequestBody GetMemberInfo.DuplicateEmail email);
     
     
     @Operation(summary = "회원정보 중복검사 - 닉네임 중복검사", description = "입력한값으로 이미 존재하는 값인지 검사합니다")
@@ -172,9 +236,11 @@ public interface MemberApi {
             @ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", examples = {
                     @ExampleObject(name = "검사성공", value = """
                     {
-                        "boolean": "true"
-                    }
-                """)})),
+                                  "message": "닉네임 체크",
+                                  "status": "OK",
+                                  "data": true
+                                }
+                    """)})),
             @ApiResponse(responseCode = "400", content = @Content(mediaType = "application/json", examples = {
                     @ExampleObject(name = "검증 실패 - 닉네임중복", value = """
                             {
@@ -187,16 +253,18 @@ public interface MemberApi {
             })),
 
     })
-    ResponseEntity<Boolean> checkNickname(@Valid @RequestBody Duplicate.DuplicateNickname nickname);
+    ResponseEntity<Message<Boolean>> checkNickname(@Valid @RequestBody GetMemberInfo.DuplicateNickname nickname);
     
     @Operation(summary = "회원정보 중복검사 - 아이디 중복검사", description = "입력한값으로 이미 존재하는 값인지 검사합니다")
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", examples = {
                     @ExampleObject(name = "검사성공", value = """
                     {
-                        "boolean": "true"
-                    }
-                """)})),
+                                  "message": "아이디 체크",
+                                  "status": "OK",
+                                  "data": true
+                                }
+                    """)})),
             @ApiResponse(responseCode = "400", content = @Content(mediaType = "application/json", examples = {
                     @ExampleObject(name = "검증 실패 - 아이디중복", value = """
                             {
@@ -209,49 +277,21 @@ public interface MemberApi {
             })),
 
     })
-    ResponseEntity<Boolean> checkMemberId(@Valid @RequestBody Duplicate.DuplicateMemberId memberId);
+    ResponseEntity<Message<Boolean>> checkMemberId(@Valid @RequestBody GetMemberInfo.DuplicateMemberId memberId);
 
 
-    @Operation(summary = "비밀번호 찾기", description = "가입하신정보로 회원의 비밀번호를 찾습니다.(이메일전송)")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", examples = {
-                    @ExampleObject(name = "전송 성공", value = """
-                                {
-                                    "String": "임시 비밀번호가 이메일로 전송되었습니다."
-                                }
-                            """)})),
 
-
-            @ApiResponse(responseCode = "400", content = @Content(mediaType = "application/json", examples = {
-                    @ExampleObject(name = "전송 실패 - 회원정보 불일치", value = """
-                                {
-                                 "status": 400,
-                                 "name": "USER_NOT_FOUND",
-                                 "code": "ACCOUNT-001",
-                                 "message": "사용자를 찾을 수 없습니다."
-                             }
-                            """)
-                    ,@ExampleObject(name = "전송 실패 - 이메일 불일치", value = """
-                                {
-                                 "status": 400,
-                                 "name": "NOT_EQUALS_MEMBER_INFO",
-                                 "code": "ACCOUNT-005",
-                                 "message": "잘못된 접근입니다."
-                             }
-                            """)
-            })),
-
-    })
-    ResponseEntity<String> findPassword(@RequestBody FindPasswordRequestDto requestDto) throws Exception;
 
 
     @Operation(summary = "회원아이디 찾기 ", description = "가입하신정보로 회원의 비밀번호를 찾습니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", examples = {
                     @ExampleObject(name = "성공", value = """
-                                {
-                                    "memberId": "member"
-                                }
+                            {
+                              "message": "멤버아이디 조회 성공",
+                              "status": "OK",
+                              "data": "memberId"
+                            }
                             """)})),
             @ApiResponse(responseCode = "400", content = @Content(mediaType = "application/json", examples = {
                     @ExampleObject(name = "조회 실패 - 회원정보 불일치", value = """
@@ -265,7 +305,7 @@ public interface MemberApi {
 
             })),
     })
-    ResponseEntity<Map<String, String>> findMemberId( FindMemberIdRequestDto findMemberIdRequestDto);
+    ResponseEntity<Message<String>> findMemberId( FindMemberIdRequestDto findMemberIdRequestDto);
 
 
     @Operation(summary = "드라이버 등록", description = "드라이버를 등록합니다.")
@@ -312,17 +352,21 @@ public interface MemberApi {
 
             })),
     })
-    ResponseEntity<MemberResponseDto> registerDriver(DriverRequestDto driverRequestDto, CustomUserDetails userDetails);
+    ResponseEntity<Message<MemberResponseDto>> registerDriver(DriverRequestDto driverRequestDto, CustomUserDetails userDetails);
 
 
-    @Operation(summary = "회원 정보 수정", description = "회원정보를 수정합니다.(닉네임, 프로필이미지)")
+    @Operation(summary = "회원 정보 수정 (닉네임, 프로필이미지)", description = "회원정보를 수정합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", examples = {
                     @ExampleObject(name = "수정 성공", value = """
-                                {
-                                     "nickname": "고구마맛탕",
-                                     "profileImage": "test.img"
-                                 }
+                            {
+                              "message": "프로필 수정",
+                              "status": "OK",
+                              "data": {
+                                "nickname": "고구마맛탕탕",
+                                "profileImage": "test.img"
+                                }
+                            }
                             """)})),
             @ApiResponse(responseCode = "400", content = @Content(mediaType = "application/json", examples = {
                     @ExampleObject(name = "등록 실패 - 파라미터값 오류", value = """
@@ -336,18 +380,22 @@ public interface MemberApi {
 
             })),
     })
-    ResponseEntity<UpdateMemberResponseDto> updateUser(UpdateMemberDTO updateMemberDTO, CustomUserDetails userDetails);
+    ResponseEntity<Message<UpdateMemberResponseDto>> updateUser(UpdateMemberDTO updateMemberDTO, CustomUserDetails userDetails);
 
 
     @Operation(summary = "드라이버 정보 수정", description = "드라이버 정보를 수정합니다.(차 번호, 핸드폰번호, 차 이미지)")
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", examples = {
                     @ExampleObject(name = "수정 성공", value = """
-                                {
-                                    "carNumber": "12가 3456",
-                                    "phoneNumber": "010-1234-5678",
-                                    "carImage": "test.img"
-                                  }
+                            {
+                              "message": "드라이버 수정",
+                              "status": "OK",
+                              "data": {
+                                "carNumber": "12가 3456",
+                                "phoneNumber": "010-1234-5678",
+                                "carImage": "test.img"
+                                    }
+                            }
                             """)})),
             @ApiResponse(responseCode = "400", content = @Content(mediaType = "application/json", examples = {
                     @ExampleObject(name = "등록 실패 - 파라미터값 오류", value = """
@@ -360,6 +408,80 @@ public interface MemberApi {
                             """)
             })),
     })
-    ResponseEntity<UpdateDriverResponseDto> updateDriver(DriverRequestDto driverRequestDto, CustomUserDetails userDetails);
+    ResponseEntity<Message<UpdateDriverResponseDto>> updateDriver(DriverRequestDto driverRequestDto, CustomUserDetails userDetails);
+
+    @Operation(summary = "비밀번호 찾기 - 이메일전송", description = "가입하신정보로 회원의 비밀번호를 찾습니다.(이메일전송)"
+
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", examples = {
+                    @ExampleObject(name = "전송 성공", value = """
+                                {
+                                   "message": "이메일이 발송되었습니다.",
+                                   "status": "OK",
+                                   "data": true
+                                 }
+                            """)})),
+
+
+            @ApiResponse(responseCode = "400", content = @Content(mediaType = "application/json", examples = {
+                    @ExampleObject(name = "전송 실패 - 회원정보 불일치", value = """
+                                {
+                                 "status": 400,
+                                 "name": "USER_NOT_FOUND",
+                                 "code": "ACCOUNT-001",
+                                 "message": "사용자를 찾을 수 없습니다."
+                             }
+                            """)
+                    ,@ExampleObject(name = "전송 실패 - 이메일 불일치", value = """
+                                {
+                                 "status": 400,
+                                 "name": "NOT_EQUALS_MEMBER_INFO",
+                                 "code": "ACCOUNT-005",
+                                 "message": "잘못된 접근입니다."
+                             }
+                            """)
+            })),
+
+    })
+    ResponseEntity<Message<Boolean>> findPassword(@RequestBody GetMemberInfo.ForgotPassword memberInfo) throws MessagingException;
+
+    ;
+
+
+
+    @Operation(summary = "비밀번호 변경 - 비밀번호 변경", description = "비밀번호 변경"
+
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", examples = {
+                    @ExampleObject(name = "비밀번호 변경성공", value = """
+                                {
+                                   "message": "비밀번호가 변경되었습니다.",
+                                   "status": "OK",
+                                   "data": true
+                                 }
+                            """)})),
+
+    })
+    ResponseEntity<Message<Boolean>> changePassword(CustomUserDetails userDetails,@RequestBody GetMemberInfo.Password password );
+
+
+
+    @Operation(summary = "비밀번호 확인", description = "기존 비밀번호를 확인합니다."
+
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", examples = {
+                    @ExampleObject(name = "비밀번호 변경성공", value = """
+                                {
+                                    "message": "비밀번호 확인 완료",
+                                    "status": "OK",
+                                    "data": true
+                                  }
+                            """)})),
+
+    })
+    ResponseEntity<Message<Boolean>> checkPassword(CustomUserDetails userDetails, GetMemberInfo.Password password);
 
 }
