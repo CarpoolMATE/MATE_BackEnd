@@ -235,14 +235,14 @@ public class JwtProvider {
         accessTokenCookie.setSecure(false);
         accessTokenCookie.setPath("/");
         accessTokenCookie.setMaxAge(accessTimeSeconds/1000);
-        accessTokenCookie.setDomain(".carpool.com");
+//        accessTokenCookie.setDomain(".carpool.com");
 
         Cookie refreshTokenCookie = new Cookie("REFRESH_TOKEN", refreshToken);
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setSecure(false);
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(refreshTimeSeconds/1000);
-        refreshTokenCookie.setDomain(".carpool.com");
+//        refreshTokenCookie.setDomain(".carpool.com");
 
         // 쿠키를 응답에 추가
         response.addCookie(accessTokenCookie);
