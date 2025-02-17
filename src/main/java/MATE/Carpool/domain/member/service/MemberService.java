@@ -120,8 +120,6 @@ public class MemberService {
                 .email(requestDto.getEmail())
                 .password(password)
                 .nickname(requestDto.getNickname())
-                .isUniversity(true)
-                .university("서울대학교")
                 .build();
 
         memberRepository.save(member);

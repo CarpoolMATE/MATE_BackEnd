@@ -32,13 +32,6 @@ public class Member extends TimeStamped{
     @Column(nullable = false)
     private String password;
 
-    @Column
-    private String university;
-
-    @Column
-    @Builder.Default
-    private Boolean isUniversity =false;
-
     @Builder.Default
     @Enumerated(EnumType.STRING)
     private ProviderType providerType = ProviderType.MATE;
@@ -49,7 +42,7 @@ public class Member extends TimeStamped{
 
     @Column(nullable = false)
     @Builder.Default
-    private String profileImage="basic image";
+    private String profileImage="https://carool-s3.s3.ap-northeast-2.amazonaws.com/profileImgS3.png";
 
     @Column
     @Builder.Default

@@ -18,8 +18,6 @@ public interface ReservationRepository extends JpaRepository<ReservationEntity, 
     @Query("select r.member.id from ReservationEntity r where r.carpool.id = :carpoolId")
     List<Long> findByMemberId(@Param("carpoolId") Long carpoolId);
 
-
-
     @Query("select r from ReservationEntity r join fetch r.carpool c join fetch r.member m where r.carpool.id = :carpoolId")
     List<ReservationEntity> findAllByCarpoolId(@Param("carpoolId") Long Id, Pageable pageable);
 
