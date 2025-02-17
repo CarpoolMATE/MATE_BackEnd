@@ -22,8 +22,6 @@
                  .email("admin@test.com")
                  .password(passwordEncoder.encode("1234a"))
                  .nickname("admin")
-                 .isUniversity(true)
-                 .university("서울대학교")
                  .memberType(MemberType.ADMIN)
                  .build();
 
@@ -35,8 +33,6 @@
                  .email("testa@test.com")
                  .password(passwordEncoder.encode("1234a"))
                  .nickname("aaaa")
-                 .isUniversity(true)
-                 .university("서울대학교")
                  .build();
 
          memberRepository.save(member);
@@ -46,8 +42,6 @@
                  .email("testb@test.com")
                  .password(passwordEncoder.encode("1234a"))
                  .nickname("bbbb")
-                 .isUniversity(true)
-                 .university("서울대학교")
                  .build();
 
          memberRepository.save(member2);

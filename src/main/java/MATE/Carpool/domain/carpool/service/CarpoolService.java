@@ -273,7 +273,7 @@ public class CarpoolService {
             result.add(new CarpoolHistoryResponseDTO(r.getCarpool()));
         }
 
-        return ResponseEntity.ok(new Message<>("카풀 삭제 성공",HttpStatus.OK,result));
+        return ResponseEntity.ok(new Message<>("탑승 목록 조회 성공",HttpStatus.OK,result));
     }
 
     @Transactional(readOnly = true)
@@ -292,7 +292,7 @@ public class CarpoolService {
             throw new CustomException(ErrorCode.DRIVER_NOT_FOUND);
         }
 
-        return ResponseEntity.ok(new Message<>("카풀 삭제 성공",HttpStatus.OK,result));
+        return ResponseEntity.ok(new Message<>("운행 목록 조회 성공",HttpStatus.OK,result));
     }
 
     // 매일 오전 10시에 실행되는 메서드
@@ -310,6 +310,11 @@ public class CarpoolService {
     }
 
     private CarpoolEntity findByCarpool(Long carpoolId){
+
+        if (carpoolId == null) {
+            throw new CustomException(ErrorCode.CARPOOL_NOT_FOUND);  // 또는 적절한 예외 처리
+        }
+
         return carpoolRepository.findById(carpoolId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CARPOOL_NOT_FOUND));
     }
