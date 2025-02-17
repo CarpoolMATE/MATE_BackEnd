@@ -16,8 +16,8 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class SignupRequestDto {
 
-    @Size(min = 3, max = 20, message = "아이디는는 3자 이상 20자 이하로 가능합니다.")
-    @Pattern(regexp = "^[a-zA-Z]*$", message = "아이디는 3~20자 영문을 사용하세요.")
+    @Size(min = 3, max = 20, message = "아이디는 3자 이상 20자 이하로 가능합니다.")
+    @Pattern(regexp = "^[a-zA-Z0-9]*$", message = "아이디는 3~20자 영문 or 숫자만 사용할 수 있습니다.")
     @Schema(description = "사용자의 아이디", example = "member")
     private String memberId;
 
