@@ -82,7 +82,8 @@ public class MemberService {
 
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
-        jwtProvider.createTokenAndSavedTokenHttponly(authentication, response,request, memberId);
+//        jwtProvider.createTokenAndSavedTokenHttponly(authentication, response,request, memberId);
+        jwtProvider.createTokenAndSaved(authentication, response,request);
 
         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
       

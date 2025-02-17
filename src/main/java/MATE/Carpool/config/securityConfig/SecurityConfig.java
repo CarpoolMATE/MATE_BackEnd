@@ -1,10 +1,7 @@
 package MATE.Carpool.config.securityConfig;
 
 
-import MATE.Carpool.common.exception.CustomAccessDeniedHandler;
-import MATE.Carpool.common.exception.CustomAuthenticationEntryPoint;
-import MATE.Carpool.common.exception.CustomException;
-import MATE.Carpool.common.exception.ErrorCode;
+import MATE.Carpool.common.exception.*;
 import MATE.Carpool.config.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -36,7 +33,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
+    private final EndpointHandler endpointHandler;
     private final static String[] PERMIT_URI = {
             "/api/member/signUp",
             "/api/member/signIn",
@@ -82,11 +79,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin","/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
 //
+                )
+                .exceptionHandling(handling -> handling
+                        .authenticationEntryPoint(endpointHandler)  // 401 처리
+                        .accessDeniedHandler(endpointHandler)           // 403 처리
                 );
-//                .exceptionHandling(handling -> handling
-//                        .authenticationEntryPoint(new CustomAuthenticationEntryPoint())  // 401 처리
-//                        .accessDeniedHandler(new CustomAccessDeniedHandler())           // 403 처리
-//                );
         //h2-console
         http.headers(headers ->headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
         return http.build();

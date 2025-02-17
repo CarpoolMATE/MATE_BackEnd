@@ -58,6 +58,11 @@ public class JwtProvider {
     private final MemberRepository memberRepository;
 
 
+    //삭제
+    public static final String ACCESS_KEY ="Authorization";
+    public static final String REFRESH_KEY ="REFRESH-TOKEN";
+
+
     private Key key;
 
     @Value("${jwt.secret.key}")
@@ -90,30 +95,30 @@ public class JwtProvider {
     }
 
 
-    public String createJwtToken(Authentication authentication,String type) {
-        Date accessTime = getTokenExpiration(accessTimeSeconds);
-        Date refreshTime = getTokenExpiration(refreshTimeSeconds);
-        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
-        String authority = authentication.getAuthorities()
-                .stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(","));
-        if(type.equals("Access")){
-           return Jwts.builder()
-                    .setSubject(authentication.getName())
-                    .claim("role",authority)
-                    .claim("nickname",customUserDetails.getMember().getNickname())
-                    .setExpiration(accessTime)
-                    .signWith(key, SignatureAlgorithm.HS256)
-                    .compact();
-        }else{
-           return  Jwts.builder()
-                    .setSubject(authentication.getName())
-                    .setExpiration(refreshTime)
-                    .signWith(key)
-                    .compact();
-        }
-    }
+//    public String createJwtToken(Authentication authentication,String type) {
+//        Date accessTime = getTokenExpiration(accessTimeSeconds);
+//        Date refreshTime = getTokenExpiration(refreshTimeSeconds);
+//        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+//        String authority = authentication.getAuthorities()
+//                .stream()
+//                .map(GrantedAuthority::getAuthority)
+//                .collect(Collectors.joining(","));
+//        if(type.equals("Access")){
+//           return Jwts.builder()
+//                    .setSubject(authentication.getName())
+//                    .claim("role",authority)
+//                    .claim("nickname",customUserDetails.getMember().getNickname())
+//                    .setExpiration(accessTime)
+//                    .signWith(key, SignatureAlgorithm.HS256)
+//                    .compact();
+//        }else{
+//           return  Jwts.builder()
+//                    .setSubject(authentication.getName())
+//                    .setExpiration(refreshTime)
+//                    .signWith(key)
+//                    .compact();
+//        }
+//    }
 
 
     public Authentication getAuthentication(String accessToken) {
@@ -202,61 +207,57 @@ public class JwtProvider {
         redisService.saveRefreshToken(memberId, tokenDto.getRefreshToken(), clientIp, refreshTimeSeconds);
         deleteCookie(response,"REFRESH_TOKEN");
 
-        addTokenToCookies(response, tokenDto.getAccessToken(), tokenDto.getRefreshToken());
+
+        //httponly 사용시(쿠키방식) 아래 메서드도 같이 주석풀기
+//        addTokenToCookies(response, tokenDto.getAccessToken(), tokenDto.getRefreshToken());
 
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(authentication);
         SecurityContextHolder.setContext(context);
     }
 
-    public void createTokenAndSavedTokenHttponly(Authentication authentication, HttpServletResponse response,HttpServletRequest request, String memberId) {
-        JwtTokenDto token = createAllToken(authentication);
-        String accessToken = token.getAccessToken();
-        String refreshToken = token.getRefreshToken();
+//    public void createTokenAndSavedTokenHttponly(Authentication authentication, HttpServletResponse response,HttpServletRequest request, String memberId) {
+//        JwtTokenDto token = createAllToken(authentication);
+//        String accessToken = token.getAccessToken();
+//        String refreshToken = token.getRefreshToken();
+//
+//        addTokenToCookies(response,accessToken,refreshToken);
+//
+//        String clientIp = request.getHeader("X-Forwarded-For");
+//        if (clientIp == null || clientIp.isEmpty()) {
+//            clientIp = request.getRemoteAddr();
+//            if ("0:0:0:0:0:0:0:1".equals(clientIp)) {
+//                clientIp = "127.0.0.1";
+//            }
+//        } else {
+//            clientIp = clientIp.split(",")[0].trim();
+//        }
+//
+//        redisService.saveRefreshToken(memberId,refreshToken,clientIp,refreshTimeSeconds);
+//    }
 
-        addTokenToCookies(response,accessToken,refreshToken);
+//    public void addTokenToCookies(HttpServletResponse response, String accessToken, String refreshToken) {
+//        Cookie accessTokenCookie = new Cookie("ACCESS_TOKEN", accessToken);
+//        accessTokenCookie.setHttpOnly(true);
+//        accessTokenCookie.setSecure(false);
+//        accessTokenCookie.setPath("/");
+//        accessTokenCookie.setMaxAge(accessTimeSeconds/1000);
+//        accessTokenCookie.setDomain("*");
+//
+//        Cookie refreshTokenCookie = new Cookie("REFRESH_TOKEN", refreshToken);
+//        refreshTokenCookie.setHttpOnly(true);
+//        refreshTokenCookie.setSecure(false);
+//        refreshTokenCookie.setPath("/");
+//        refreshTokenCookie.setMaxAge(refreshTimeSeconds/1000);
+//        refreshTokenCookie.setDomain("*");
+//
+//        // 쿠키를 응답에 추가
+//        response.addCookie(accessTokenCookie);
+//        response.addCookie(refreshTokenCookie);
+//
+//    }
 
-        String clientIp = request.getHeader("X-Forwarded-For");
-        if (clientIp == null || clientIp.isEmpty()) {
-            clientIp = request.getRemoteAddr();
-            if ("0:0:0:0:0:0:0:1".equals(clientIp)) {
-                clientIp = "127.0.0.1";
-            }
-        } else {
-            clientIp = clientIp.split(",")[0].trim();
-        }
 
-        redisService.saveRefreshToken(memberId,refreshToken,clientIp,refreshTimeSeconds);
-    }
-
-    public void addTokenToCookies(HttpServletResponse response, String accessToken, String refreshToken) {
-        Cookie accessTokenCookie = new Cookie("ACCESS_TOKEN", accessToken);
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setSecure(false);
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(accessTimeSeconds/1000);
-        accessTokenCookie.setDomain(".carpool.com");
-
-        Cookie refreshTokenCookie = new Cookie("REFRESH_TOKEN", refreshToken);
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(false);
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(refreshTimeSeconds/1000);
-        refreshTokenCookie.setDomain(".carpool.com");
-
-        // 쿠키를 응답에 추가
-        response.addCookie(accessTokenCookie);
-        response.addCookie(refreshTokenCookie);
-
-    }
-
-    public void setAuthentication(String access_token) {
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        Authentication authentication = getAuthentication(access_token);
-        context.setAuthentication(authentication);
-
-        SecurityContextHolder.setContext(context);
-    }
 
     public void deleteCookie(HttpServletResponse response, String cookieName) {
         // 만료 날짜를 과거로 설정하여 쿠키를 삭제
@@ -268,7 +269,62 @@ public class JwtProvider {
         response.addCookie(cookie);
     }
 
+    public void setAuthentication(String access_token) {
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        Authentication authentication = getAuthentication(access_token);
+        context.setAuthentication(authentication);
 
+        SecurityContextHolder.setContext(context);
+    }
+
+//==============================================================
+
+    public String createJwtToken(Authentication authentication,String type) {
+        Date accessTime = getTokenExpiration(accessTimeSeconds);
+        Date refreshTime = getTokenExpiration(refreshTimeSeconds);
+        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+        String authority = authentication.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(","));
+        if(type.equals("Access")){
+            return  BEARER_PREFIX
+                    + Jwts.builder()
+                    .setSubject(authentication.getName())
+                    .claim("role",authority)
+                    .claim("nickname",customUserDetails.getMember().getNickname())
+                    .setExpiration(accessTime)
+                    .signWith(key, SignatureAlgorithm.HS256)
+                    .compact();
+        }else{
+            return  BEARER_PREFIX
+                    + Jwts.builder()
+                    .setSubject(authentication.getName())
+                    .setExpiration(refreshTime)
+                    .signWith(key)
+                    .compact();
+        }
+    }
+
+    public String resolveToken(HttpServletRequest request, String token) {
+        String tokenName = token.equals("Authorization") ? ACCESS_KEY : REFRESH_KEY;
+        String bearerToken = request.getHeader(tokenName);
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
+            return bearerToken.substring(7);
+        }
+        return null;
+    }
+
+    public void createTokenAndSaved(Authentication authentication, HttpServletResponse response,HttpServletRequest request) {
+        JwtTokenDto token = createAllToken(authentication);
+        String accessToken = token.getAccessToken();
+
+        setHeaderToken(response,accessToken);
+    }
+
+    public void setHeaderToken(HttpServletResponse response, String accessToken) {
+        response.setHeader(ACCESS_KEY, accessToken);
+    }
 
 
 }

@@ -62,7 +62,8 @@ public class OauthService {
 
         Authentication authentication = forceLogin(member);
 
-        jwtProvider.createTokenAndSavedTokenHttponly(authentication, response, request, member.getMemberId());
+//        jwtProvider.createTokenAndSavedTokenHttponly(authentication, response, request, member.getMemberId());
+        jwtProvider.createTokenAndSaved(authentication, response,request);
 
         MemberResponseDto memberResponseDto = new MemberResponseDto(member);
 

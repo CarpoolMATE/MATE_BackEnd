@@ -25,6 +25,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+import static MATE.Carpool.config.jwt.JwtProvider.ACCESS_KEY;
+
 
 @Slf4j
 @Component
@@ -33,35 +35,48 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+//    @Override
+//    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+//            throws ServletException, IOException {
+//
+//        String accessToken = getCookieValue(request, "ACCESS_TOKEN");
+//        String refreshToken = getCookieValue(request, "REFRESH_TOKEN");
+//
+//        if(accessToken != null && jwtProvider.validateToken(accessToken)) {
+//            jwtProvider.setAuthentication(accessToken);
+//        }else if (refreshToken != null && jwtProvider.validateToken(refreshToken)) {
+//            jwtProvider.handleRefreshToken(refreshToken, response,request);
+//        }
+//
+////        log.info("Authentication method: {}",  "Cookie");
+//
+//        filterChain.doFilter(request, response);
+//    }
+//
+//    private String getCookieValue(HttpServletRequest request, String cookieName) {
+//        Cookie[] cookies = request.getCookies();
+//        if (cookies != null) {
+//            for (Cookie cookie : cookies) {
+//                if (cookieName.equals(cookie.getName())) {
+//                    return cookie.getValue();
+//                }
+//            }
+//        }
+//        return null;
+//    }
 
-        String accessToken = getCookieValue(request, "ACCESS_TOKEN");
-        String refreshToken = getCookieValue(request, "REFRESH_TOKEN");
+@Override
+protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    String access_token = jwtProvider.resolveToken(request, ACCESS_KEY);
 
-        if(accessToken != null && jwtProvider.validateToken(accessToken)) {
-            jwtProvider.setAuthentication(accessToken);
-        }else if (refreshToken != null && jwtProvider.validateToken(refreshToken)) {
-            jwtProvider.handleRefreshToken(refreshToken, response,request);
+    if(access_token != null){
+        if(jwtProvider.validateToken(access_token)){
+            jwtProvider.setAuthentication(access_token);
         }
-
-//        log.info("Authentication method: {}",  "Cookie");
-
-        filterChain.doFilter(request, response);
     }
 
-    private String getCookieValue(HttpServletRequest request, String cookieName) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if (cookieName.equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
-    }
+    filterChain.doFilter(request, response);
+}
 
 
 
