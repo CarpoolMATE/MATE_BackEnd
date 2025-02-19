@@ -9,6 +9,7 @@ import MATE.Carpool.domain.carpool.dto.response.CarpoolHistoryResponseDTO;
 import MATE.Carpool.domain.carpool.dto.response.CarpoolResponseDTO;
 import MATE.Carpool.domain.carpool.dto.response.PassengerInfoDTO;
 import MATE.Carpool.domain.carpool.service.CarpoolService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -56,7 +57,7 @@ public class CarpoolController implements CarpoolApi {
     }
 
     @PostMapping("/reservation")
-    public ResponseEntity<Message<List<PassengerInfoDTO>>> reservationCarpool(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody ReservationCarpoolRequestDTO requestDTO) {
+    public ResponseEntity<Message<List<PassengerInfoDTO>>> reservationCarpool(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody @Valid ReservationCarpoolRequestDTO requestDTO) {
         return carpoolService.reservationCarpool(userDetails, requestDTO);
     }
 

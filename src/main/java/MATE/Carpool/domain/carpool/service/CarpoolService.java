@@ -113,6 +113,10 @@ public class CarpoolService {
 
         Member member = userDetails.getMember();
 
+        if (member.getCarpoolId() == null) {
+            throw new CustomException(ErrorCode.CARPOOL_NOT_FOUND);  // 또는 적절한 예외 처리
+        }
+
         // 해당 카풀 엔티티 조회
         CarpoolEntity carpool = findByCarpool(member.getCarpoolId());
 
@@ -310,10 +314,6 @@ public class CarpoolService {
     }
 
     private CarpoolEntity findByCarpool(Long carpoolId){
-
-        if (carpoolId == null) {
-            throw new CustomException(ErrorCode.CARPOOL_NOT_FOUND);  // 또는 적절한 예외 처리
-        }
 
         return carpoolRepository.findById(carpoolId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CARPOOL_NOT_FOUND));
