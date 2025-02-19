@@ -1,49 +1,49 @@
- package MATE.Carpool.domain.member.service;
+ // package MATE.Carpool.domain.member.service;
 
- import MATE.Carpool.domain.member.entity.Member;
- import MATE.Carpool.domain.member.entity.MemberType;
- import MATE.Carpool.domain.member.repository.MemberRepository;
- import lombok.RequiredArgsConstructor;
- import org.springframework.boot.CommandLineRunner;
- import org.springframework.security.crypto.password.PasswordEncoder;
- import org.springframework.stereotype.Service;
- import org.springframework.web.bind.annotation.RestController;
+ // import MATE.Carpool.domain.member.entity.Member;
+ // import MATE.Carpool.domain.member.entity.MemberType;
+ // import MATE.Carpool.domain.member.repository.MemberRepository;
+ // import lombok.RequiredArgsConstructor;
+ // import org.springframework.boot.CommandLineRunner;
+ // import org.springframework.security.crypto.password.PasswordEncoder;
+ // import org.springframework.stereotype.Service;
+ // import org.springframework.web.bind.annotation.RestController;
 
- @Service
- @RequiredArgsConstructor
- public class MemberInitializer implements CommandLineRunner {
+ // @Service
+ // @RequiredArgsConstructor
+ // public class MemberInitializer implements CommandLineRunner {
 
-     private final MemberRepository memberRepository;
-     private final PasswordEncoder passwordEncoder;
-     @Override
-     public void run(String... args) throws Exception {
-         Member admin = Member.builder()
-                 .memberId("admin")
-                 .email("admin@test.com")
-                 .password(passwordEncoder.encode("1234a"))
-                 .nickname("admin")
-                 .memberType(MemberType.ADMIN)
-                 .build();
+ //     private final MemberRepository memberRepository;
+ //     private final PasswordEncoder passwordEncoder;
+ //     @Override
+ //     public void run(String... args) throws Exception {
+ //         Member admin = Member.builder()
+ //                 .memberId("admin")
+ //                 .email("admin@test.com")
+ //                 .password(passwordEncoder.encode("1234a"))
+ //                 .nickname("admin")
+ //                 .memberType(MemberType.ADMIN)
+ //                 .build();
 
-         memberRepository.save(admin);
+ //         memberRepository.save(admin);
 
 
-         Member member = Member.builder()
-                 .memberId("testa")
-                 .email("testa@test.com")
-                 .password(passwordEncoder.encode("1234a"))
-                 .nickname("aaaa")
-                 .build();
+ //         Member member = Member.builder()
+ //                 .memberId("testa")
+ //                 .email("testa@test.com")
+ //                 .password(passwordEncoder.encode("1234a"))
+ //                 .nickname("aaaa")
+ //                 .build();
 
-         memberRepository.save(member);
+ //         memberRepository.save(member);
 
-         Member member2 = Member.builder()
-                 .memberId("testb")
-                 .email("testb@test.com")
-                 .password(passwordEncoder.encode("1234a"))
-                 .nickname("bbbb")
-                 .build();
+ //         Member member2 = Member.builder()
+ //                 .memberId("testb")
+ //                 .email("testb@test.com")
+ //                 .password(passwordEncoder.encode("1234a"))
+ //                 .nickname("bbbb")
+ //                 .build();
 
-         memberRepository.save(member2);
-     }
- }
+ //         memberRepository.save(member2);
+ //     }
+ // }
