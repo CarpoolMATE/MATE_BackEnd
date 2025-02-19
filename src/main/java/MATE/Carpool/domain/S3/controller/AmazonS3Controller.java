@@ -1,10 +1,9 @@
 package MATE.Carpool.domain.S3.controller;
 
-import MATE.Carpool.config.userDetails.CustomUserDetails;
+import MATE.Carpool.common.swagger.S3Api;
 import MATE.Carpool.domain.S3.service.AwsS3Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,7 +13,7 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/file")
-public class AmazonS3Controller {
+public class AmazonS3Controller implements S3Api {
 
     private final AwsS3Service awsS3Service;
 

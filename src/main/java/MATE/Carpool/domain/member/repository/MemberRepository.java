@@ -18,7 +18,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     @Transactional
     @Modifying
-    @Query("UPDATE Member m SET m.reservation = false, m.carpoolId = null")
+    @Query("UPDATE Member m SET m.reservation = false, m.carpoolId = null WHERE m.reservation = true")
     void updateReservationAndCarpoolId();
 
     //존재하면 true
