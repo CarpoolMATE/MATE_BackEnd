@@ -5,4 +5,4 @@ FROM openjdk:17-jdk-slim
 COPY ./app-artifact/*.jar /app/app.jar
 
 # 애플리케이션 실행
-CMD ["java", "-jar", "/app/app.jar"]
+CMD ["java", "-Duser.timezone=Asia/Seoul", "-jar", "/app/app.jar"]
