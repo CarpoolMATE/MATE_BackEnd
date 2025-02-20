@@ -9,6 +9,7 @@ import MATE.Carpool.common.generator.VerificationCodeGenerator;
 import MATE.Carpool.config.jwt.JwtProvider;
 import MATE.Carpool.config.redis.RedisService;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
+//import MATE.Carpool.domain.S3.service.AwsS3Service;
 import MATE.Carpool.domain.member.dto.request.*;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
 import MATE.Carpool.domain.member.dto.response.ResetPasswordResponse;
@@ -44,15 +45,13 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class MemberService {
 
-
-
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final EmailService emailService;
     private final RedisService redisService;
-    private final StringRedisTemplate stringRedisTemplate;
+//    private final AwsS3Service awsS3Service;
 
     @Transactional(readOnly = true)
     public ResponseEntity<Message<MemberResponseDto>> getMember(CustomUserDetails userDetails){
@@ -153,9 +152,21 @@ public class MemberService {
     public ResponseEntity<Message<UpdateMemberResponseDto>> updateProfileInformation(CustomUserDetails userDetails, UpdateMemberDTO updateMemberDTO){
 
         Member member = userDetails.getMember();
+
         if(memberRepository.existsByNickname(updateMemberDTO.getNickname())){
             throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
         }
+
+        //먼저 기본 이미지인지 검증
+        //기본 이미지가 아니라면 member에 있는 프로필 이미지를 가지고와서 객체 키(파일명)만 추출
+        //awsService에 deleteImg를 불러서 파일명을 파라미터로 넘긴 후 삭제
+
+//
+//        String exProfileImage = member.getProfileImage();
+//        if (exProfileImage.equals("profileImgS3.png")) {
+//            awsS3Service.deleteImg(exProfileImage);
+//        }
+
 
         member.setProfileImage(updateMemberDTO.getProfileImage());
         member.setNickname(updateMemberDTO.getNickname());

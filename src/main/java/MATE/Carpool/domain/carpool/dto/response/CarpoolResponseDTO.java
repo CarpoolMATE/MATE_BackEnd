@@ -5,7 +5,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-// 예약 진행 혹은 생성한 카풀 DTO
+// 카풀 목록 DTO
 @Getter
 @Setter
 @AllArgsConstructor
@@ -25,6 +25,10 @@ public class CarpoolResponseDTO {
 
     private String departureCoordinate;
 
+    private String latitude;
+
+    private String longitude;
+
     private LocalDateTime departureTime;
 
     private String chatLink;
@@ -42,6 +46,8 @@ public class CarpoolResponseDTO {
         this.carImg = carpool.getMember().getCarImage();
         this.carNumber = carpool.getMember().getCarNumber();
         this.departureCoordinate = carpool.getDepartureCoordinate();
+        this.latitude = carpool.getLatitude();
+        this.longitude = carpool.getLongitude();
         this.departureTime =carpool.getDepartureDateTime();
         this.chatLink = carpool.getChatLink();
         this.capacity =carpool.getCapacity();

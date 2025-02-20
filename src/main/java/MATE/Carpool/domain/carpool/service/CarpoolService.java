@@ -8,6 +8,7 @@ import MATE.Carpool.domain.carpool.dto.request.CarpoolRequestDTO;
 import MATE.Carpool.domain.carpool.dto.request.ReservationCarpoolRequestDTO;
 import MATE.Carpool.domain.carpool.dto.response.CarpoolHistoryResponseDTO;
 import MATE.Carpool.domain.carpool.dto.response.CarpoolResponseDTO;
+import MATE.Carpool.domain.carpool.dto.response.CarpoolWithPassengersDTO;
 import MATE.Carpool.domain.carpool.dto.response.PassengerInfoDTO;
 import MATE.Carpool.domain.carpool.entity.CarpoolEntity;
 import MATE.Carpool.domain.carpool.entity.ReservationEntity;
@@ -55,7 +56,6 @@ public class CarpoolService {
         return ResponseEntity.ok(new Message<>("카풀 조회 성공", HttpStatus.OK,carpoolResponseDTOS));
 
     }
-
 
 
     //TODO: 현재 모집중인 카풀 리스트만 조회
@@ -109,7 +109,7 @@ public class CarpoolService {
 
     //진행중인 카풀
     @Transactional
-    public ResponseEntity<Message<List<PassengerInfoDTO>>> myCarpool(CustomUserDetails userDetails) {
+    public ResponseEntity<Message<CarpoolWithPassengersDTO>> myCarpool(CustomUserDetails userDetails) {
 
         Member member = userDetails.getMember();
 
@@ -120,9 +120,15 @@ public class CarpoolService {
         // 해당 카풀 엔티티 조회
         CarpoolEntity carpool = findByCarpool(member.getCarpoolId());
 
+        CarpoolResponseDTO carpoolResponseDTO = new CarpoolResponseDTO(carpool);
+
         List<PassengerInfoDTO> passengerInfoDTOS = getPassengerInfo(carpool);
 
-        return ResponseEntity.ok(new Message<>("내 카풀 조회",HttpStatus.OK,passengerInfoDTOS));
+        boolean isDriver = carpool.getMember().getMemberId().equals(userDetails.getMember().getMemberId());
+
+        CarpoolWithPassengersDTO responseDTO = new CarpoolWithPassengersDTO(carpoolResponseDTO, passengerInfoDTOS,isDriver);
+
+        return ResponseEntity.ok(new Message<>("내 카풀 조회",HttpStatus.OK, responseDTO));
 
     }
 
@@ -320,6 +326,7 @@ public class CarpoolService {
     }
 
     private List<PassengerInfoDTO> getPassengerInfo(CarpoolEntity carpool) {
+
         List<ReservationEntity> reservationEntities = reservationRepository.findByCarpoolId(carpool.getId());
 
         List<PassengerInfoDTO> passengerInfoDTOS = new ArrayList<>();

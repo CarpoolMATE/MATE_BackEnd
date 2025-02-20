@@ -7,6 +7,7 @@ import MATE.Carpool.domain.carpool.dto.request.CarpoolRequestDTO;
 import MATE.Carpool.domain.carpool.dto.request.ReservationCarpoolRequestDTO;
 import MATE.Carpool.domain.carpool.dto.response.CarpoolHistoryResponseDTO;
 import MATE.Carpool.domain.carpool.dto.response.CarpoolResponseDTO;
+import MATE.Carpool.domain.carpool.dto.response.CarpoolWithPassengersDTO;
 import MATE.Carpool.domain.carpool.dto.response.PassengerInfoDTO;
 import MATE.Carpool.domain.carpool.service.CarpoolService;
 import jakarta.validation.Valid;
@@ -47,7 +48,7 @@ public class CarpoolController implements CarpoolApi {
     }
 
     @GetMapping("/myCarpool")
-        public ResponseEntity<Message<List<PassengerInfoDTO>>> myCarpool(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        public ResponseEntity<Message<CarpoolWithPassengersDTO>> myCarpool(@AuthenticationPrincipal CustomUserDetails userDetails) {
         return carpoolService.myCarpool(userDetails);
     }
 
