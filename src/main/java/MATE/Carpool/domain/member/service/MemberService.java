@@ -9,7 +9,7 @@ import MATE.Carpool.common.generator.VerificationCodeGenerator;
 import MATE.Carpool.config.jwt.JwtProvider;
 import MATE.Carpool.config.redis.RedisService;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
-import MATE.Carpool.domain.S3.service.AwsS3Service;
+//import MATE.Carpool.domain.S3.service.AwsS3Service;
 import MATE.Carpool.domain.member.dto.request.*;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
 import MATE.Carpool.domain.member.dto.response.ResetPasswordResponse;
@@ -51,7 +51,7 @@ public class MemberService {
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final EmailService emailService;
     private final RedisService redisService;
-    private final AwsS3Service awsS3Service;
+//    private final AwsS3Service awsS3Service;
 
     @Transactional(readOnly = true)
     public ResponseEntity<Message<MemberResponseDto>> getMember(CustomUserDetails userDetails){
