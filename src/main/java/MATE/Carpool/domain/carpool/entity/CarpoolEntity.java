@@ -24,6 +24,12 @@ public class CarpoolEntity extends TimeStamped {
     @Column
     private String departureCoordinate;
 
+    @Column //위도
+    private String latitude;
+
+    @Column //경도
+    private String longitude;
+
     @Column
     private LocalDateTime departureDateTime;
 

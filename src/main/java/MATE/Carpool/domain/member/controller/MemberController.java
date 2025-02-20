@@ -97,7 +97,7 @@ public class MemberController implements MemberApi {
         return memberService.registerDriver(userDetails, driverRequestDto);
     }
 
-    @PutMapping()
+    @PutMapping("/member")
     public ResponseEntity<Message<UpdateMemberResponseDto>> updateUser(
             @RequestBody UpdateMemberDTO updateMemberDTO,
             @AuthenticationPrincipal CustomUserDetails userDetails) {

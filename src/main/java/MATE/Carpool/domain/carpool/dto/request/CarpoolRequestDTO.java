@@ -12,8 +12,11 @@ import java.time.LocalDateTime;
 @ToString
 public class CarpoolRequestDTO {
 
-    //탑승 좌표
     private String departureCoordinate;
+
+    private String latitude;
+
+    private String longitude;
 
     private LocalDateTime departureTime;
 
