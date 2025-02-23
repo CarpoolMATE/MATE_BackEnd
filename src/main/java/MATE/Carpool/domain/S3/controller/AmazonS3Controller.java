@@ -24,10 +24,4 @@ public class AmazonS3Controller implements S3Api {
 
     }
 
-//    @DeleteMapping("/imgDelete")
-//    public ResponseEntity<Message<String>> registerUniversity(@RequestBody Map<String, String> request) {
-//        String imgKey = request.get("imgKey");
-//        return awsS3Service.deleteImg(imgKey);
-//    }
-
 }

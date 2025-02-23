@@ -1,8 +1,6 @@
 package MATE.Carpool.domain.S3.service;
 
 import MATE.Carpool.common.Message;
-import MATE.Carpool.common.exception.CustomException;
-import MATE.Carpool.common.exception.ErrorCode;
 import MATE.Carpool.domain.member.repository.MemberRepository;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
