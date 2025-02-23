@@ -16,11 +16,13 @@ import MATE.Carpool.domain.carpool.repository.CarpoolRepository;
 import MATE.Carpool.domain.carpool.repository.ReservationRepository;
 import MATE.Carpool.domain.member.entity.Member;
 import MATE.Carpool.domain.member.repository.MemberRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -135,7 +137,7 @@ public class CarpoolService {
     //카풀 생성
     //카풀 생성시간 오전 7:00에서 9:00으로 고정
     @Transactional
-    public ResponseEntity<Message<CarpoolResponseDTO>> makeCarpool(CustomUserDetails userDetails,CarpoolRequestDTO carpoolRequestDTO) {
+    public ResponseEntity<Message<CarpoolResponseDTO>> makeCarpool(CustomUserDetails userDetails, CarpoolRequestDTO carpoolRequestDTO) {
 
         Member member = userDetails.getMember();
 
@@ -169,7 +171,7 @@ public class CarpoolService {
 
     //카플 예약
     @Transactional
-    public ResponseEntity<Message<List<PassengerInfoDTO>>> reservationCarpool(CustomUserDetails userDetails, ReservationCarpoolRequestDTO requestDTO) {
+    public ResponseEntity<Message<Long>> reservationCarpool(CustomUserDetails userDetails,@Valid ReservationCarpoolRequestDTO requestDTO) {
 
         Member member = userDetails.getMember();
 
@@ -202,9 +204,9 @@ public class CarpoolService {
 
         carpool.incrementReservationCount();
 
-        List<PassengerInfoDTO> passengerInfoDTOS = getPassengerInfo(carpool);
+        Long id = carpool.getId();
 
-        return ResponseEntity.ok(new Message<>("카풀 예약 성공",HttpStatus.OK,passengerInfoDTOS));
+        return ResponseEntity.ok(new Message<>("카풀 예약 성공",HttpStatus.OK, id));
     }
 
     //카풀 취소
@@ -215,14 +217,21 @@ public class CarpoolService {
 
         Long carpoolId = member.getCarpoolId();
 
+        if (member.getCarpoolId() == null) {
+            throw new CustomException(ErrorCode.CARPOOL_NOT_FOUND);
+        }
+
+
+
         CarpoolEntity carpool = carpoolRepository.findById(carpoolId).orElse(null);
 
         ReservationEntity reservation = reservationRepository.findByCarpoolAndMember(carpoolId, member.getId());
 
-        if(carpool != null){
-          carpoolRepository.save(carpool);
-          carpool.decrementReservationCount();
+        if(carpool != null) {
+            carpoolRepository.save(carpool);
+            carpool.decrementReservationCount();
         }
+
         reservationRepository.delete(reservation);
 
         member.setCarpoolId(null);
@@ -236,7 +245,12 @@ public class CarpoolService {
     //카풀 삭제
     @Transactional
     public ResponseEntity<Message<String>> deleteCarpool(CustomUserDetails userDetails) {
+
         Member member = userDetails.getMember();
+
+        if (member.getCarpoolId() == null) {
+            throw new CustomException(ErrorCode.CARPOOL_NOT_FOUND);
+        }
 
         CarpoolEntity carpool = carpoolRepository.findById(member.getCarpoolId()).orElseThrow(
                 () -> new CustomException(ErrorCode.CARPOOL_NOT_FOUND)
