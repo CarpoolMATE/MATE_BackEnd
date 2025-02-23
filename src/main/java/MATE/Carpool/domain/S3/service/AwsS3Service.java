@@ -52,7 +52,6 @@ public class AwsS3Service {
         try {
             // 파일명 추출 및 디코딩 적용
             String fileName = extractFileName(imgKey);
-            System.out.println("삭제 시도할 파일명: " + fileName);
 
             // 기본 프로필 이미지인지 확인
             if (fileName.equals(defaultProfileImageKey)) {
