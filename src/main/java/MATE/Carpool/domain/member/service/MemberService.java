@@ -9,10 +9,9 @@ import MATE.Carpool.common.generator.VerificationCodeGenerator;
 import MATE.Carpool.config.jwt.JwtProvider;
 import MATE.Carpool.config.redis.RedisService;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
-//import MATE.Carpool.domain.S3.service.AwsS3Service;
+import MATE.Carpool.domain.S3.service.AwsS3Service;
 import MATE.Carpool.domain.member.dto.request.*;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
-import MATE.Carpool.domain.member.dto.response.ResetPasswordResponse;
 import MATE.Carpool.domain.member.dto.response.UpdateDriverResponseDto;
 import MATE.Carpool.domain.member.dto.response.UpdateMemberResponseDto;
 import MATE.Carpool.domain.member.entity.Member;
@@ -51,7 +50,7 @@ public class MemberService {
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final EmailService emailService;
     private final RedisService redisService;
-//    private final AwsS3Service awsS3Service;
+    private final AwsS3Service awsS3Service;
 
     @Transactional(readOnly = true)
     public ResponseEntity<Message<MemberResponseDto>> getMember(CustomUserDetails userDetails){
@@ -149,34 +148,40 @@ public class MemberService {
     }
 
     @Transactional
-    public ResponseEntity<Message<UpdateMemberResponseDto>> updateProfileInformation(CustomUserDetails userDetails, UpdateMemberDTO updateMemberDTO){
-
+    public ResponseEntity<Message<UpdateMemberResponseDto>> updateProfileInformation(CustomUserDetails userDetails, UpdateMemberDTO updateMemberDTO) {
         Member member = userDetails.getMember();
 
-        if(memberRepository.existsByNickname(updateMemberDTO.getNickname())){
-            throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
+        // 기존 프로필 이미지 가져오기
+        String currentProfileImage = member.getProfileImage();
+
+        // 새로운 프로필 이미지 가져오기
+        String newProfileImage = updateMemberDTO.getProfileImage();
+
+        // 기본 프로필 이미지
+        String defaultProfileImage = "https://carool-s3.s3.ap-northeast-2.amazonaws.com/profileImgS3.png";
+
+        // 새로운 이미지가 없거나, 기존 이미지와 동일하면 변경하지 않음
+        if (newProfileImage == null || newProfileImage.isEmpty() || newProfileImage.equals(currentProfileImage)) {
+            member.setNickname(updateMemberDTO.getNickname()); // 닉네임만 변경
+            memberRepository.save(member);
+            return ResponseEntity.ok(new Message<>("프로필 수정", HttpStatus.OK, new UpdateMemberResponseDto(member)));
         }
 
-        //먼저 기본 이미지인지 검증
-        //기본 이미지가 아니라면 member에 있는 프로필 이미지를 가지고와서 객체 키(파일명)만 추출
-        //awsService에 deleteImg를 불러서 파일명을 파라미터로 넘긴 후 삭제
+        // 기존 이미지가 기본 프로필이 아닐 경우만 삭제
+        if (!currentProfileImage.equals(defaultProfileImage)) {
+            awsS3Service.deleteImg(currentProfileImage);
+        }
 
-//
-//        String exProfileImage = member.getProfileImage();
-//        if (exProfileImage.equals("profileImgS3.png")) {
-//            awsS3Service.deleteImg(exProfileImage);
-//        }
-
-
-        member.setProfileImage(updateMemberDTO.getProfileImage());
+        // 새 프로필 이미지 업데이트
+        member.setProfileImage(newProfileImage);
         member.setNickname(updateMemberDTO.getNickname());
 
+        // 변경사항 저장
         memberRepository.save(member);
 
-
-
-        return ResponseEntity.ok(new Message<>("프로필 수정",HttpStatus.OK,new UpdateMemberResponseDto(member)));
+        return ResponseEntity.ok(new Message<>("프로필 수정 성공", HttpStatus.OK, new UpdateMemberResponseDto(member)));
     }
+
 
     @Transactional
     public ResponseEntity<Message<UpdateDriverResponseDto>> updateDriver(DriverRequestDto driverRequestDto,CustomUserDetails userDetails) {
@@ -185,11 +190,15 @@ public class MemberService {
 
         member.setCarNumber(driverRequestDto.getCarNumber());
         member.setPhoneNumber(driverRequestDto.getPhoneNumber());
-        member.setCarImage(driverRequestDto.getCarImage());
+
+        if (driverRequestDto.getCarImage() != null && !driverRequestDto.getCarImage().isEmpty()){
+            member.setCarImage(driverRequestDto.getCarImage());
+        }
+
         memberRepository.save(member);
 
 
-        return ResponseEntity.ok(new Message<>("드라이버 수정",HttpStatus.OK,new UpdateDriverResponseDto(member)));
+        return ResponseEntity.ok(new Message<>("드라이버 수정 성공",HttpStatus.OK,new UpdateDriverResponseDto(member)));
     }
 
     @Transactional(readOnly = true)
