@@ -2,18 +2,14 @@ package MATE.Carpool.common.swagger;
 
 import MATE.Carpool.common.Message;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -41,29 +37,10 @@ public interface S3Api {
                 """
                             )
                     )
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "업로드 실패 - 지원하지 않는 파일 형식",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = @ExampleObject(
-                                    name = "업로드 실패 - 파일 형식 오류",
-                                    value = """
-                    {
-                        "status": 400,
-                        "name": "INVALID_FILE_FORMAT",
-                        "code": "MATE-007",
-                        "message": "지원하지 않는 파일 형식입니다. (jpg, jpeg, HEIC만 가능)"
-                    }
-                """
-                            )
-                    )
             )
     })
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Message<String>> uploadUserProfile(
-            @RequestPart(name = "file") MultipartFile file
-    );
+    public ResponseEntity<Message<String>> uploadUserProfile(@RequestPart(name = "file") MultipartFile file);
 }
+
 

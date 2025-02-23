@@ -8,7 +8,6 @@ import MATE.Carpool.domain.carpool.dto.request.ReservationCarpoolRequestDTO;
 import MATE.Carpool.domain.carpool.dto.response.CarpoolHistoryResponseDTO;
 import MATE.Carpool.domain.carpool.dto.response.CarpoolResponseDTO;
 import MATE.Carpool.domain.carpool.dto.response.CarpoolWithPassengersDTO;
-import MATE.Carpool.domain.carpool.dto.response.PassengerInfoDTO;
 import MATE.Carpool.domain.carpool.service.CarpoolService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -48,17 +47,17 @@ public class CarpoolController implements CarpoolApi {
     }
 
     @GetMapping("/myCarpool")
-        public ResponseEntity<Message<CarpoolWithPassengersDTO>> myCarpool(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<Message<CarpoolWithPassengersDTO>> myCarpool(@AuthenticationPrincipal CustomUserDetails userDetails) {
         return carpoolService.myCarpool(userDetails);
     }
 
     @PostMapping("")
-    public ResponseEntity<Message<CarpoolResponseDTO>> makeCarpool(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CarpoolRequestDTO carpoolRequestDTO) {
+    public ResponseEntity<Message<CarpoolResponseDTO>> makeCarpool(@AuthenticationPrincipal CustomUserDetails userDetails, @Valid @RequestBody CarpoolRequestDTO carpoolRequestDTO) {
         return carpoolService.makeCarpool(userDetails, carpoolRequestDTO);
     }
 
     @PostMapping("/reservation")
-    public ResponseEntity<Message<List<PassengerInfoDTO>>> reservationCarpool(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody @Valid ReservationCarpoolRequestDTO requestDTO) {
+    public ResponseEntity<Message<Long>> reservationCarpool(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody @Valid ReservationCarpoolRequestDTO requestDTO) {
         return carpoolService.reservationCarpool(userDetails, requestDTO);
     }
 
