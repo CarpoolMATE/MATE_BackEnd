@@ -164,7 +164,7 @@ public class OauthService {
         if (member.isEmpty()) {
             fMember = Member.builder()
                     .memberId(socialMemberInfoDto.getNickname()+UUID.randomUUID().toString())
-                    .email(socialMemberInfoDto.getEmail())
+                    .email(socialMemberInfoDto.getEmail()+UUID.randomUUID().toString())
                     .password(UUID.randomUUID().toString())
                     .providerType(provider =="KAKAO" ? ProviderType.KAKAO: ProviderType.LINE)
                     .nickname(nickname)
