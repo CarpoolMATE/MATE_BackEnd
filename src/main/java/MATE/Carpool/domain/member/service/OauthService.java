@@ -44,6 +44,11 @@ public class OauthService {
     @Value("${oauth.kakao.secret_id}")
     private String kakaoSecretKey;
 
+    @Value("${oauth.kakao.redirect_uri}")
+    private String kakaoRedirectUri;
+    @Value("${oauth.line.redirect_uri}")
+    private String lineRedirectUri;
+
     private final JwtProvider jwtProvider;
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
@@ -78,13 +83,14 @@ public class OauthService {
         providers.put("providerUrl", provider.equals("KAKAO") ? KAKAO_TOKEN_URL_HOST : LINE_TOKEN_URL_HOST);
         providers.put("clientId", provider.equals("KAKAO") ? kakaoClientId : lineClientId);
         providers.put("clientSecret", provider.equals("KAKAO") ? kakaoSecretKey : lineSecretKey);
+        providers.put("redirect",provider.equals("KAKAO") ? kakaoRedirectUri : lineRedirectUri);
 
         MultiValueMap<String , String > params= new LinkedMultiValueMap<>();
 
         params.add("client_id", providers.get("clientId"));
         params.add("grant_type", "authorization_code");
         params.add("code", code);
-        params.add("redirect_uri", "http://localhost:8080/api/social/"+provider.toLowerCase()+"/callback");
+        params.add("redirect_uri", providers.get("redirect"));
         params.add("client_secret",providers.get("clientSecret"));
 
         HttpHeaders headers = new HttpHeaders();
