@@ -351,7 +351,7 @@ public interface CarpoolApi {
                 """)
             })),
             @ApiResponse(responseCode = "404", content = @Content(mediaType = "application/json", examples = {
-                    @ExampleObject(name = "예약 혹은 생성된 카풀이 없음", value = """
+                    @ExampleObject(name = "예약 혹은 생성된 카풀이 없음 ", value = """
                             {
                                 "status": 404,
                                 "name": "CARPOOL_NOT_FOUND",
@@ -423,6 +423,7 @@ public interface CarpoolApi {
                                 "status": "OK",
                                 "data": [
                                     {
+                                        "carpoolId": 1
                                         "driverImg": "https://carool-s3.s3.ap-northeast-2.amazonaws.com/profileImgS3.png",
                                         "departureCoordinate": "경기도 수원시 권선구 오목천동",
                                         "departureTime": "2025-02-23T11:05:29.288",
@@ -455,6 +456,7 @@ public interface CarpoolApi {
                                 "status": "OK",
                                 "data": [
                                     {
+                                        "carpoolId": 1
                                         "driverImg": "https://carool-s3.s3.ap-northeast-2.amazonaws.com/profileImgS3.png",
                                         "departureCoordinate": "경기도 수원시 권선구 오목천동",
                                         "departureTime": "2025-02-23T11:05:29.288",
