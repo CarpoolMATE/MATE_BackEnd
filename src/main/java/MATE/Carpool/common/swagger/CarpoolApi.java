@@ -351,7 +351,7 @@ public interface CarpoolApi {
                 """)
             })),
             @ApiResponse(responseCode = "404", content = @Content(mediaType = "application/json", examples = {
-                    @ExampleObject(name = "예약 혹은 생성된 카풀이 없음", value = """
+                    @ExampleObject(name = "예약 혹은 생성된 카풀이 없음 ", value = """
                             {
                                 "status": 404,
                                 "name": "CARPOOL_NOT_FOUND",
@@ -423,6 +423,7 @@ public interface CarpoolApi {
                                 "status": "OK",
                                 "data": [
                                     {
+                                        "carpoolId": 1
                                         "driverImg": "https://carool-s3.s3.ap-northeast-2.amazonaws.com/profileImgS3.png",
                                         "departureCoordinate": "경기도 수원시 권선구 오목천동",
                                         "departureTime": "2025-02-23T11:05:29.288",
@@ -451,20 +452,21 @@ public interface CarpoolApi {
             @ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", examples = {
                     @ExampleObject(name = "운행 목록 조회 성공", value = """
                             {
-                                "message": "운행 목록 조회 성공",
-                                "status": "OK",
-                                "data": [
-                                    {
-                                        "driverImg": "https://carool-s3.s3.ap-northeast-2.amazonaws.com/profileImgS3.png",
-                                        "departureCoordinate": "경기도 수원시 권선구 오목천동",
-                                        "departureTime": "2025-02-23T11:05:29.288",
-                                        "capacity": 4,
-                                        "cost": 2000,
-                                        "reservationCount": 0,
-                                        "createAt": "2025-02-24T03:02:29.93437"
-                                    }
-                                ]
-                            }
+                                            "message": "운행 목록 조회 성공",
+                                            "status": "OK",
+                                            "data": [
+                                                {
+                                                    "carpoolId": 1,
+                                                    "driverImg": "https://carool-s3.s3.ap-northeast-2.amazonaws.com/profileImgS3.png",
+                                                    "departureCoordinate": "경기도 수원시 권선구 오목천동",
+                                                    "departureTime": "2025-02-23T11:05:29.288",
+                                                    "capacity": 4,
+                                                    "cost": 2000,
+                                                    "reservationCount": 0,
+                                                    "createAt": "2025-02-28T00:57:15.992722"
+                                                }
+                                            ]
+                                        }
                 """),@ExampleObject(name = "운행 목록 조회 성공 - 없을경우", value = """
                             {
                                     "message": "운행 목록 조회 성공",
