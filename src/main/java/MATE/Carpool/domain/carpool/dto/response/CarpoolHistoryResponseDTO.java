@@ -14,6 +14,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class CarpoolHistoryResponseDTO {
 
+    private Long carpoolId;
+
     private String driverImg;
 
     private String departureCoordinate;
@@ -29,6 +31,7 @@ public class CarpoolHistoryResponseDTO {
     private LocalDateTime createAt;
 
     public CarpoolHistoryResponseDTO(CarpoolEntity carpool) {
+        this.carpoolId = carpool.getId();
         this.driverImg = carpool.getMember().getProfileImage();
         this.departureCoordinate = carpool.getDepartureCoordinate();
         this.departureTime = carpool.getDepartureDateTime();
