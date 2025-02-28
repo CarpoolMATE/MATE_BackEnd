@@ -27,6 +27,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -135,15 +136,17 @@ public class OauthService {
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(responseBody);
 
-        if(provider =="KAKAO"){
+        if(provider.equals("KAKAO")){
             return SocialMemberInfoDto.builder()
+                    .username(jsonNode.get("id").asText())
                     .nickname(jsonNode.get("properties").get("nickname").asText())
                     .profileImage(jsonNode.get("properties").get("profile_image").asText())
-                    .email(jsonNode.get("properties").get("nickname").asText()+"@kakao.com")
+                    .email(jsonNode.get("properties").get("nickname").asText()+"_kakao")
                     .build();
 
         }else{
             return SocialMemberInfoDto.builder()
+                    .username(jsonNode.get("userId").asText())
                     .nickname(jsonNode.get("displayName").asText())
                     .profileImage("profile_image")
                     .email(jsonNode.get("userId").asText() + "@line.com")
@@ -153,25 +156,27 @@ public class OauthService {
     }
 
     private Member registerMember(String provider ,SocialMemberInfoDto socialMemberInfoDto) {
-        Optional<Member> member = memberRepository.findByEmail(socialMemberInfoDto.getEmail());
+        Optional<Member> member = memberRepository.findByMemberId(socialMemberInfoDto.getUsername());
+        String originalNickname = socialMemberInfoDto.getNickname();
+        String nickname = originalNickname;
+        int suffix = 1;
+        if(member.isEmpty()){
+            while (memberRepository.existsByNickname(nickname)) {
+                nickname = originalNickname + suffix;
+                suffix++;
+            }
+               Member fMember = Member.builder()
+                        .memberId(socialMemberInfoDto.getUsername())
+                        .email(socialMemberInfoDto.getEmail()+"_"+ LocalDateTime.now())
+                        .password(UUID.randomUUID().toString())
+                        .providerType(provider.equals("KAKAO") ? ProviderType.KAKAO: ProviderType.LINE)
+                        .nickname(nickname)
+                        .build();
+                memberRepository.save(fMember);
+                return fMember;
+        }
+        return member.get();
 
-        Member fMember = null;
-        String nickname = socialMemberInfoDto.getNickname();
-        if(memberRepository.existsByNickname(nickname)){
-            Long duplicateMember = memberRepository.countByNickname(nickname);
-            nickname+=duplicateMember;
-        }
-        if (member.isEmpty()) {
-            fMember = Member.builder()
-                    .memberId(socialMemberInfoDto.getNickname()+UUID.randomUUID().toString())
-                    .email(socialMemberInfoDto.getEmail()+UUID.randomUUID().toString())
-                    .password(UUID.randomUUID().toString())
-                    .providerType(provider =="KAKAO" ? ProviderType.KAKAO: ProviderType.LINE)
-                    .nickname(nickname)
-                    .build();
-            memberRepository.save(fMember);
-        }
-        return fMember;
     }
 
     private Authentication forceLogin(Member member) {
