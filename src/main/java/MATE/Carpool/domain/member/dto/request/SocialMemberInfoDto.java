@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SocialMemberInfoDto {
+    private String username;
     private String nickname;
     private String email;
     private String profileImage;
