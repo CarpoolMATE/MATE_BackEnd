@@ -31,6 +31,10 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
+
+import static MATE.Carpool.domain.carpool.service.CarpoolRequestDtoGenerator.generateRandomCarpoolRequestDTO;
 
 @Service
 @Slf4j
@@ -171,7 +175,7 @@ public class CarpoolService {
 
     //카플 예약
     @Transactional
-    public ResponseEntity<Message<Long>> reservationCarpool(CustomUserDetails userDetails,@Valid ReservationCarpoolRequestDTO requestDTO) {
+    public ResponseEntity<Message<Long>> reservationCarpool(CustomUserDetails userDetails,ReservationCarpoolRequestDTO requestDTO) {
 
         Member member = userDetails.getMember();
 
@@ -325,7 +329,7 @@ public class CarpoolService {
         memberRepository.updateReservationAndCarpoolId();
     }
 
-    private static LocalDateTime getBlockStart() {
+    public static LocalDateTime getBlockStart() {
         LocalDateTime blockStart = LocalDateTime.of(LocalDate.now(), LocalTime.of(10,0));
         if (LocalDateTime.now().isBefore(blockStart)) {
             blockStart = blockStart.minusDays(1);

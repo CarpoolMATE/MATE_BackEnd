@@ -57,7 +57,7 @@ public class CarpoolController implements CarpoolApi {
     }
 
     @PostMapping("/reservation")
-    public ResponseEntity<Message<Long>> reservationCarpool(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody @Valid ReservationCarpoolRequestDTO requestDTO) {
+        public ResponseEntity<Message<Long>> reservationCarpool(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody @Valid ReservationCarpoolRequestDTO requestDTO) {
         return carpoolService.reservationCarpool(userDetails, requestDTO);
     }
 
@@ -80,5 +80,6 @@ public class CarpoolController implements CarpoolApi {
     public ResponseEntity<Message<List<CarpoolHistoryResponseDTO>>> getDriverHistory(@AuthenticationPrincipal CustomUserDetails userDetails) {
         return carpoolService.getDriverHistory(userDetails);
     }
+
 
 }
