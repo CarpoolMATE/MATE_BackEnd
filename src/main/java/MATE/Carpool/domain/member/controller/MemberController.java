@@ -39,13 +39,7 @@ public class MemberController implements MemberApi {
         return memberService.getMember(userDetails);
     }
 
-    @GetMapping("/{memberId}")
-    public ResponseEntity<Message<MemberResponseDto>> readOne(
-            @Parameter(description = "회원 ID")
-            @PathVariable("memberId") Long memberId,
-            @AuthenticationPrincipal CustomUserDetails userDetails){
-        return memberService.readOne(memberId);
-    }
+
 
     @PostMapping("/signIn")
     public ResponseEntity<Message<Object>> signIn(

@@ -109,41 +109,7 @@ public interface MemberApi {
     }))
     ResponseEntity<Message<MemberResponseDto>> getMember(CustomUserDetails userDetails);
 
-    @Operation(summary = "회원 정보 조회", description = "회원 ID를 통해서 해당회원의 정보를 조회합니다")
-    @ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", examples = {
-            @ExampleObject(name = "회원정보 조회 성공", value = """
-                               {
-                            "message": "조회성공",
-                            "status": "OK",
-                            "data": {
-                              "memberId": "member",
-                              "nickname": "닉네임",
-                              "email": "member@test.com",
-                              "profileImage": "basic image",
-                              "memberType": "STANDARD",
-                              "providerType": "MATE",
-                              "createDate": "2025-02-14T16:53:27.047779",
-                              "updateDate": "2025-02-14T17:39:09.3289",
-                              "reservation": false,
-                              "isBanned": false,
-                              "driverRegistrationDate": "2025-02-14T17:39:09.2809",
-                              "isDriver": true,
-                              "carpoolCount": 0
-                            }
-                          }
-                          """),
-            @ExampleObject(name = "조회 실패 - 아이디 오류", value = """
-                               {
-                                      "status": 404,
-                                      "name": "USER_NOT_FOUND",
-                                      "code": "ACCOUNT-001",
-                                      "message": "사용자를 찾을 수 없습니다."
-                                  }
-                            """)
 
-    }))
-
-    ResponseEntity<Message<MemberResponseDto>> readOne(@Parameter(description = "회원 ID") Long memberId, CustomUserDetails userDetails);
 
     @Operation(summary = "로그인", description = "가입하신 아이디와 비밀번호를 통해서 로그인을 요청합니다.")
     @ApiResponses({

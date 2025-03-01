@@ -1,25 +1,32 @@
 package MATE.Carpool.domain.admin.service;
 
 
+import MATE.Carpool.common.Message;
 import MATE.Carpool.common.exception.CustomException;
 import MATE.Carpool.common.exception.ErrorCode;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
+import MATE.Carpool.domain.admin.dto.CarpoolResponseResultDTO;
+import MATE.Carpool.domain.admin.dto.MemberResponseDTO;
+import MATE.Carpool.domain.admin.dto.MemberResponseResultDTO;
 import MATE.Carpool.domain.carpool.dto.response.CarpoolResponseDTO;
 import MATE.Carpool.domain.carpool.repository.CarpoolRepository;
-import MATE.Carpool.domain.carpool.service.CarpoolService;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
 import MATE.Carpool.domain.member.entity.Member;
 import MATE.Carpool.domain.member.repository.MemberRepository;
 import MATE.Carpool.domain.report.dto.ReportResponseDto;
 import MATE.Carpool.domain.report.repository.ReportRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,86 +40,106 @@ public class AdminService {
 
     //회원전체조회
     @Transactional(readOnly = true)
-    public ResponseEntity<List<MemberResponseDto>> readAll() {
-        List<MemberResponseDto> memberResponseDtoList = memberRepository.findAll().stream()
-                .map(MemberResponseDto::new)
-                .collect(Collectors.toList());
+    public ResponseEntity<Message<MemberResponseResultDTO>> readAllMembers(int size, int page) {
 
-        return ResponseEntity.ok(memberResponseDtoList);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Order.desc("id")));
+        Page<MemberResponseDTO> memberPage = memberRepository.findAllMemberPagination(pageable);
+
+        return ResponseEntity.ok(new Message<>("전체 회원 조회 성공", HttpStatus.OK,new MemberResponseResultDTO(
+                        memberPage.getContent(),
+                        memberPage.getTotalElements(),
+                        memberPage.getTotalPages()
+                )));
     }
+
+    //회원전체조회
+    @Transactional(readOnly = true)
+    public ResponseEntity<Message<MemberResponseResultDTO>> readAllDrivers(int size, int page) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Order.desc("id")));
+        Page<MemberResponseDTO> memberPage = memberRepository.findAllDriverPagination(pageable);
+
+        return ResponseEntity.ok(new Message<>("전체 드라이버 조회 성공", HttpStatus.OK,new MemberResponseResultDTO(
+                memberPage.getContent(),
+                memberPage.getTotalElements(),
+                memberPage.getTotalPages()
+        )));
+
+    }
+
 
     @Transactional
-    public ResponseEntity<String> isBanned(CustomUserDetails userDetails, String memberId) {
-        return memberRepository.findByMemberId(memberId)
-                .map(member -> {
-                    if (member.getId().equals(userDetails.getMember().getId())) {
-                        throw new CustomException(ErrorCode.CAN_NOT_BAN_ONESELF);
-                    }
-                    member.setIsBanned(!member.getIsBanned());
-                    return member;
-                })
-                .map(member -> {
-                    String statusMessage = member.getIsBanned()
-                            ? String.format("ID : %s 회원이 정지 되었습니다.", member.getMemberId())
-                            : String.format("ID : %s 회원이 정지해제 되었습니다.", member.getMemberId());
-                    return ResponseEntity.ok(statusMessage);
-                })
+    public ResponseEntity<Message<Boolean>> isBanned(CustomUserDetails userDetails, Long memberId) {
+        Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        if (member.getId().equals(userDetails.getMember().getId())) {
+            throw new CustomException(ErrorCode.CAN_NOT_BAN_ONESELF);
+        }
+
+        member.setIsBanned(!member.getIsBanned());
+
+        return ResponseEntity.ok(new Message<>("회원 정지 처리 완료", HttpStatus.OK, member.getIsBanned()));
     }
 
-    public ResponseEntity<CarpoolResponseDTO> readOne(Long id) {
-        return   carpoolRepository.findById(id)
-                .map(CarpoolResponseDTO::new)
-                .map(ResponseEntity::ok)
-                .orElseThrow(()->new CustomException(ErrorCode.CARPOOL_NOT_FOUND));
+
+    public ResponseEntity<Message<CarpoolResponseDTO>> readOne(Long id) {
+        return ResponseEntity.ok(
+                new Message<>("카풀 단일 조회 성공",HttpStatus.OK,
+                        carpoolRepository.findById(id)
+                                .map(CarpoolResponseDTO::new)
+                                .orElseThrow(()->new CustomException(ErrorCode.CARPOOL_NOT_FOUND))
+                        ));
+
     }
 
-
-    //클라이언트 사이드
-    public ResponseEntity<List<CarpoolResponseDTO>> readAllCarpool() {
-        return ResponseEntity.ok(carpoolRepository.findAll().stream()
-                .map(CarpoolResponseDTO::new)
-                .collect(Collectors.toList()));
-    }
 
     //서버사이드 페이징  ex) carpools?page=2&size=5
-    public ResponseEntity<List<CarpoolResponseDTO>> readAllCarpool(Pageable pageable) {
+    public ResponseEntity<Message<CarpoolResponseResultDTO>> readAllCarpool(int size, int page, LocalDateTime startDate, LocalDateTime endDate) {
 
-        List<CarpoolResponseDTO> responseDTOS= carpoolRepository.findAll(pageable).stream()
-                .map(CarpoolResponseDTO::new)
-                .collect(Collectors.toList());
+        Pageable pageable = PageRequest.of(page,size,Sort.by(Sort.Order.desc("createdAt")));
 
-        return ResponseEntity.ok(responseDTOS);
+        Page<CarpoolResponseDTO> responseDTOS= carpoolRepository.findByCarpoolToPeriod(pageable,startDate,endDate);
+        List<CarpoolResponseDTO> carpools = responseDTOS.getContent();
+        Long totalCount = responseDTOS.getTotalElements();
+        int totalPage = responseDTOS.getTotalPages();
+
+        return ResponseEntity.ok(new Message<>("카풀 목록 조회 성공",HttpStatus.OK,new CarpoolResponseResultDTO(
+                carpools,totalCount,totalPage
+        )));
 
     }
 
     //신고 상세조회
     @Transactional(readOnly = true)
-    public ResponseEntity<ReportResponseDto> reportFindById(Long id){
-        return ResponseEntity.ok(
+    public ResponseEntity<Message<ReportResponseDto>> reportFindById(Long id){
+        return ResponseEntity.ok(new Message<>("신고 상세조회 성공",HttpStatus.OK,
                 reportRepository.findReportById(id)
                         .map(ReportResponseDto::new)
                         .orElseThrow(()->new CustomException(ErrorCode.REPORT_NOT_FOUND))
+                        )
         );
     }
 
     //신고전체 조회
     @Transactional(readOnly = true)
-    public ResponseEntity<List<ReportResponseDto>> reportFindAll(){
-        return ResponseEntity.ok(
+    public ResponseEntity<Message<List<ReportResponseDto>>> reportFindAll(){
+        return ResponseEntity.ok(new Message<>("신고목록 전체조회 성공",HttpStatus.OK,
                 reportRepository.findAllReports().stream()
-                        .map(ReportResponseDto::new)
-                        .toList()
+                .map(ReportResponseDto::new)
+                .toList())
         );
     }
 
     @Transactional
-    public ResponseEntity<List<ReportResponseDto>> readAllByCarpool(Long id) {
+    public ResponseEntity<Message<List<ReportResponseDto>>> readAllByCarpool(Long id) {
         return ResponseEntity.ok(
+                new Message<>("신고목록 조회 완료",HttpStatus.OK,
                 reportRepository.findByCarpoolId(id)
                         .stream()
                         .map(ReportResponseDto::new)
-                        .collect(Collectors.toList()));
+                        .toList()
+        ));
     }
 
 

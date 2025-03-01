@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 public class Member extends TimeStamped{
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false, unique = true)
@@ -53,7 +53,7 @@ public class Member extends TimeStamped{
 
     @Column(nullable = false)
     @Builder.Default
-    private Boolean reservation = false;
+    private Boolean     reservation = false;
 
     @Column
     @Builder.Default
