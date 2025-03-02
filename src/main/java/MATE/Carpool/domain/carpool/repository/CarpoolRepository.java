@@ -29,9 +29,8 @@ public interface CarpoolRepository extends JpaRepository<CarpoolEntity, Long> {
     @Query("SELECT c FROM CarpoolEntity c WHERE c.createdAt > :blockStart ORDER BY c.cost ASC")
     List<CarpoolEntity> findByFastList(@Param("blockStart")LocalDateTime blockStart);
 
-    @Query("SELECT c from CarpoolEntity c where c.member = :member ORDER BY c.departureDateTime DESC")
-    List<CarpoolEntity> findByMemberHis(@Param("member")Member member);
-
+    @Query("SELECT c from CarpoolEntity c where c.member = :member AND c.createdAt < :blockStart ORDER BY c.departureDateTime DESC")
+    List<CarpoolEntity> findByDriverHis(@Param("member")Member member, @Param("blockStart") LocalDateTime blockStart);
 
     @Query("SELECT c FROM CarpoolEntity c WHERE c.createdAt BETWEEN :startDate AND :endDate")
     Page<CarpoolResponseDTO> findByCarpoolToPeriod(Pageable pageable,@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);

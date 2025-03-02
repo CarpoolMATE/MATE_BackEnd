@@ -61,12 +61,12 @@ public class CarpoolController implements CarpoolApi {
         return carpoolService.reservationCarpool(userDetails, requestDTO);
     }
 
-    @GetMapping("/cancelCarpool")
+    @PostMapping("/cancelCarpool")
     public ResponseEntity<Message<String>> cancelCarpool(@AuthenticationPrincipal CustomUserDetails userDetails) {
         return carpoolService.cancelCarpool(userDetails);
     }
 
-    @GetMapping("/deleteCarpool")
+    @DeleteMapping("/deleteCarpool")
     public ResponseEntity<Message<String>> deleteCarpool(@AuthenticationPrincipal CustomUserDetails userDetails) {
         return carpoolService.deleteCarpool(userDetails);
     }

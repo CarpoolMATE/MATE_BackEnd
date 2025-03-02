@@ -291,12 +291,14 @@ public class CarpoolService {
     @Transactional(readOnly = true)
     public ResponseEntity<Message<List<CarpoolHistoryResponseDTO>>> getCarpoolHistory(CustomUserDetails userDetails) {
 
+        LocalDateTime blockStart = getBlockStart();
+
         Member member = userDetails.getMember();
 
         List<CarpoolHistoryResponseDTO> result = new ArrayList<>();
 
         //예약에서 목록 가져오기
-        List<ReservationEntity> reservationEntities = reservationRepository.findByCarpoolHis(member);
+        List<ReservationEntity> reservationEntities = reservationRepository.findByRideCarpoolHis(member, blockStart);
         for (ReservationEntity r : reservationEntities) {
             result.add(new CarpoolHistoryResponseDTO(r.getCarpool()));
         }
@@ -307,12 +309,14 @@ public class CarpoolService {
     @Transactional(readOnly = true)
     public ResponseEntity<Message<List<CarpoolHistoryResponseDTO>>> getDriverHistory(CustomUserDetails userDetails) {
 
+        LocalDateTime blockStart = getBlockStart();
+
         Member member = userDetails.getMember();
 
         List<CarpoolHistoryResponseDTO> result = new ArrayList<>();
 
         if (member.getIsDriver()) {
-            List<CarpoolEntity> driverCarpool = carpoolRepository.findByMemberHis(member);
+            List<CarpoolEntity> driverCarpool = carpoolRepository.findByDriverHis(member, blockStart);
             for (CarpoolEntity c : driverCarpool) {
                 result.add(new CarpoolHistoryResponseDTO(c));
             }
