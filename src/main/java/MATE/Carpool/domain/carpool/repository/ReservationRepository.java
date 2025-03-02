@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface ReservationRepository extends JpaRepository<ReservationEntity, Long> {
@@ -29,8 +30,8 @@ public interface ReservationRepository extends JpaRepository<ReservationEntity, 
     @Query("delete from ReservationEntity r where r.carpool.id =:carpoolId")
     void deleteCarpool(@Param("carpoolId") Long carpoolId);
 
-    @Query("SELECT r from ReservationEntity r join fetch r.carpool c where r.member = :member ORDER BY c.departureDateTime DESC")
-    List<ReservationEntity> findByCarpoolHis(@Param("member") Member member);
+    @Query("SELECT r from ReservationEntity r join fetch r.carpool c where r.member = :member AND c.createdAt < :blockStart ORDER BY c.departureDateTime DESC")
+    List<ReservationEntity> findByRideCarpoolHis(@Param("member") Member member, @Param("blockStart") LocalDateTime blockStart);
 
 
 //    @Query("select r from ReservationEntity r where r.carpoolId = :carpoolId")
