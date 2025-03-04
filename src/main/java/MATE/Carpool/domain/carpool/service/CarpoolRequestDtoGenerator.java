@@ -10,7 +10,7 @@ public class CarpoolRequestDtoGenerator {
     private static final Random random = new Random();
 
     public static LocalDateTime generateRandomDepartureTime() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now().plusDays(1);
         LocalDateTime startOfDay = now.withHour(7).withMinute(0).withSecond(0).withNano(0);
         LocalDateTime endOfDay = now.withHour(9).withMinute(0).withSecond(0).withNano(0);
 
