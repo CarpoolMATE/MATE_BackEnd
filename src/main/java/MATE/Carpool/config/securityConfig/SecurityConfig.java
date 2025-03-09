@@ -94,6 +94,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.addAllowedOrigin("http://localhost:3000");
         configuration.addAllowedOrigin("https://carple-front.vercel.app");
+        configuration.addAllowedOrigin("https://frontend-rouge-nu-94.vercel.app");
+        configuration.addAllowedOrigin("https://admin-iota-lemon.vercel.app");
         configuration.addAllowedOrigin("https://*.carpool.com");
         configuration.addAllowedOrigin("https://.carpool.com");
 
