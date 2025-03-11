@@ -9,6 +9,8 @@ import MATE.Carpool.domain.admin.dto.MemberResponseResultDTO;
 import MATE.Carpool.domain.admin.service.AdminService;
 import MATE.Carpool.domain.carpool.dto.response.CarpoolResponseDTO;
 import MATE.Carpool.domain.carpool.service.CarpoolService;
+import MATE.Carpool.domain.member.dto.request.SignInRequestDto;
+import MATE.Carpool.domain.member.dto.request.SignupRequestDto;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
 import MATE.Carpool.domain.member.service.MemberService;
 import MATE.Carpool.domain.report.dto.ReportResponseDto;
@@ -16,11 +18,15 @@ import MATE.Carpool.domain.report.service.ReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Role;
 import org.springframework.data.domain.Page;
 import org.springframework.data.repository.query.Param;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -40,7 +46,13 @@ public class AdminController implements AdminApi {
     private final AdminService adminService;
     private final MemberService memberService;
 
-
+    @PostMapping("/signIn")
+    public ResponseEntity<Message<Object>> signIn(
+            @Valid @RequestBody SignInRequestDto requestDto,
+            HttpServletResponse response,
+            HttpServletRequest request)  {
+        return adminService.signIn(requestDto, response, request);
+    }
 
     //회원 전체조회
     @GetMapping("/members")

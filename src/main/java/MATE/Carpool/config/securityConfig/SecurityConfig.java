@@ -37,6 +37,7 @@ public class SecurityConfig {
     private final static String[] PERMIT_URI = {
             "/api/member/signUp",
             "/api/member/signIn",
+            "/api/admin/signIn",
 
             "/api/member/findMemberId",
             "/api/member/findPassword",
@@ -81,8 +82,8 @@ public class SecurityConfig {
 //
                 )
                 .exceptionHandling(handling -> handling
-                        .authenticationEntryPoint(endpointHandler)  // 401 처리
-                        .accessDeniedHandler(endpointHandler)           // 403 처리
+                        .authenticationEntryPoint(endpointHandler)
+                        .accessDeniedHandler(endpointHandler)
                 );
         //h2-console
         http.headers(headers ->headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
@@ -104,7 +105,7 @@ public class SecurityConfig {
 
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
 
-        configuration.setExposedHeaders(List.of("Authorization"));
+        configuration.setExposedHeaders(List.of("Authorization","RefreshToken"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

@@ -4,17 +4,22 @@ package MATE.Carpool.domain.admin.service;
 import MATE.Carpool.common.Message;
 import MATE.Carpool.common.exception.CustomException;
 import MATE.Carpool.common.exception.ErrorCode;
+import MATE.Carpool.config.jwt.JwtProvider;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.domain.admin.dto.CarpoolResponseResultDTO;
 import MATE.Carpool.domain.admin.dto.MemberResponseDTO;
 import MATE.Carpool.domain.admin.dto.MemberResponseResultDTO;
 import MATE.Carpool.domain.carpool.dto.response.CarpoolResponseDTO;
 import MATE.Carpool.domain.carpool.repository.CarpoolRepository;
+import MATE.Carpool.domain.member.dto.request.SignInRequestDto;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
 import MATE.Carpool.domain.member.entity.Member;
+import MATE.Carpool.domain.member.entity.MemberType;
 import MATE.Carpool.domain.member.repository.MemberRepository;
 import MATE.Carpool.domain.report.dto.ReportResponseDto;
 import MATE.Carpool.domain.report.repository.ReportRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,6 +27,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +46,32 @@ public class AdminService {
     private final MemberRepository memberRepository;
     private final CarpoolRepository carpoolRepository;
     private final ReportRepository reportRepository;
+    private final AuthenticationManagerBuilder authenticationManagerBuilder;
+    private final JwtProvider jwtProvider;
+
+    @Transactional
+    public ResponseEntity<Message<Object>> signIn(SignInRequestDto requestDto, HttpServletResponse response, HttpServletRequest request)  {
+        String memberId = requestDto.getMemberId();
+
+        UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(memberId, requestDto.getPassword());
+
+        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+
+//        jwtProvider.createTokenAndSavedTokenHttponly(authentication, response,request, memberId);
+        jwtProvider.createTokenAndSaved(authentication, response,request);
+
+        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        Member member = customUserDetails.getMember();
+        if(!member.getMemberType().equals(MemberType.ADMIN)){
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+        }
+
+        MemberResponseDto memberResponseDto = new MemberResponseDto(member);
+
+        return ResponseEntity.ok(new Message<>("로그인",HttpStatus.OK,memberResponseDto));
+    }
 
     //회원전체조회
     @Transactional(readOnly = true)
