@@ -86,9 +86,8 @@ public class MemberService {
         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
       
         Member member = customUserDetails.getMember();
- 
-        MemberResponseDto memberResponseDto = new MemberResponseDto(member);
 
+        MemberResponseDto memberResponseDto = new MemberResponseDto(member);
 
         return ResponseEntity.ok(new Message<>("로그인",HttpStatus.OK,memberResponseDto));
     }
@@ -244,8 +243,8 @@ public class MemberService {
 
         SecurityContextHolder.clearContext();
 
-        jwtProvider.deleteCookie(response, "ACCESS_TOKEN");
-        jwtProvider.deleteCookie(response, "REFRESH_TOKEN");
+//        jwtProvider.deleteCookie(response, "ACCESS_TOKEN");
+//        jwtProvider.deleteCookie(response, "REFRESH_TOKEN");
 
         return ResponseEntity.ok(new Message<>(String.format("%s 회원 로그아웃 완료",userDetails.getMember().getNickname()),HttpStatus.OK,""));
     }

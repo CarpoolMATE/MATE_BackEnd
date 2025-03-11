@@ -54,6 +54,8 @@ public enum ErrorCode {
     WRONG_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH-004", "잘못된 토큰입니다."),
     TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "AUTH-005", "토큰이 존재하지 않습니다."),
     IP_MISMATCH(HttpStatus.BAD_REQUEST, "AUTH-006", "사용자의 로그인 정보가 이전과 다릅니다. 재로그인 해주세요"),
+    NOT_EQUALS_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "AUTH-007", "사용자의 로그인 정보가 이전과 다릅니다. 다시 로그인 해주세요"),
+    EXPIRED_REFRESH_TOKEN(HttpStatus.I_AM_A_TEAPOT, "AUTH-008", "리프레시 토큰이 만료되었습니다. 다시 로그인 해주세요."),
 
     RESOURCE_NOT_FOUND(HttpStatus.UNAUTHORIZED, "S3-001", "이미지가 존재하지 않습니다.");
 

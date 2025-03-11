@@ -3,11 +3,12 @@ package MATE.Carpool.config.jwt;
 
 import MATE.Carpool.common.exception.CustomException;
 import MATE.Carpool.common.exception.ErrorCode;
+import MATE.Carpool.common.exception.ErrorResponseEntity;
 import MATE.Carpool.config.redis.RedisService;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.config.userDetails.CustomUserDetailsServiceImpl;
-import MATE.Carpool.domain.member.entity.Member;
 import MATE.Carpool.domain.member.repository.MemberRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.io.Encoders;
@@ -29,9 +30,10 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Arrays;
@@ -60,7 +62,7 @@ public class JwtProvider {
 
     //삭제
     public static final String ACCESS_KEY ="Authorization";
-    public static final String REFRESH_KEY ="REFRESH-TOKEN";
+    public static final String REFRESH_KEY ="RefreshToken";
 
 
     private Key key;
@@ -148,19 +150,23 @@ public class JwtProvider {
 
     // 토큰 검증
 
-    public boolean validateToken(String token) {
+    public boolean validateToken(String token,boolean isRefreshToken, HttpServletResponse response) throws IOException {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
-        } catch (SignatureException | SecurityException | MalformedJwtException e) {
-            throw new CustomException(INVALID_TOKEN);
+        } catch (SecurityException | MalformedJwtException e) {
+            log.info("유효하지 않은 JWT 서명 입니다.");
         } catch (ExpiredJwtException e) {
-            throw new CustomException(EXPIRED_TOKEN);
+            log.info("만료된 JWT 토큰입니다.");
+            if (isRefreshToken) {
+                expiredRefresh(response);
+            }
         } catch (UnsupportedJwtException e) {
-            throw new CustomException(UNSUPPORTED_TOKEN);
+            log.info("지원되지 않는 JWT 토큰 입니다.");
         } catch (IllegalArgumentException e) {
-            throw new CustomException(WRONG_TOKEN);
+            log.info("잘못된 JWT 토큰 입니다.");
         }
+        return false;
     }
 
     public Claims parseClaims(String token) {
@@ -176,11 +182,70 @@ public class JwtProvider {
         return new Date(date.getTime() + expirationSecond);
     }
 
-    public void handleRefreshToken(String refreshToken, HttpServletResponse response,HttpServletRequest request) {
+    public void handleRefreshToken(String refreshToken, HttpServletResponse response,HttpServletRequest request) throws IOException {
+
         String memberId = getMemberInfoFromToken(refreshToken);
         UserIpTokenDto userIpTokenDto = redisService.getRefreshToken(memberId);
-        log.info("ip: {}" ,userIpTokenDto.getIp());
 
+        if (checkRefreshToken(refreshToken, response, userIpTokenDto)) return;
+
+        String clientIp = getClientIp(request, userIpTokenDto);
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(memberId);
+
+        Authentication authentication =
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+        createTokenToHandleRefresh(authentication,response,request,clientIp);
+
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(authentication);
+        SecurityContextHolder.setContext(context);
+    }
+
+    private static boolean checkRefreshToken(String refreshToken, HttpServletResponse response, UserIpTokenDto userIpTokenDto) throws IOException {
+        if (!userIpTokenDto.getToken().equals(refreshToken)) {
+
+            ErrorResponseEntity errorResponse = ErrorResponseEntity.builder()
+                    .status(ErrorCode.NOT_EQUALS_REFRESH_TOKEN.getHttpStatus().value())
+                    .name(ErrorCode.NOT_EQUALS_REFRESH_TOKEN.name())
+                    .code(ErrorCode.NOT_EQUALS_REFRESH_TOKEN.getCode())
+                    .message(ErrorCode.NOT_EQUALS_REFRESH_TOKEN.getMessage())
+                    .build();
+
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+            response.getWriter().flush();
+            return true;
+        }
+        return false;
+    }
+
+    private static void expiredRefresh( HttpServletResponse response) throws IOException {
+
+        ErrorResponseEntity errorResponse = ErrorResponseEntity.builder()
+                .status(ErrorCode.EXPIRED_REFRESH_TOKEN.getHttpStatus().value())
+                .name(ErrorCode.EXPIRED_REFRESH_TOKEN.name())
+                .code(ErrorCode.EXPIRED_REFRESH_TOKEN.getCode())
+                .message(ErrorCode.EXPIRED_REFRESH_TOKEN.getMessage())
+                .build();
+
+        response.setStatus(418);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+        response.getWriter().flush();
+
+
+    }
+
+    private static String getClientIp(HttpServletRequest request, UserIpTokenDto userIpTokenDto) {
         String clientIp = request.getHeader("X-Forwarded-For");
         if (clientIp == null || clientIp.isEmpty()) {
             clientIp = request.getRemoteAddr();
@@ -190,30 +255,11 @@ public class JwtProvider {
         } else {
             clientIp = clientIp.split(",")[0].trim();
         }
+
         if (!clientIp.equals(userIpTokenDto.getIp())) {
-            redisService.deleteRefreshToken(memberId);
             throw new CustomException(ErrorCode.IP_MISMATCH);
         }
-        Member member = memberRepository.findByMemberId(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        CustomUserDetails userDetails = new CustomUserDetails(member);
-        Authentication authentication =
-                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-
-
-        JwtTokenDto tokenDto = createAllToken(authentication);
-
-        redisService.saveRefreshToken(memberId, tokenDto.getRefreshToken(), clientIp, refreshTimeSeconds);
-        deleteCookie(response,"REFRESH_TOKEN");
-
-
-        //httponly 사용시(쿠키방식) 아래 메서드도 같이 주석풀기
-//        addTokenToCookies(response, tokenDto.getAccessToken(), tokenDto.getRefreshToken());
-
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(authentication);
-        SecurityContextHolder.setContext(context);
+        return clientIp;
     }
 
 //    public void createTokenAndSavedTokenHttponly(Authentication authentication, HttpServletResponse response,HttpServletRequest request, String memberId) {
@@ -259,15 +305,15 @@ public class JwtProvider {
 
 
 
-    public void deleteCookie(HttpServletResponse response, String cookieName) {
-        // 만료 날짜를 과거로 설정하여 쿠키를 삭제
-        Cookie cookie = new Cookie(cookieName, null);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(false);
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
-    }
+//    public void deleteCookie(HttpServletResponse response, String cookieName) {
+//        // 만료 날짜를 과거로 설정하여 쿠키를 삭제
+//        Cookie cookie = new Cookie(cookieName, null);
+//        cookie.setHttpOnly(true);
+//        cookie.setSecure(false);
+//        cookie.setPath("/");
+//        cookie.setMaxAge(0);
+//        response.addCookie(cookie);
+//    }
 
     public void setAuthentication(String access_token) {
         SecurityContext context = SecurityContextHolder.createEmptyContext();
@@ -318,12 +364,36 @@ public class JwtProvider {
     public void createTokenAndSaved(Authentication authentication, HttpServletResponse response,HttpServletRequest request) {
         JwtTokenDto token = createAllToken(authentication);
         String accessToken = token.getAccessToken();
+        String refreshToken = token.getRefreshToken();
 
-        setHeaderToken(response,accessToken);
+        String clientIp = request.getHeader("X-Forwarded-For");
+        if (clientIp == null || clientIp.isEmpty()) {
+            clientIp = request.getRemoteAddr();
+            if ("0:0:0:0:0:0:0:1".equals(clientIp)) {
+                clientIp = "127.0.0.1";
+            }
+        } else {
+            clientIp = clientIp.split(",")[0].trim();
+        }
+
+        redisService.saveRefreshToken(authentication.getName(),refreshToken,clientIp,refreshTimeSeconds);
+
+        setHeaderToken(response,accessToken,refreshToken);
     }
 
-    public void setHeaderToken(HttpServletResponse response, String accessToken) {
+    public void createTokenToHandleRefresh(Authentication authentication, HttpServletResponse response,HttpServletRequest request,String clientIp) {
+        JwtTokenDto token = createAllToken(authentication);
+        String accessToken = token.getAccessToken();
+        String refreshToken = token.getRefreshToken();
+
+        redisService.saveRefreshToken(authentication.getName(),refreshToken,clientIp,refreshTimeSeconds);
+
+        setHeaderToken(response,accessToken,refreshToken);
+    }
+
+    public void setHeaderToken(HttpServletResponse response, String accessToken,String refreshToken) {
         response.setHeader(ACCESS_KEY, accessToken);
+        response.setHeader(REFRESH_KEY, refreshToken);
     }
 
 
