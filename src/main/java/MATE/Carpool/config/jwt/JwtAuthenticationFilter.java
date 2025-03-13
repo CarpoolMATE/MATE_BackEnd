@@ -12,8 +12,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-import static MATE.Carpool.config.jwt.JwtProvider.ACCESS_KEY;
-import static MATE.Carpool.config.jwt.JwtProvider.REFRESH_HEADER;
+import static MATE.Carpool.config.jwt.JwtProvider.*;
 
 
 @Slf4j
@@ -28,7 +27,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String access_token = jwtProvider.resolveToken(request, ACCESS_KEY);
-        String refresh_token = jwtProvider.resolveToken(request,REFRESH_HEADER);
+        String refresh_token = jwtProvider.resolveToken(request,REFRESH_KEY);
 
         if(access_token != null){
             if(jwtProvider.validateToken(access_token,false,response)){
@@ -41,15 +40,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
 
     }
-
-
-
-
-
-
-
-
-
-
 
 }

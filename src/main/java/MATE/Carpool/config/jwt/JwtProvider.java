@@ -62,7 +62,7 @@ public class JwtProvider {
 
     //삭제
     public static final String ACCESS_KEY ="Authorization";
-    public static final String REFRESH_KEY ="RefreshToken";
+    public static final String REFRESH_KEY ="Refreshtoken";
 
 
     private Key key;
