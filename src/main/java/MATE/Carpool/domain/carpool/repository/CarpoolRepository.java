@@ -16,7 +16,7 @@ import java.util.List;
 
 public interface CarpoolRepository extends JpaRepository<CarpoolEntity, Long> {
 
-    @Query("SELECT c from CarpoolEntity c where c.createdAt > :blockStart")
+    @Query("SELECT c from CarpoolEntity c where c.createdAt > :blockStart ORDER BY c.createdAt DESC")
     List<CarpoolEntity> findByAllList(@Param("blockStart")LocalDateTime blockStart);
 
     @Query("SELECT c from CarpoolEntity c where c.createdAt > :blockStart AND c.capacity > c.reservationCount")
@@ -24,10 +24,10 @@ public interface CarpoolRepository extends JpaRepository<CarpoolEntity, Long> {
 
     //ASC는 오름차순, DESC는 내림차
     @Query("SELECT c FROM CarpoolEntity c WHERE c.createdAt > :blockStart ORDER BY c.departureDateTime ASC")
-    List<CarpoolEntity> findByLowCostList(@Param("blockStart")LocalDateTime blockStart);
+    List<CarpoolEntity> findByFastList(@Param("blockStart")LocalDateTime blockStart);
 
     @Query("SELECT c FROM CarpoolEntity c WHERE c.createdAt > :blockStart ORDER BY c.cost ASC")
-    List<CarpoolEntity> findByFastList(@Param("blockStart")LocalDateTime blockStart);
+    List<CarpoolEntity> findByLowCostList(@Param("blockStart")LocalDateTime blockStart);
 
     @Query("SELECT c from CarpoolEntity c where c.member = :member AND c.createdAt < :blockStart ORDER BY c.departureDateTime DESC")
     List<CarpoolEntity> findByDriverHis(@Param("member")Member member, @Param("blockStart") LocalDateTime blockStart);
