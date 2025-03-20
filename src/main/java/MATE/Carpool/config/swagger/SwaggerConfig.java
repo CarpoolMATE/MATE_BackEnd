@@ -27,7 +27,8 @@ public class SwaggerConfig {
 
         return new OpenAPI().addSecurityItem(new SecurityRequirement().addList("JWT"))
                 .components(new Components().addSecuritySchemes("JWT", createAPIKeyScheme()))
-                .info(info);
+                .info(info)
+                .servers(List.of(new Server().url("https://kyucar.duckdns.org")));
 
     }
     private SecurityScheme createAPIKeyScheme() {
