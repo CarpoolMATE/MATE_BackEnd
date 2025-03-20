@@ -14,29 +14,17 @@ import java.time.LocalDateTime;
 public class CarpoolResponseDTO {
 
     private Long carpoolId;
-
     private String driverName;
-
     private String driverImg;
-
     private String carImg;
-
     private String carNumber;
-
     private String departureCoordinate;
-
     private String latitude;
-
     private String longitude;
-
     private LocalDateTime departureTime;
-
     private String chatLink;
-
     private int capacity;
-
     private int cost;
-
     private int reservationCount;
 
     public CarpoolResponseDTO(CarpoolEntity carpool){

@@ -7,6 +7,7 @@ import MATE.Carpool.domain.admin.dto.CarpoolResponseResultDTO;
 import MATE.Carpool.domain.admin.dto.MemberResponseDTO;
 import MATE.Carpool.domain.admin.dto.MemberResponseResultDTO;
 import MATE.Carpool.domain.admin.service.AdminService;
+import MATE.Carpool.domain.carpool.dto.response.AdminCarpoolInfoDTO;
 import MATE.Carpool.domain.carpool.dto.response.CarpoolResponseDTO;
 import MATE.Carpool.domain.carpool.service.CarpoolService;
 import MATE.Carpool.domain.member.dto.request.SignInRequestDto;
@@ -82,7 +83,7 @@ public class AdminController implements AdminApi {
     }
 
     @GetMapping("/carpool/{id}")
-    public ResponseEntity<Message<CarpoolResponseDTO>> readOneCarpool(@PathVariable("id")Long id) {
+    public ResponseEntity<Message<AdminCarpoolInfoDTO>> readOneCarpool(@PathVariable("id")Long id) {
         return adminService.readOne(id);
     }
 
@@ -93,13 +94,12 @@ public class AdminController implements AdminApi {
             @RequestParam(value = "startDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam(value = "endDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
     ) {
-        LocalDateTime startDateTime = startDate.atStartOfDay(); // 00:00:00
-        LocalDateTime endDateTime = endDate.atTime(23, 59, 59); // 23:59:59
-
+        LocalDateTime startDateTime = (startDate != null) ? startDate.atStartOfDay() : LocalDateTime.MIN;
+        LocalDateTime endDateTime = (endDate != null) ? endDate.atTime(23, 59, 59) : LocalDateTime.now();
 
         return adminService.readAllCarpool(size, page, startDateTime, endDateTime);
-
     }
+
 
     @GetMapping("/carpool/report/{id}")
     @Operation(summary = "카풀 신고 조회", description = "입력받은 카풀 id에 해당하는 모든 신고목록을 조회합니다.")

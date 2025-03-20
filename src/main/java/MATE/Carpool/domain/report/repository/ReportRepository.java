@@ -22,4 +22,6 @@ public interface ReportRepository extends JpaRepository<ReportEntity,Long> {
 
     @Query("select r from ReportEntity r where r.carpool.id = :id")
     List<ReportEntity> findByCarpoolId(@Param("id")Long id);
+
+    Boolean existsByCarpoolId(Long carpoolId);
 }

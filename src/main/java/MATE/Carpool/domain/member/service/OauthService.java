@@ -123,7 +123,7 @@ public class OauthService {
 
 
         // TODO : 구글까지온다면?
-        String profile = provider =="KAKAO" ?"https://kapi.kakao.com/v2/user/me" : "https://api.line.me/v2/profile";
+        String profile = provider == "KAKAO" ?"https://kapi.kakao.com/v2/user/me" : "https://api.line.me/v2/profile";
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + accessToken);
 

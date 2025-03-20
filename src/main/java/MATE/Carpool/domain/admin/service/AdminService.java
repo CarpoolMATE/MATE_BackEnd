@@ -9,8 +9,12 @@ import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.domain.admin.dto.CarpoolResponseResultDTO;
 import MATE.Carpool.domain.admin.dto.MemberResponseDTO;
 import MATE.Carpool.domain.admin.dto.MemberResponseResultDTO;
+import MATE.Carpool.domain.carpool.dto.response.AdminCarpoolInfoDTO;
 import MATE.Carpool.domain.carpool.dto.response.CarpoolResponseDTO;
+import MATE.Carpool.domain.carpool.dto.response.PassengerInfoDTO;
+import MATE.Carpool.domain.carpool.entity.ReservationEntity;
 import MATE.Carpool.domain.carpool.repository.CarpoolRepository;
+import MATE.Carpool.domain.carpool.repository.ReservationRepository;
 import MATE.Carpool.domain.member.dto.request.SignInRequestDto;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
 import MATE.Carpool.domain.member.entity.Member;
@@ -48,6 +52,7 @@ public class AdminService {
     private final ReportRepository reportRepository;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final JwtProvider jwtProvider;
+    private final ReservationRepository reservationRepository;
 
     @Transactional
     public ResponseEntity<Message<Object>> signIn(SignInRequestDto requestDto, HttpServletResponse response, HttpServletRequest request)  {
@@ -118,14 +123,22 @@ public class AdminService {
     }
 
 
-    public ResponseEntity<Message<CarpoolResponseDTO>> readOne(Long id) {
+    public ResponseEntity<Message<AdminCarpoolInfoDTO>> readOne(Long id) {
         return ResponseEntity.ok(
-                new Message<>("카풀 단일 조회 성공",HttpStatus.OK,
+                new Message<>("카풀 단일 조회 성공", HttpStatus.OK,
                         carpoolRepository.findById(id)
-                                .map(CarpoolResponseDTO::new)
-                                .orElseThrow(()->new CustomException(ErrorCode.CARPOOL_NOT_FOUND))
-                        ));
+                                .map(carpool -> {
+                                    CarpoolResponseDTO carpoolResponseDTO = new CarpoolResponseDTO(carpool);
+                                    List<PassengerInfoDTO> passengerInfoDTOList = reservationRepository.findAllByPassenger(carpool.getId()).stream()
+                                            .map(ReservationEntity::getMember)
+                                            .map(PassengerInfoDTO::new)
+                                            .collect(Collectors.toList());
+                                    boolean isReport = reportRepository.existsByCarpoolId(carpool.getId());
 
+                                    return new AdminCarpoolInfoDTO(carpoolResponseDTO, passengerInfoDTOList, isReport);
+                                })
+                                .orElseThrow(() -> new CustomException(ErrorCode.CARPOOL_NOT_FOUND))
+                ));
     }
 
 

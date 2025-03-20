@@ -4,6 +4,7 @@ import MATE.Carpool.common.Message;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.domain.admin.dto.CarpoolResponseResultDTO;
 import MATE.Carpool.domain.admin.dto.MemberResponseResultDTO;
+import MATE.Carpool.domain.carpool.dto.response.AdminCarpoolInfoDTO;
 import MATE.Carpool.domain.carpool.dto.response.CarpoolResponseDTO;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
 import MATE.Carpool.domain.report.dto.ReportResponseDto;
@@ -261,24 +262,45 @@ public interface AdminApi {
             @ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", examples = {
                     @ExampleObject(name = "카풀 조회 성공", value = """
                                  {
-                                     "message": "카풀 단일 조회 성공",
-                                     "status": "OK",
-                                     "data": {
-                                         "carpoolId": 1,
-                                         "driverName": "tester1",
-                                         "driverImg": "https://carool-s3.s3.ap-northeast-2.amazonaws.com/profileImgS3.png",
-                                         "carImg": "https://carool-s3.s3.ap-northeast-2.amazonaws.com/profileImgS3.png",
-                                         "carNumber": "1가 1234",
-                                         "departureCoordinate": "37.101756, 126.091950",
-                                         "latitude": null,
-                                         "longitude": null,
-                                         "departureTime": "2025-03-02T07:50:00",
-                                         "chatLink": "kakao.com/962",
-                                         "capacity": 4,
-                                         "cost": 4000,
-                                         "reservationCount": 4
+                                         "message": "카풀 단일 조회 성공",
+                                         "status": "OK",
+                                         "data": {
+                                             "carpoolInfo": {
+                                                 "carpoolId": 1,
+                                                 "driverName": "tester1",
+                                                 "driverImg": "https://carool-s3.s3.ap-northeast-2.amazonaws.com/profileImgS3.png",
+                                                 "carImg": "https://carool-s3.s3.ap-northeast-2.amazonaws.com/profileImgS3.png",
+                                                 "carNumber": "1가 1234",
+                                                 "departureCoordinate": "37.101756, 126.091950",
+                                                 "latitude": null,
+                                                 "longitude": null,
+                                                 "departureTime": "2025-03-02T07:50:00",
+                                                 "chatLink": "kakao.com/962",
+                                                 "capacity": 4,
+                                                 "cost": 4000,
+                                                 "reservationCount": 4
+                                             },
+                                             "passengerInfo": [
+                                                 {
+                                                     "passengerName": "tester12",
+                                                     "passengerImg": "https://carool-s3.s3.ap-northeast-2.amazonaws.com/profileImgS3.png"
+                                                 },
+                                                 {
+                                                     "passengerName": "tester15",
+                                                     "passengerImg": "https://carool-s3.s3.ap-northeast-2.amazonaws.com/profileImgS3.png"
+                                                 },
+                                                 {
+                                                     "passengerName": "tester20",
+                                                     "passengerImg": "https://carool-s3.s3.ap-northeast-2.amazonaws.com/profileImgS3.png"
+                                                 },
+                                                 {
+                                                     "passengerName": "tester35",
+                                                     "passengerImg": "https://carool-s3.s3.ap-northeast-2.amazonaws.com/profileImgS3.png"
+                                                 }
+                                             ],
+                                             "report": false
+                                         }
                                      }
-                                 }
                          """)
 
             }))
@@ -294,7 +316,7 @@ public interface AdminApi {
 
             }))
     })
-    ResponseEntity<Message<CarpoolResponseDTO>> readOneCarpool(@PathVariable("id")Long id);
+    ResponseEntity<Message<AdminCarpoolInfoDTO>> readOneCarpool(@PathVariable("id")Long id);
 
 
     @Operation(
