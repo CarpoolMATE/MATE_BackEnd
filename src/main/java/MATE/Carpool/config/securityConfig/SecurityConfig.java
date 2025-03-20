@@ -99,6 +99,7 @@ public class SecurityConfig {
         configuration.addAllowedOrigin("https://admin-iota-lemon.vercel.app");
         configuration.addAllowedOrigin("https://*.carpool.com");
         configuration.addAllowedOrigin("https://.carpool.com");
+        configuration.addAllowedOrigin("https://kyucar.duckdns.org");
 
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowCredentials(true);
