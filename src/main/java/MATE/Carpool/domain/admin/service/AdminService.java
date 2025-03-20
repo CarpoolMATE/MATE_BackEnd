@@ -145,7 +145,7 @@ public class AdminService {
     //서버사이드 페이징  ex) carpools?page=2&size=5
     public ResponseEntity<Message<CarpoolResponseResultDTO>> readAllCarpool(int size, int page, LocalDateTime startDate, LocalDateTime endDate) {
 
-        Pageable pageable = PageRequest.of(page,size,Sort.by(Sort.Order.desc("createdAt")));
+        Pageable pageable = PageRequest.of(page-1,size,Sort.by(Sort.Order.desc("createdAt")));
 
         Page<CarpoolResponseDTO> responseDTOS= carpoolRepository.findByCarpoolToPeriod(pageable,startDate,endDate);
         List<CarpoolResponseDTO> carpools = responseDTOS.getContent();
