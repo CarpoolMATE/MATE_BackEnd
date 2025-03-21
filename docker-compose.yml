@@ -9,7 +9,8 @@ services:
     environment:
       - JAVA_OPTS=-Xms512m -Xmx1024m
     networks:
-      - backend
+      backend:
+        ipv4_address: 192.168.0.5
     restart: always
 
   redis:
@@ -26,6 +27,8 @@ services:
 networks:
   backend:
     driver: bridge
-
+    ipam:
+      config:
+        - subnet: 192.168.0.0/24
 volumes:
   redis-data:

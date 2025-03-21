@@ -82,7 +82,7 @@ public class AdminService {
     @Transactional(readOnly = true)
     public ResponseEntity<Message<MemberResponseResultDTO>> readAllMembers(int size, int page) {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Order.desc("id")));
+        Pageable pageable = PageRequest.of(page-1, size, Sort.by(Sort.Order.desc("id")));
         Page<MemberResponseDTO> memberPage = memberRepository.findAllMemberPagination(pageable);
 
         return ResponseEntity.ok(new Message<>("전체 회원 조회 성공", HttpStatus.OK,new MemberResponseResultDTO(
@@ -96,7 +96,7 @@ public class AdminService {
     @Transactional(readOnly = true)
     public ResponseEntity<Message<MemberResponseResultDTO>> readAllDrivers(int size, int page) {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Order.desc("id")));
+        Pageable pageable = PageRequest.of(page-1, size, Sort.by(Sort.Order.desc("id")));
         Page<MemberResponseDTO> memberPage = memberRepository.findAllDriverPagination(pageable);
 
         return ResponseEntity.ok(new Message<>("전체 드라이버 조회 성공", HttpStatus.OK,new MemberResponseResultDTO(
@@ -171,19 +171,21 @@ public class AdminService {
 
     //신고전체 조회
     @Transactional(readOnly = true)
-    public ResponseEntity<Message<List<ReportResponseDto>>> reportFindAll(){
+    public ResponseEntity<Message<List<ReportResponseDto>>> reportFindAll(int size, int page){
+        Pageable pageable = PageRequest.of(page-1,size,Sort.by(Sort.Order.desc("createdAt")));
         return ResponseEntity.ok(new Message<>("신고목록 전체조회 성공",HttpStatus.OK,
-                reportRepository.findAllReports().stream()
+                reportRepository.findAllReports(pageable).stream()
                 .map(ReportResponseDto::new)
                 .toList())
         );
     }
 
     @Transactional
-    public ResponseEntity<Message<List<ReportResponseDto>>> readAllByCarpool(Long id) {
+    public ResponseEntity<Message<List<ReportResponseDto>>> readAllByCarpool(Long id, int size, int page) {
+        Pageable pageable = PageRequest.of(page-1,size,Sort.by(Sort.Order.desc("createdAt")));
         return ResponseEntity.ok(
                 new Message<>("신고목록 조회 완료",HttpStatus.OK,
-                reportRepository.findByCarpoolId(id)
+                reportRepository.findByCarpoolId(id,pageable)
                         .stream()
                         .map(ReportResponseDto::new)
                         .toList()

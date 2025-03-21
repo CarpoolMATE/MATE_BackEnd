@@ -4,18 +4,13 @@ import MATE.Carpool.common.Message;
 import MATE.Carpool.common.swagger.AdminApi;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.domain.admin.dto.CarpoolResponseResultDTO;
-import MATE.Carpool.domain.admin.dto.MemberResponseDTO;
 import MATE.Carpool.domain.admin.dto.MemberResponseResultDTO;
 import MATE.Carpool.domain.admin.service.AdminService;
 import MATE.Carpool.domain.carpool.dto.response.AdminCarpoolInfoDTO;
-import MATE.Carpool.domain.carpool.dto.response.CarpoolResponseDTO;
-import MATE.Carpool.domain.carpool.service.CarpoolService;
 import MATE.Carpool.domain.member.dto.request.SignInRequestDto;
-import MATE.Carpool.domain.member.dto.request.SignupRequestDto;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
 import MATE.Carpool.domain.member.service.MemberService;
 import MATE.Carpool.domain.report.dto.ReportResponseDto;
-import MATE.Carpool.domain.report.service.ReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,16 +18,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Role;
-import org.springframework.data.domain.Page;
-import org.springframework.data.repository.query.Param;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -103,16 +92,19 @@ public class AdminController implements AdminApi {
 
     @GetMapping("/carpool/report/{id}")
     @Operation(summary = "카풀 신고 조회", description = "입력받은 카풀 id에 해당하는 모든 신고목록을 조회합니다.")
-    public ResponseEntity<Message<List<ReportResponseDto>>> readAllByCarpool(@PathVariable("id") Long carpoolId, int size, int page){
-        return adminService.readAllByCarpool(carpoolId);
+    public ResponseEntity<Message<List<ReportResponseDto>>> readAllByCarpool(@PathVariable("id") Long carpoolId,
+                                                                             @RequestParam("size") int size,
+                                                                             @RequestParam("page") int page){
+        return adminService.readAllByCarpool(carpoolId, size, page);
     }
 
 
     //신고내용확인
     @GetMapping("/reports")
     @Operation(summary = "신고 접수 모아보기", description = "관리자가 유저가 신고한 전체목록을 확인합니다.")
-    public ResponseEntity<Message<List<ReportResponseDto>>> readAllReports(int size, int page) {
-        return adminService.reportFindAll();
+    public ResponseEntity<Message<List<ReportResponseDto>>> readAllReports(@RequestParam("size") int size,
+                                                                           @RequestParam("page") int page) {
+        return adminService.reportFindAll(size,page);
 
     }
     @GetMapping("/report/{id}")
