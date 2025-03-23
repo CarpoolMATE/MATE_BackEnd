@@ -4,7 +4,8 @@ import MATE.Carpool.common.Message;
 import MATE.Carpool.common.swagger.AdminApi;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.domain.admin.dto.CarpoolResponseResultDTO;
-import MATE.Carpool.domain.admin.dto.MemberResponseResultDTO;
+import MATE.Carpool.domain.admin.dto.MemberResponseDTO;
+import MATE.Carpool.domain.admin.dto.PageResponseResultDTO;
 import MATE.Carpool.domain.admin.service.AdminService;
 import MATE.Carpool.domain.carpool.dto.response.AdminCarpoolInfoDTO;
 import MATE.Carpool.domain.member.dto.request.SignInRequestDto;
@@ -46,12 +47,12 @@ public class AdminController implements AdminApi {
 
     //회원 전체조회
     @GetMapping("/members")
-    public ResponseEntity<Message<MemberResponseResultDTO>> readAllMember(@RequestParam("size") int size, @RequestParam("page") int page){
+    public ResponseEntity<Message<PageResponseResultDTO<MemberResponseDTO>>> readAllMember(@RequestParam("size") int size, @RequestParam("page") int page){
         return adminService.readAllMembers(size,page);
     }
 
     @GetMapping("/drivers")
-    public ResponseEntity<Message<MemberResponseResultDTO>> readAllDriver(@RequestParam("size") int size, @RequestParam("page") int page){
+    public ResponseEntity<Message<PageResponseResultDTO<MemberResponseDTO>>> readAllDriver(@RequestParam("size") int size, @RequestParam("page") int page){
         return adminService.readAllDrivers(size,page);
     }
 
@@ -92,7 +93,7 @@ public class AdminController implements AdminApi {
 
     @GetMapping("/carpool/report/{id}")
     @Operation(summary = "카풀 신고 조회", description = "입력받은 카풀 id에 해당하는 모든 신고목록을 조회합니다.")
-    public ResponseEntity<Message<List<ReportResponseDto>>> readAllByCarpool(@PathVariable("id") Long carpoolId,
+    public ResponseEntity<Message<PageResponseResultDTO<ReportResponseDto>>> readAllByCarpool(@PathVariable("id") Long carpoolId,
                                                                              @RequestParam("size") int size,
                                                                              @RequestParam("page") int page){
         return adminService.readAllByCarpool(carpoolId, size, page);
@@ -101,7 +102,7 @@ public class AdminController implements AdminApi {
 
     //신고내용확인
     @GetMapping("/reports")
-    public ResponseEntity<Message<List<ReportResponseDto>>> readAllReports(@RequestParam("size") int size,
+    public ResponseEntity<Message<PageResponseResultDTO<ReportResponseDto>>> readAllReports(@RequestParam("size") int size,
                                                                            @RequestParam("page") int page) {
         return adminService.reportFindAll(size,page);
     }

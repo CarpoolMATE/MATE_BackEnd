@@ -9,8 +9,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class MemberResponseResultDTO {
-    List<MemberResponseDTO> members;
+public class PageResponseResultDTO<T> {
+    List<T> contents;
     Long totalCount;
     int totalPage;
 

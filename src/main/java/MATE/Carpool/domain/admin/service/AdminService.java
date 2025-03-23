@@ -8,7 +8,7 @@ import MATE.Carpool.config.jwt.JwtProvider;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.domain.admin.dto.CarpoolResponseResultDTO;
 import MATE.Carpool.domain.admin.dto.MemberResponseDTO;
-import MATE.Carpool.domain.admin.dto.MemberResponseResultDTO;
+import MATE.Carpool.domain.admin.dto.PageResponseResultDTO;
 import MATE.Carpool.domain.carpool.dto.response.AdminCarpoolInfoDTO;
 import MATE.Carpool.domain.carpool.dto.response.CarpoolResponseDTO;
 import MATE.Carpool.domain.carpool.dto.response.PassengerInfoDTO;
@@ -32,14 +32,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -81,26 +79,29 @@ public class AdminService {
 
     //회원전체조회
     @Transactional(readOnly = true)
-    public ResponseEntity<Message<MemberResponseResultDTO>> readAllMembers(int size, int page) {
+    public ResponseEntity<Message<PageResponseResultDTO<MemberResponseDTO>>> readAllMembers(int size, int page) {
 
-        Pageable pageable = PageRequest.of(page-1, size, Sort.by(Sort.Order.desc("id")));
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Order.desc("id")));
         Page<MemberResponseDTO> memberPage = memberRepository.findAllMemberPagination(pageable);
 
-        return ResponseEntity.ok(new Message<>("전체 회원 조회 성공", HttpStatus.OK,new MemberResponseResultDTO(
+        return ResponseEntity.ok(new Message<>("전체 회원 조회 성공", HttpStatus.OK,
+                new PageResponseResultDTO<>(
                         memberPage.getContent(),
                         memberPage.getTotalElements(),
                         memberPage.getTotalPages()
-                )));
+                )
+        ));
     }
 
-    //회원전체조회
+
+    //드라이버전체조회
     @Transactional(readOnly = true)
-    public ResponseEntity<Message<MemberResponseResultDTO>> readAllDrivers(int size, int page) {
+    public ResponseEntity<Message<PageResponseResultDTO<MemberResponseDTO>>> readAllDrivers(int size, int page) {
 
         Pageable pageable = PageRequest.of(page-1, size, Sort.by(Sort.Order.desc("id")));
         Page<MemberResponseDTO> memberPage = memberRepository.findAllDriverPagination(pageable);
 
-        return ResponseEntity.ok(new Message<>("전체 드라이버 조회 성공", HttpStatus.OK,new MemberResponseResultDTO(
+        return ResponseEntity.ok(new Message<>("전체 드라이버 조회 성공", HttpStatus.OK,new PageResponseResultDTO<>(
                 memberPage.getContent(),
                 memberPage.getTotalElements(),
                 memberPage.getTotalPages()
@@ -172,25 +173,36 @@ public class AdminService {
 
     //신고전체 조회
     @Transactional(readOnly = true)
-    public ResponseEntity<Message<List<ReportResponseDto>>> reportFindAll(int size, int page){
-        Pageable pageable = PageRequest.of(page-1,size,Sort.by(Sort.Order.desc("createdAt")));
-        return ResponseEntity.ok(new Message<>("신고목록 전체조회 성공",HttpStatus.OK,
-                reportRepository.findAllReports(pageable).stream()
-                .map(ReportResponseDto::new)
-                .toList())
+    public ResponseEntity<Message<PageResponseResultDTO<ReportResponseDto>>> reportFindAll(int size, int page){
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Order.desc("createdAt")));
+        Page<ReportEntity> reportPage = reportRepository.findAllReports(pageable);
+
+        PageResponseResultDTO<ReportResponseDto> pageResponseResultDTO = new PageResponseResultDTO<>(
+                reportPage.getContent().stream()
+                        .map(ReportResponseDto::new)
+                        .collect(Collectors.toList()),
+                reportPage.getTotalElements(),
+                reportPage.getTotalPages()
         );
+
+        return ResponseEntity.ok(new Message<>("신고목록 전체조회 성공", HttpStatus.OK, pageResponseResultDTO));
     }
 
+
     @Transactional
-    public ResponseEntity<Message<List<ReportResponseDto>>> readAllByCarpool(Long id, int size, int page) {
+    public ResponseEntity<Message<PageResponseResultDTO<ReportResponseDto>>> readAllByCarpool(Long id, int size, int page) {
         Pageable pageable = PageRequest.of(page-1,size,Sort.by(Sort.Order.desc("createdAt")));
-        return ResponseEntity.ok(
-                new Message<>("신고목록 조회 완료",HttpStatus.OK,
-                reportRepository.findByCarpoolId(id,pageable)
-                        .stream()
+        Page<ReportEntity> reportsByCarpool = reportRepository.findByCarpoolId(id,pageable);
+
+        PageResponseResultDTO<ReportResponseDto> pageResponseResultDTO = new PageResponseResultDTO<>(
+                reportsByCarpool.getContent().stream()
                         .map(ReportResponseDto::new)
-                        .toList()
-        ));
+                        .collect(Collectors.toList()),
+                reportsByCarpool.getTotalElements(),
+                reportsByCarpool.getTotalPages()
+        );
+        return ResponseEntity.ok(new Message<>("카풀 신고목록 전체조회 성공", HttpStatus.OK, pageResponseResultDTO));
+
     }
     @Transactional
     public ResponseEntity<Message<Boolean>> processReport(Long reportId) {

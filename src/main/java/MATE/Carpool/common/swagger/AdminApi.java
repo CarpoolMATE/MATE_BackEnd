@@ -3,9 +3,9 @@ package MATE.Carpool.common.swagger;
 import MATE.Carpool.common.Message;
 import MATE.Carpool.config.userDetails.CustomUserDetails;
 import MATE.Carpool.domain.admin.dto.CarpoolResponseResultDTO;
-import MATE.Carpool.domain.admin.dto.MemberResponseResultDTO;
+import MATE.Carpool.domain.admin.dto.MemberResponseDTO;
+import MATE.Carpool.domain.admin.dto.PageResponseResultDTO;
 import MATE.Carpool.domain.carpool.dto.response.AdminCarpoolInfoDTO;
-import MATE.Carpool.domain.carpool.dto.response.CarpoolResponseDTO;
 import MATE.Carpool.domain.member.dto.response.MemberResponseDto;
 import MATE.Carpool.domain.report.dto.ReportResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -101,7 +101,7 @@ public interface AdminApi {
                     }
                     """)
     }))
-    ResponseEntity<Message<MemberResponseResultDTO>> readAllMember(@RequestParam("size") int size, @RequestParam("page") int page);
+    ResponseEntity<Message<PageResponseResultDTO<MemberResponseDTO>>> readAllMember(@RequestParam("size") int size, @RequestParam("page") int page);
 
     @Operation(summary = "회원 전체 조회 - 드라이버", description = "드라이버 전체 목록을 조회합니다.")
     @ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", examples = {
@@ -136,7 +136,7 @@ public interface AdminApi {
                     }
                     """)
     }))
-    ResponseEntity<Message<MemberResponseResultDTO>> readAllDriver(@RequestParam("size") int size, @RequestParam("page") int page);
+    ResponseEntity<Message<PageResponseResultDTO<MemberResponseDTO>>> readAllDriver(@RequestParam("size") int size, @RequestParam("page") int page);
 
 
 
@@ -336,7 +336,7 @@ public interface AdminApi {
             }))
 
     })
-    ResponseEntity<Message<List<ReportResponseDto>>> readAllByCarpool(@PathVariable("id") Long carpoolId, int size, int page);
+    ResponseEntity<Message<PageResponseResultDTO<ReportResponseDto>>> readAllByCarpool(@PathVariable("id") Long carpoolId, int size, int page);
 
 
     @Operation(
@@ -377,7 +377,7 @@ public interface AdminApi {
             }))
 
     })
-    ResponseEntity<Message<List<ReportResponseDto>>> readAllReports(int size, int page);
+    ResponseEntity<Message<PageResponseResultDTO<ReportResponseDto>>> readAllReports(int size, int page);
 
     
     @Operation(
