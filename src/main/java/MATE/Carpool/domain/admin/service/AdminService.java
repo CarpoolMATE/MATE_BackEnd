@@ -21,6 +21,7 @@ import MATE.Carpool.domain.member.entity.Member;
 import MATE.Carpool.domain.member.entity.MemberType;
 import MATE.Carpool.domain.member.repository.MemberRepository;
 import MATE.Carpool.domain.report.dto.ReportResponseDto;
+import MATE.Carpool.domain.report.entity.ReportEntity;
 import MATE.Carpool.domain.report.repository.ReportRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -191,8 +192,16 @@ public class AdminService {
                         .toList()
         ));
     }
+    @Transactional
+    public ResponseEntity<Message<Boolean>> processReport(Long reportId) {
+        ReportEntity report = reportRepository.findReportById(reportId).orElseThrow(
+                ()-> new CustomException(ErrorCode.REPORT_NOT_FOUND));
 
+        report.isProcess();
 
+        return ResponseEntity.ok(
+                new Message<>("신고 처리 완료",HttpStatus.OK,report.getIsProcessed())
+        );
+    }
 
-    //신고내역 조회
 }

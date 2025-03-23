@@ -349,7 +349,28 @@ public interface AdminApi {
                                  {
                                          "message": "신고목록 조회 완료",
                                          "status": "OK",
-                                         "data": []
+                                         "data": [
+                                                    {
+                                                      "reportId": 1,
+                                                      "memberId": 123,
+                                                      "memberNickname": "testuser1",
+                                                      "createAt": "2025-03-23T10:15:30",
+                                                      "carpoolId": 456,
+                                                      "reportTitle": "카풀 불편 사항",
+                                                      "reportContent": "차량이 너무 더러워요.",
+                                                      "isProcessed": false
+                                                    },
+                                                    {
+                                                      "reportId": 2,
+                                                      "memberId": 124,
+                                                      "memberNickname": "testuser2",
+                                                      "createAt": "2025-03-22T08:45:10",
+                                                      "carpoolId": 457,
+                                                      "reportTitle": "카풀 시간 변경 요청",
+                                                      "reportContent": "출발 시간이 너무 늦습니다.",
+                                                      "isProcessed": true
+                                                    }
+                                              ]
                                      }
                          """)
 
@@ -369,8 +390,16 @@ public interface AdminApi {
                                  {
                                          "message": "신고목록 조회 완료",
                                          "status": "OK",
-                                         "data": {
-                                         }
+                                         "data":   {
+                                                  "reportId": 2,
+                                                  "memberId": 124,
+                                                  "memberNickname": "testuser2",
+                                                  "createAt": "2025-03-22T08:45:10",
+                                                  "carpoolId": 457,
+                                                  "reportTitle": "카풀 시간 변경 요청",
+                                                  "reportContent": "출발 시간이 너무 늦습니다.",
+                                                  "isProcessed": true
+                                                }
                                      }
                          """)
 
@@ -389,6 +418,26 @@ public interface AdminApi {
 
     })
     ResponseEntity<Message<ReportResponseDto>> readReport(@PathVariable("id") Long reportId);
+
+
+    @Operation(
+            summary = "신고 처리 여부",
+            description = "신고목록의 처리여부를 변경 합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", examples = {
+                    @ExampleObject(name = "신고 처리 성공", value = """
+                               {
+                                                  "message": "신고 처리 완료",
+                                                  "status": "OK",
+                                                  "data": true
+                                                }
+                         
+                         """)
+
+            }))
+    })
+    ResponseEntity<Message<Boolean>> processReport(@PathVariable("id") Long reportId);
 
 
 

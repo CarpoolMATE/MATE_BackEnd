@@ -101,12 +101,17 @@ public class AdminController implements AdminApi {
 
     //신고내용확인
     @GetMapping("/reports")
-    @Operation(summary = "신고 접수 모아보기", description = "관리자가 유저가 신고한 전체목록을 확인합니다.")
     public ResponseEntity<Message<List<ReportResponseDto>>> readAllReports(@RequestParam("size") int size,
                                                                            @RequestParam("page") int page) {
         return adminService.reportFindAll(size,page);
-
     }
+
+    @PostMapping("/reports/{reportId}/process")
+    public ResponseEntity<Message<Boolean>> processReport(@PathVariable Long reportId) {
+
+        return adminService.processReport(reportId);
+    }
+
     @GetMapping("/report/{id}")
     @Operation(summary = "신고 내용 상세보기", description = "관리자가 유저가 신고한 목록을 상세보기 합니다.")
     public ResponseEntity<Message<ReportResponseDto>> readReport(@PathVariable("id") Long reportId) {

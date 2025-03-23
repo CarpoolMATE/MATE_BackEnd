@@ -26,11 +26,27 @@ public class ReportEntity extends TimeStamped {
     @Column(nullable = false,length = 250)
     private String reportContent;
 
+
+
+    @Column
+    private boolean isProcessed =false;
+
     @ManyToOne
     private Member member;
 
     @ManyToOne
     @JoinColumn(name = "carpool_id")
     private CarpoolEntity carpool;
+
+    public boolean getIsProcessed() {
+        return isProcessed;
+    }
+
+    public void isProcess() {
+        this.isProcessed = !this.isProcessed;
+    }
+
+
+
 
 }

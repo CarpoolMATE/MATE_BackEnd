@@ -38,13 +38,10 @@ public class ReportService {
     @Transactional
     public ResponseEntity<String> submitReport(ReportRequestDto requestDto, Long carpoolId, CustomUserDetails userDetails) {
 
-        //이용한 카풀에만 신고할 수 있도록
-
         CarpoolEntity carpoolEntity = carpoolRepository.findById(carpoolId)
                 .orElseThrow(()->new CustomException(ErrorCode.CARPOOL_NOT_FOUND));
 
         Long memberId = userDetails.getMember().getId();
-
 
         List<Long> memberIds =reservationRepository.findByMemberId(carpoolEntity.getId());
 
