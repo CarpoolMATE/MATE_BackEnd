@@ -30,10 +30,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
-
-import static MATE.Carpool.domain.carpool.service.CarpoolRequestDtoGenerator.generateRandomCarpoolRequestDTO;
 
 @Service
 @Slf4j
